@@ -1,0 +1,9 @@
+{% include "components/cart_badge.html" with oob=True %}
+<div hx-swap-oob="beforeend:#toasts">
+  {% if ok %}
+    {% url 'cart:detail' as cart_url %}
+    {% include "components/toast.html" with text="«"|add:variant.product.name|add:"» به سبد خرید اضافه شد." link=cart_url link_text="مشاهده سبد" %}
+  {% else %}
+    {% include "components/toast.html" with level="error" text="این محصول در حال حاضر موجود نیست." %}
+  {% endif %}
+</div>

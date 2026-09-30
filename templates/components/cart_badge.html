@@ -1,0 +1,2 @@
+<span id="cart-badge" {% if oob %}hx-swap-oob="true"{% endif %}
+      class="absolute left-0.5 top-0.5 h-[18px] min-w-[18px] rounded-full bg-copper px-1 text-center text-[.7rem] font-bold leading-[18px] text-ink {% if not cart|length %}hidden{% endif %}">{{ cart|length|fa }}</span>

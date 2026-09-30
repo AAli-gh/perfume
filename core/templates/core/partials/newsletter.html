@@ -1,0 +1,12 @@
+<div id="newsletter">
+  <form hx-post="{% url 'core:newsletter' %}" hx-target="#newsletter" hx-swap="outerHTML" action="{% url 'core:newsletter' %}" method="post"
+        class="mx-auto mt-5 flex max-w-[480px] flex-col gap-2.5 sm:flex-row">
+    {% csrf_token %}
+    <label class="sr-only" for="{{ newsletter_form.email.id_for_label }}">ایمیل</label>
+    <div class="flex-1 text-start">{{ newsletter_form.email }}
+      {% for e in newsletter_form.email.errors %}<span class="field-error">{{ e }}</span>{% endfor %}
+    </div>
+    <button class="btn htmx-dim self-start" type="submit">عضویت</button>
+  </form>
+  {% if ok %}<p class="alert alert-ok mx-auto mt-3.5 max-w-[480px]">عضویت شما در خبرنامه عطر مجد با موفقیت انجام شد.</p>{% endif %}
+</div>

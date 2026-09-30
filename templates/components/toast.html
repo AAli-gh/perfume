@@ -1,0 +1,5 @@
+<div class="toast" data-autohide>
+  {% if level == "error" %}{% icon "alert" "text-danger" %}{% else %}{% icon "check" "text-success" %}{% endif %}
+  <span>{{ text }}</span>
+  {% if link %}<a href="{{ link }}" class="font-medium">{{ link_text }}</a>{% endif %}
+</div>

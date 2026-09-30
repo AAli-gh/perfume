@@ -1,0 +1,10 @@
+<article class="reveal group {% if c.is_wide %}lg:col-span-3{% else %}lg:col-span-2{% endif %}">
+  <a class="block overflow-hidden border border-line bg-[#0d0806] {% if c.is_wide %}aspect-[5/4] lg:aspect-[2/1]{% else %}aspect-[5/4]{% endif %}" href="{{ c.get_absolute_url }}">
+    <img src="{{ c.image.url }}" alt="{{ c.name }}" loading="lazy" class="h-full w-full object-cover transition duration-700 group-hover:scale-105">
+  </a>
+  <div class="px-5 pt-[18px]">
+    <h3 class="mb-0.5 text-[1.35rem]">{{ c.name }}</h3>
+    <p class="mb-3.5 text-[.9rem] text-muted">{{ c.tagline }}{% if c.n is not None %} · {{ c.n|fa }} عطر{% endif %}</p>
+    <a class="btn btn-sm" href="{{ c.get_absolute_url }}">مشاهده کالکشن</a>
+  </div>
+</article>

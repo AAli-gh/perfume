@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+{% url 'catalog:shop' as shop_url %}
+{% include "components/page_hero.html" with image="img/hero-shop.jpg" title="دنیای رایحه‌های<br>ماندگار عطر مجد" subtitle="مجموعه‌ای از عطرهای لوکس و دست‌ساز که برای مسحور کردن حواس شما خلق شده‌اند." cta_url=shop_url cta_text="همین حالا خرید کنید" large=True %}
+
+<section class="container pt-14">
+  <div class="reveal grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div class="panel flex items-center gap-3.5 p-5">{% icon "truck" "!h-8 !w-8 text-copper" %}<div><strong class="block font-medium text-cream">ارسال سریع</strong><span class="text-sm text-muted">به سراسر ایران</span></div></div>
+    <div class="panel flex items-center gap-3.5 p-5">{% icon "shield-check" "!h-8 !w-8 text-copper" %}<div><strong class="block font-medium text-cream">ضمانت اصالت</strong><span class="text-sm text-muted">۱۰۰٪ اورجینال</span></div></div>
+    <div class="panel flex items-center gap-3.5 p-5">{% icon "gift" "!h-8 !w-8 text-copper" %}<div><strong class="block font-medium text-cream">بسته‌بندی هدیه</strong><span class="text-sm text-muted">رایگان برای همه سفارش‌ها</span></div></div>
+    <div class="panel flex items-center gap-3.5 p-5">{% icon "headset" "!h-8 !w-8 text-copper" %}<div><strong class="block font-medium text-cream">مشاوره رایحه</strong><span class="text-sm text-muted">همه روزه ۱۰ تا ۲۱</span></div></div>
+  </div>
+</section>
+
+<section class="container py-14 lg:py-[70px]">
+  <div class="mb-8 flex items-end justify-between gap-5">
+    <h2 class="m-0 text-[1.6rem] lg:text-[2.1rem]">کالکشن‌های ویژه</h2>
+    <a href="{% url 'catalog:collections' %}">مشاهده همه ←</a>
+  </div>
+  <div class="grid gap-x-5 gap-y-6 sm:grid-cols-2 lg:grid-cols-6">
+    {% for c in collections %}{% include "components/collection_card.html" %}{% endfor %}
+  </div>
+</section>
+
+<section class="container pb-14 lg:pb-[70px]">
+  <div class="mb-8 flex items-end justify-between gap-5">
+    <h2 class="m-0 text-[1.6rem] lg:text-[2.1rem]">پرفروش‌ترین عطرها</h2>
+    <a href="{{ shop_url }}">مشاهده فروشگاه ←</a>
+  </div>
+  {% include "components/carousel.html" with products=bestsellers %}
+</section>
+
+<section class="container pb-14 lg:pb-[70px]">
+  <div class="reveal grid items-center overflow-hidden border border-line bg-gradient-to-l from-ink-3/95 to-ink-3/60 lg:grid-cols-2">
+    <div class="px-6 py-8 lg:px-12 lg:py-10">
+      <h2 class="text-[1.7rem] lg:text-[2.3rem]">هنر عطرسازی</h2>
+      <p>ما روغن‌های اسانسی کمیاب و عصاره‌های طبیعی را از گوشه و کنار جهان گرد هم می‌آوریم؛ از زعفران خراسان و گل محمدی کاشان تا عود اصیل شرق دور، تا عطری بسازیم که روایتگر داستان شما باشد.</p>
+      <a class="btn mt-2" href="{% url 'core:about' %}">داستان ما را بخوانید</a>
+    </div>
+    <img src="{% static 'img/about-art.jpg' %}" alt="عطرساز در حال ساخت عطر" loading="lazy" class="h-full min-h-[320px] w-full object-cover">
+  </div>
+</section>
+
+{% if posts %}
+<section class="container pb-14 lg:pb-[70px]">
+  <div class="mb-8 flex items-end justify-between gap-5">
+    <h2 class="m-0 text-[1.6rem] lg:text-[2.1rem]">از مجله عطر مجد</h2>
+    <a href="{% url 'blog:list' %}">همه مقالات ←</a>
+  </div>
+  <div class="grid gap-8 md:grid-cols-2">
+    {% for post in posts %}{% include "components/post_card.html" %}{% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<section class="container">
+  <div class="panel reveal px-6 py-12 text-center">
+    <h2>عضویت در خبرنامه</h2>
+    <p>از تازه‌ترین عطرها، کالکشن‌های محدود و تخفیف‌های ویژه باخبر شوید.</p>
+    {% include "core/partials/newsletter.html" %}
+  </div>
+</section>
+{% endblock %}

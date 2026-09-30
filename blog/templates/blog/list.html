@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}مجله | {{ SITE.name }}{% endblock %}
+{% block content %}
+{% include "components/page_hero.html" with image="img/hero-blog.jpg" title="مجله عطر مجد" subtitle="هنر عطرسازی و دانستنی‌های اختصاصی ما را کشف کنید." cta_url="#latest" cta_text="مطالعه مقالات" %}
+<div id="latest" class="container grid items-start gap-10 py-14 lg:grid-cols-[250px_1fr]">
+  <aside class="panel lg:sticky lg:top-24">
+    <form id="blog-filters" hx-get="{% url 'blog:list' %}" hx-target="#posts" hx-push-url="true" hx-trigger="input from:#blog-q delay:400ms, change" action="{% url 'blog:list' %}">
+      <div class="relative border-b border-line p-4">
+        <span class="pointer-events-none absolute right-7 top-1/2 -translate-y-1/2 text-muted">{% icon "search" "!h-4 !w-4" %}</span>
+        <label class="sr-only" for="blog-q">جستجو در مقالات</label>
+        <input class="input ps-9 text-sm" id="blog-q" name="q" type="search" value="{{ q }}" placeholder="جستجو در مقالات…">
+      </div>
+      <h3 class="m-0 px-4 pb-1 pt-3.5 text-xl">دسته‌بندی‌ها</h3>
+      <ul class="px-4 pb-4">
+        <li><label class="cat-item"><input type="radio" name="cat" value="" class="peer sr-only" {% if not cat %}checked{% endif %}><span>همه مطالب</span><span class="text-xs text-muted">{{ total|fa }}</span></label></li>
+        {% for c in categories %}
+          <li><label class="cat-item"><input type="radio" name="cat" value="{{ c.slug }}" class="peer sr-only" {% if cat == c.slug %}checked{% endif %}><span>{{ c.name }}</span><span class="text-xs text-muted">{{ c.n|fa }}</span></label></li>
+        {% endfor %}
+      </ul>
+    </form>
+  </aside>
+  <section class="min-w-0">
+    <h2 class="text-[2rem]">آخرین مقالات</h2>
+    <div id="posts" class="htmx-dim">{% include "blog/partials/posts.html" %}</div>
+  </section>
+</div>
+{% endblock %}

@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ product.name }} | {{ SITE.name }}{% endblock %}
+{% block description %}{{ product.short_description }}{% endblock %}
+{% block content %}
+<nav class="container border-b border-line py-4 text-sm text-muted" aria-label="مسیر">
+  <a class="text-muted" href="{% url 'core:home' %}">خانه</a><span class="mx-2">‹</span><a class="text-muted" href="{% url 'catalog:shop' %}">عطرها</a><span class="mx-2">‹</span><strong class="font-normal text-body">{{ product.name }}</strong>
+</nav>
+
+<div class="container">
+  <section class="grid gap-12 py-11 lg:grid-cols-[1.05fr_1fr]">
+    <div class="grid items-start gap-4 sm:grid-cols-[1fr_82px]" data-gallery>
+      <div class="relative aspect-[4/5] overflow-hidden border border-line bg-[#0d0806]">
+        <img data-gallery-main src="{{ gallery.0.url }}" alt="عطر {{ product.name }}" class="h-full w-full object-cover">
+        {% if gallery|length > 1 %}
+        <button class="carousel-btn right-2.5 !top-[calc(50%-19px)]" data-gallery-prev aria-label="تصویر قبلی">{% icon "chev-right" %}</button>
+        <button class="carousel-btn left-2.5 !top-[calc(50%-19px)]" data-gallery-next aria-label="تصویر بعدی">{% icon "chev-left" %}</button>
+        {% endif %}
+      </div>
+      <div class="order-2 grid grid-cols-4 gap-3 sm:order-none sm:grid-cols-1">
+        {% for img in gallery %}
+          <button type="button" data-gallery-thumb="{{ img.url }}" aria-label="تصویر {{ forloop.counter|fa }}"
+                  class="aspect-square overflow-hidden border border-line bg-[#0d0806] opacity-60 transition hover:border-copper hover:opacity-100 data-[active]:border-copper data-[active]:opacity-100" {% if forloop.first %}data-active{% endif %}>
+            <img src="{{ img.url }}" alt="" class="h-full w-full object-cover">
+          </button>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div>
+      <h1 class="mb-1 text-[2rem] lg:text-[2.8rem]">{{ product.name }}</h1>
+      <div class="mb-3.5 flex flex-wrap items-center gap-3.5 text-[.9rem]">
+        <a href="{% url 'catalog:shop' %}?brand={{ product.brand.slug }}" class="font-medium text-cream">{{ product.brand.name }}</a>
+        {% stars product.rating_avg %} <span>({{ product.review_count|fa }} نظر مشتری)</span>
+      </div>
+
+      <form action="{% url 'cart:add' %}" method="post" hx-post="{% url 'cart:add' %}" hx-swap="none" data-variant-form>
+        {% csrf_token %}
+        <div class="mb-3 text-[1.8rem] text-[#f3dcc4]"><span data-variant-price>{{ product.default_variant.price|toman }}</span></div>
+        <p>{{ product.short_description }}</p>
+
+        <div class="my-6 grid grid-cols-3 gap-2 text-center sm:gap-2.5">
+          <div><img src="{% static 'img/note-top.jpg' %}" alt="" class="mb-2.5 aspect-video w-full border border-line object-cover"><h4 class="m-0 text-[.98rem] text-cream">نت آغازین</h4><p class="m-0 text-sm leading-relaxed text-muted">{{ product.notes_top }}</p></div>
+          <div><img src="{% static 'img/note-mid.jpg' %}" alt="" class="mb-2.5 aspect-video w-full border border-line object-cover"><h4 class="m-0 text-[.98rem] text-cream">نت میانی</h4><p class="m-0 text-sm leading-relaxed text-muted">{{ product.notes_middle }}</p></div>
+          <div><img src="{% static 'img/note-base.jpg' %}" alt="" class="mb-2.5 aspect-video w-full border border-line object-cover"><h4 class="m-0 text-[.98rem] text-cream">نت پایه</h4><p class="m-0 text-sm leading-relaxed text-muted">{{ product.notes_base }}</p></div>
+        </div>
+
+        <div class="grid gap-[18px] border-t border-line pt-5">
+          <div class="flex flex-wrap items-center gap-4">
+            <span class="min-w-[60px]">حجم</span>
+            <div class="flex gap-2">
+              {% for v in variants %}
+                <label class="cursor-pointer">
+                  <input type="radio" name="variant" value="{{ v.pk }}" class="peer sr-only" data-price="{{ v.price|toman }}"
+                         {% if v == product.default_variant %}checked{% endif %} {% if not v.stock %}disabled{% endif %}>
+                  <span class="block rounded border border-line px-4 py-1.5 text-muted peer-checked:border-copper peer-checked:bg-copper/10 peer-checked:text-gold peer-disabled:line-through peer-disabled:opacity-40 peer-focus-visible:ring-2 peer-focus-visible:ring-copper">{{ v.size_ml|fa }} میل</span>
+                </label>
+              {% endfor %}
+            </div>
+          </div>
+          <div class="flex flex-wrap items-center gap-4">
+            <label for="qty" class="min-w-[60px]">تعداد</label>
+            <div class="inline-flex items-center overflow-hidden rounded border border-line" data-qty>
+              <button type="button" class="h-[34px] w-[34px] bg-black/30 text-lg text-muted hover:text-gold" data-qty-step="-1" aria-label="کاهش">−</button>
+              <input id="qty" name="quantity" type="number" value="1" min="1" max="20" class="h-[34px] w-11 border-x border-line bg-transparent text-center [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none">
+              <button type="button" class="h-[34px] w-[34px] bg-black/30 text-lg text-muted hover:text-gold" data-qty-step="1" aria-label="افزایش">+</button>
+            </div>
+          </div>
+          {% if product.in_stock %}
+            <button class="btn btn-lg htmx-dim w-full" type="submit">افزودن به سبد خرید</button>
+          {% else %}
+            <button class="btn btn-lg w-full" type="button" disabled>ناموجود</button>
+          {% endif %}
+          <div class="flex items-center gap-2 text-sm text-muted">اشتراک‌گذاری:
+            {% with url=request.build_absolute_uri %}
+            <a class="share-link" target="_blank" rel="noopener" aria-label="تلگرام" href="https://t.me/share/url?url={{ url|urlencode }}&text={{ product.name|urlencode }}">{% icon "telegram" "!h-4 !w-4" %}</a>
+            <a class="share-link" target="_blank" rel="noopener" aria-label="واتس‌اپ" href="https://wa.me/?text={{ product.name|urlencode }}%20{{ url|urlencode }}">{% icon "whatsapp" "!h-4 !w-4" %}</a>
+            <a class="share-link" target="_blank" rel="noopener" aria-label="ایکس" href="https://twitter.com/intent/tweet?url={{ url|urlencode }}&text={{ product.name|urlencode }}">{% icon "x" "!h-4 !w-4" %}</a>
+            <a class="share-link" aria-label="ایمیل" href="mailto:?subject={{ product.name|urlencode }}&body={{ url|urlencode }}">{% icon "mail" "!h-4 !w-4" %}</a>
+            {% endwith %}
+          </div>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <section class="border-t border-line py-9" data-tabs id="reviews">
+    <div class="mb-6 flex border-b border-line" role="tablist">
+      <button role="tab" aria-selected="true" aria-controls="tab-desc" class="tab-btn">توضیحات</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-reviews" class="tab-btn">نظرات مشتریان ({{ product.review_count|fa }})</button>
+    </div>
+    <div id="tab-desc" role="tabpanel" class="max-w-[820px] text-[1.02rem]">
+      {{ product.description|linebreaks }}
+      <p>تمام عطرهای عطر مجد با ضمانت اصالت کالا و در بسته‌بندی نفیس ارائه می‌شوند. برای ماندگاری بیشتر، عطر را روی نقاط نبض بدن مانند مچ دست و گردن اسپری کنید.</p>
+    </div>
+    <div id="tab-reviews" role="tabpanel" class="max-w-[820px]" hidden>
+      {% for r in reviews %}
+        <article class="border-b border-line py-4 last:border-0">
+          <header class="mb-1.5 flex flex-wrap items-center justify-between gap-2.5"><strong class="font-medium text-cream">{{ r.name }}</strong> {% stars r.rating %} <time class="text-xs text-muted">{{ r.created_at|jdate }}</time></header>
+          <p class="m-0">{{ r.text|linebreaksbr }}</p>
+        </article>
+      {% empty %}
+        <p class="text-muted">هنوز نظری ثبت نشده است. اولین نفر باشید!</p>
+      {% endfor %}
+      {% include "catalog/partials/review_form.html" %}
+    </div>
+  </section>
+
+  {% if related %}
+  <section class="border-t border-line py-14">
+    <h2 class="mb-8 text-[1.6rem] lg:text-[2.1rem]">شاید این‌ها را هم بپسندید</h2>
+    {% include "components/carousel.html" with products=related %}
+  </section>
+  {% endif %}
+</div>
+{% endblock %}

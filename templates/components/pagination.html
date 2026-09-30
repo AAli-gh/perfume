@@ -1,0 +1,16 @@
+{% if page.paginator.num_pages > 1 %}
+<nav class="pager mt-9 flex flex-wrap justify-center gap-2" aria-label="صفحه‌بندی">
+  {% if page.has_previous %}
+    {% querystring page=page.previous_page_number as url %}
+    <a href="{{ url }}" {% if hx_target %}hx-get="{{ url }}" hx-target="{{ hx_target }}" hx-push-url="true"{% endif %}>قبلی</a>
+  {% else %}<span class="disabled">قبلی</span>{% endif %}
+  {% for n in page.paginator.page_range %}
+    {% if n == page.number %}<span class="current" aria-current="page">{{ n|fa }}</span>
+    {% else %}{% querystring page=n as url %}<a href="{{ url }}" {% if hx_target %}hx-get="{{ url }}" hx-target="{{ hx_target }}" hx-push-url="true"{% endif %}>{{ n|fa }}</a>{% endif %}
+  {% endfor %}
+  {% if page.has_next %}
+    {% querystring page=page.next_page_number as url %}
+    <a href="{{ url }}" {% if hx_target %}hx-get="{{ url }}" hx-target="{{ hx_target }}" hx-push-url="true"{% endif %}>بعدی</a>
+  {% else %}<span class="disabled">بعدی</span>{% endif %}
+</nav>
+{% endif %}

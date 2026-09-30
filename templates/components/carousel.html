@@ -1,0 +1,7 @@
+<div class="relative" data-carousel>
+  <button class="carousel-btn -right-2 lg:-right-[18px]" data-carousel-prev aria-label="قبلی">{% icon "chev-right" %}</button>
+  <div class="carousel-track" data-carousel-track>
+    {% for p in products %}{% include "components/product_card.html" %}{% endfor %}
+  </div>
+  <button class="carousel-btn -left-2 lg:-left-[18px]" data-carousel-next aria-label="بعدی">{% icon "chev-left" %}</button>
+</div>

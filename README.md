@@ -1,36 +1,106 @@
 # عطر مجد — Majd Perfume
 
-وب‌سایت فروشگاهی عطرهای لوکس با طراحی تیره و طلایی، کاملاً فارسی و راست‌به‌چپ.
+فروشگاه اینترنتی عطر، فارسی و راست‌به‌چپ، با طراحی تیره و طلایی.
 
-## صفحات
+**معماری:** Django 5.2 · PostgreSQL · Django Templates · HTMX 2 · Tailwind CSS 3
 
-| فایل | توضیح |
-|---|---|
-| `index.html` | صفحه اصلی: هیرو، کالکشن‌های ویژه، پرفروش‌ها، مجله، خبرنامه |
-| `shop.html` | فروشگاه با فیلتر برند، محدوده قیمت، نوع رایحه، مرتب‌سازی، نمای شبکه/فهرست و صفحه‌بندی |
-| `collections.html` | کالکشن‌ها |
-| `product.html?id=…` | جزئیات محصول: گالری، نت‌های عطر، انتخاب حجم و تعداد، نظرات، محصولات مرتبط |
-| `cart.html` | سبد خرید، کد تخفیف، فرم ثبت سفارش و روش پرداخت |
-| `login.html` | ورود و ساخت حساب |
-| `blog.html` و `post.html?id=…` | مجله با جستجو و دسته‌بندی |
-| `about.html` | درباره ما |
-| `contact.html` | فرم تماس، اطلاعات تماس و نقشه |
+## ساختار پروژه
 
-## اجرا
-
-سایت کاملاً استاتیک است و به build نیاز ندارد:
-
-```bash
-python3 -m http.server 8000
-# سپس http://localhost:8000 را باز کنید
+```
+config/        تنظیمات، urls، wsgi
+core/          صفحه اصلی، درباره ما، تماس، خبرنامه، فیلترهای قالب (اعداد فارسی، تومان، تاریخ شمسی)، seed_demo
+catalog/       برند، خانواده رایحه، کالکشن، محصول، حجم/قیمت (Variant)، گالری، نظرات
+cart/          سبد خرید مبتنی بر session + کد تخفیف
+orders/        کد تخفیف، سفارش، اقلام سفارش، ثبت سفارش، درگاه زرین‌پال
+accounts/      کاربر سفارشی (ورود با ایمیل)، ورود/ثبت‌نام، سفارش‌های من
+blog/          دسته‌بندی و مقاله
+templates/     قالب پایه و کامپوننت‌های مشترک (کارت محصول، هیرو، صفحه‌بندی، …)
+static/src/    ورودی Tailwind  →  static/css/app.css (ساخته می‌شود)
+static/js/     app.js (تعاملات کوچک: منو، گالری، اسلایدر، تب‌ها)
+static/vendor/ htmx.min.js
+seed/images/   تصاویر داده‌های نمایشی
 ```
 
-## ساختار
+### HTMX کجا استفاده شده است
 
-- `assets/css/style.css` — استایل‌ها (رنگ‌ها در `:root`)
-- `assets/js/data.js` — محصولات، کالکشن‌ها، مقالات، کدهای تخفیف (`MAJD10`، `YALDA50`) و هزینه ارسال
-- `assets/js/main.js` — هدر/فوتر مشترک، سبد خرید (localStorage)، ابزارها و اعتبارسنجی فرم
-- `assets/js/pages.js` — منطق هر صفحه
-- `assets/img/` — تصاویر
+| بخش | رفتار |
+|---|---|
+| فیلترهای فروشگاه، مرتب‌سازی، صفحه‌بندی | فقط `#results` جایگزین می‌شود و آدرس صفحه به‌روز می‌شود (`hx-push-url`) |
+| افزودن به سبد | `hx-swap="none"` و شمارنده سبد و اعلان به‌صورت out-of-band به‌روز می‌شوند |
+| تغییر تعداد / حذف / کد تخفیف | بخش سبد و خلاصه سفارش با هم به‌روز می‌شوند |
+| ثبت نظر، فرم تماس، خبرنامه | فقط خود فرم جایگزین می‌شود |
+| جستجو و دسته‌بندی مجله | فقط لیست مقالات جایگزین می‌شود |
 
-> ورود، ثبت‌نام، پرداخت و ارسال فرم‌ها فعلاً نمایشی هستند و به سرور متصل نیستند.
+همه فرم‌ها بدون جاوااسکریپت هم کار می‌کنند؛ HTMX فقط تجربه کاربری را بهتر می‌کند.
+در هر view، `request.htmx` (از django-htmx) مشخص می‌کند که partial برگردد یا صفحه کامل.
+
+## راه‌اندازی محلی
+
+پیش‌نیازها: Python 3.11+، Node 18+، PostgreSQL 14+
+
+```bash
+# ۱. پایگاه داده
+createuser -P majd            # رمز: majd
+createdb -O majd majd
+
+# ۲. پایتون
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env          # در صورت نیاز DATABASE_URL را تغییر دهید
+
+# ۳. Tailwind
+npm install
+npm run build:css             # یا در حین توسعه: npm run watch:css
+
+# ۴. دیتابیس و داده نمایشی
+python manage.py migrate
+python manage.py seed_demo    # ۱۲ محصول، ۵ کالکشن، ۶ مقاله، کدهای تخفیف MAJD10 و YALDA50
+python manage.py createsuperuser
+
+python manage.py runserver
+```
+
+- سایت: http://localhost:8000
+- پنل مدیریت: http://localhost:8000/admin
+
+## اجرا با Docker
+
+```bash
+cp .env.example .env
+docker compose up --build
+docker compose exec web python manage.py seed_demo
+docker compose exec web python manage.py createsuperuser
+```
+
+سایت روی http://localhost:8080 بالا می‌آید. nginx فایل‌های static و media را سرو می‌کند.
+
+## تست‌ها
+
+```bash
+python manage.py test
+```
+
+تست‌ها روی PostgreSQL اجرا می‌شوند و این موارد را پوشش می‌دهند: فیلترها و جستجو، پاسخ‌های partial در HTMX، سبد خرید و کد تخفیف، ثبت سفارش و کم شدن موجودی، اعتبارسنجی فرم‌ها، پرداخت، ورود و ثبت‌نام.
+
+## پرداخت
+
+- **زرین‌پال:** `ZARINPAL_MERCHANT_ID` را در `.env` تنظیم کنید. برای محیط آزمایشی زرین‌پال `ZARINPAL_SANDBOX=True` و برای پرداخت واقعی `False` بگذارید.
+- **بدون مرچنت و با `DEBUG=True`:** یک درگاه آزمایشی داخلی فعال می‌شود.
+- **بدون مرچنت و در حالت production:** گزینه پرداخت آنلاین نمایش داده نمی‌شود.
+- موجودی کالا هنگام ثبت سفارش کم می‌شود. اگر سفارش در پنل مدیریت «لغو شده» شود، موجودی برمی‌گردد.
+
+## تنظیمات (`.env`)
+
+| متغیر | توضیح |
+|---|---|
+| `DEBUG` | حالت توسعه |
+| `SECRET_KEY` | در production الزامی است |
+| `ALLOWED_HOSTS` | دامنه‌های مجاز، جدا شده با کاما |
+| `CSRF_TRUSTED_ORIGINS` | آدرس‌های مجاز برای CSRF، جدا شده با کاما |
+| `DATABASE_URL` | مثلاً `postgres://user:pass@host:5432/db` |
+| `ZARINPAL_MERCHANT_ID` / `ZARINPAL_SANDBOX` | درگاه پرداخت |
+| `SHIPPING_COST` | هزینه ارسال به تومان |
+| `FREE_SHIPPING_OVER` | حداقل مبلغ سفارش برای ارسال رایگان؛ مقدار ۰ یعنی ارسال رایگان غیرفعال است |
+| `SECURE_SSL_REDIRECT` / `SECURE_HSTS_SECONDS` | تنظیمات امنیتی HTTPS در production |
+
+اطلاعات تماس فروشگاه (تلفن، ایمیل، آدرس، شبکه‌های اجتماعی) در `SITE_INFO` داخل `config/settings.py` قرار دارد.
