@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>تماس با ما | عطر مجد</title>
+  <meta name="description" content="راه‌های ارتباط با عطر مجد؛ تلفن، ایمیل، آدرس و فرم تماس.">
+  <meta name="theme-color" content="#110b08">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23110b08'/%3E%3Ctext x='32' y='44' font-size='34' text-anchor='middle' fill='%23e7b98c' font-family='serif'%3E%D9%85%3C/text%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@400;700&family=Vazirmatn:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-page="contact">
+<main>
+  
+  <section class="page-hero ">
+    <div class="hero-bg" style="background-image:url('assets/img/hero-contact.jpg')"></div>
+    <div class="container">
+      <h1>تماس با ما</h1>
+      <p>برای هر پرسش یا راهنمایی در کنار شما هستیم.</p>
+      
+    </div>
+  </section>
+  <div class="container section contact-layout">
+    <section class="panel">
+      <h2 class="panel-title">فرم تماس</h2>
+      <form class="panel-body" id="contact-form" novalidate style="display:grid;gap:16px">
+        <div class="field"><label for="c-name">نام <span class="req">*</span></label><input id="c-name" name="name" placeholder="نام شما" required></div>
+        <div class="field"><label for="c-email">ایمیل <span class="req">*</span></label><input id="c-email" name="email" type="email" placeholder="ایمیل شما" required dir="ltr"></div>
+        <div class="field"><label for="c-subject">موضوع</label>
+          <select id="c-subject" name="subject"><option>مشاوره انتخاب عطر</option><option>پیگیری سفارش</option><option>بازگشت و تعویض</option><option>همکاری و فروش سازمانی</option><option>سایر موارد</option></select></div>
+        <div class="field"><label for="c-msg">پیام شما <span class="req">*</span></label><textarea id="c-msg" name="message" required minlength="10"></textarea></div>
+        <div style="text-align:center"><button class="btn btn-lg" type="submit">ارسال پیام</button></div>
+        <div class="form-msg"></div>
+        <p class="form-note" style="text-align:center;margin:0">یا مستقیماً به <a href="mailto:info@atremajd.ir">info@atremajd.ir</a> ایمیل بزنید.</p>
+      </form>
+    </section>
+    <section class="panel">
+      <h2 class="panel-title">راه‌های ارتباطی</h2>
+      <div class="panel-body">
+        <ul class="contact-list">
+          <li><svg class="icon" viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg><a href="tel:+982112345678" dir="ltr">۰۲۱-۱۲۳۴۵۶۷۸</a></li>
+          <li><svg class="icon" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="1"/><path d="m3 7 9 6 9-6"/></svg><a href="mailto:info@atremajd.ir">info@atremajd.ir</a></li>
+          <li><svg class="icon" viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>تهران، خیابان ولیعصر، پلاک ۱۲۳</li>
+        </ul>
+        <iframe class="map" title="نقشه موقعیت عطر مجد" loading="lazy" src="https://www.openstreetmap.org/export/embed.html?bbox=51.395%2C35.72%2C51.43%2C35.745&amp;layer=mapnik&amp;marker=35.7325%2C51.4125"></iframe>
+        <div class="hours">
+          <div><span>شنبه تا چهارشنبه</span><span>۱۰:۰۰ تا ۲۱:۰۰</span></div>
+          <div><span>پنجشنبه</span><span>۱۰:۰۰ تا ۱۸:۰۰</span></div>
+          <div><span>جمعه</span><span>تعطیل</span></div>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/main.js"></script>
+  <script src="assets/js/pages.js"></script>
+</body>
+</html>
