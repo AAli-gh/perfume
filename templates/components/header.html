@@ -1,4 +1,4 @@
-{% url 'core:home' as home_url %}
+{% url 'pages:home' as home_url %}
 <header class="sticky top-0 z-50 border-b border-line bg-ink/90 backdrop-blur">
   <div class="container flex h-[72px] items-center gap-6 lg:gap-10">
     <button class="icon-btn lg:hidden" data-menu-toggle aria-label="منو" aria-expanded="false" aria-controls="main-nav">{% icon "menu" %}</button>
@@ -8,12 +8,12 @@
          class="fixed inset-x-0 bottom-0 top-[72px] translate-x-full bg-[#0e0906]/[.98] p-5 transition-transform data-[open]:translate-x-0 lg:static lg:flex-1 lg:translate-x-0 lg:bg-transparent lg:p-0">
       <ul class="flex flex-col lg:flex-row lg:gap-7 xl:gap-9">
         {% with s=nav_section %}
-        <li><a href="{{ home_url }}" class="nav-link {% if s == 'core' and request.path == home_url %}is-active{% endif %}">خانه</a></li>
+        <li><a href="{{ home_url }}" class="nav-link {% if s == 'pages' and request.path == home_url %}is-active{% endif %}">خانه</a></li>
         <li><a href="{% url 'catalog:shop' %}" class="nav-link {% if request.resolver_match.url_name == 'shop' or request.resolver_match.url_name == 'product' %}is-active{% endif %}">فروشگاه</a></li>
         <li><a href="{% url 'catalog:collections' %}" class="nav-link {% if request.resolver_match.url_name == 'collections' %}is-active{% endif %}">کالکشن‌ها</a></li>
         <li><a href="{% url 'blog:list' %}" class="nav-link {% if s == 'blog' %}is-active{% endif %}">مجله</a></li>
-        <li><a href="{% url 'core:about' %}" class="nav-link {% if request.resolver_match.url_name == 'about' %}is-active{% endif %}">درباره ما</a></li>
-        <li><a href="{% url 'core:contact' %}" class="nav-link {% if request.resolver_match.url_name == 'contact' %}is-active{% endif %}">تماس با ما</a></li>
+        <li><a href="{% url 'pages:about' %}" class="nav-link {% if request.resolver_match.url_name == 'about' %}is-active{% endif %}">درباره ما</a></li>
+        <li><a href="{% url 'pages:contact' %}" class="nav-link {% if request.resolver_match.url_name == 'contact' %}is-active{% endif %}">تماس با ما</a></li>
         {% endwith %}
       </ul>
     </nav>

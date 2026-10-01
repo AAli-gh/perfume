@@ -2,9 +2,9 @@
 
 from dataclasses import dataclass
 
-from django.conf import settings
-
 from apps.catalog.models import ProductVariant
+from apps.core.stores import get_current_store
+from apps.discounts.selectors import find_coupon
 
 SESSION_KEY = "cart"
 COUPON_KEY = "coupon"
@@ -32,6 +32,7 @@ class CartLine:
 
 class Cart:
     def __init__(self, request):
+        self.store = getattr(request, "store", None) or get_current_store()
         self.session = request.session
         self._data = self.session.get(SESSION_KEY) or {}
         self._lines = None
@@ -70,7 +71,7 @@ class Cart:
     def lines(self):
         if self._lines is None:
             variants = ProductVariant.objects.filter(
-                pk__in=self._data.keys(), product__is_active=True
+                pk__in=self._data.keys(), product__is_active=True, product__store=self.store
             ).select_related("product", "product__brand")
             by_id = {str(v.pk): v for v in variants}
             # حذف اقلامی که دیگر وجود ندارند
@@ -97,11 +98,9 @@ class Cart:
     # ---------- کد تخفیف ----------
     @property
     def coupon(self):
-        from apps.orders.models import Coupon
-
         if self._coupon is _UNSET:
             code = self.session.get(COUPON_KEY)
-            coupon = Coupon.objects.filter(code=code).first() if code else None
+            coupon = find_coupon(self.store, code)
             if coupon is not None and coupon.check_usable(self.subtotal):
                 coupon = None
             self._coupon = coupon
@@ -125,10 +124,10 @@ class Cart:
     def shipping(self):
         if self.is_empty:
             return 0
-        free_over = settings.FREE_SHIPPING_OVER
-        if free_over and self.subtotal - self.discount >= free_over:
+        config = self.store.config
+        if config.free_shipping_over and self.subtotal - self.discount >= config.free_shipping_over:
             return 0
-        return settings.SHIPPING_COST
+        return config.shipping_cost
 
     @property
     def total(self):

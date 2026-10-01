@@ -1,6 +1,7 @@
 from django.urls import reverse
 
-from apps.catalog.models import Brand, Review, ScentFamily
+from apps.catalog.models import Brand, ScentFamily
+from apps.reviews.models import Review
 from apps.core.tests.factories import ShopTestCase, make_product
 
 
@@ -41,7 +42,7 @@ class ShopViewTests(ShopTestCase):
         self.assertNotContains(resp, "اسپم اسپم")
 
     def test_review_submission_needs_approval(self):
-        resp = self.htmx("post", reverse("catalog:review", args=["oud"]), {"name": "سارا", "rating": 5, "text": "خیلی خوب است"})
+        resp = self.htmx("post", reverse("reviews:create", args=["oud"]), {"name": "سارا", "rating": 5, "text": "خیلی خوب است"})
         self.assertContains(resp, "پس از تأیید")
         review = Review.objects.get()
         self.assertFalse(review.is_approved)

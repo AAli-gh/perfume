@@ -3,6 +3,7 @@
 from dataclasses import dataclass
 
 from apps.core.forms import en_digits
+from apps.discounts.selectors import find_coupon
 
 from .cart import Cart
 
@@ -15,13 +16,10 @@ class CouponResult:
 
 def apply_coupon_code(cart: Cart, raw_code: str) -> CouponResult:
     """اعتبارسنجی و اعمال کد تخفیف روی سبد."""
-    # TODO(Phase 2): با انتقال Coupon به اپ discounts، این وابستگی cart → orders حذف می‌شود.
-    from apps.orders.models import Coupon
-
     code = en_digits(raw_code or "").upper()
     if not code:
         return CouponResult(False, "کد تخفیف را وارد کنید.")
-    coupon = Coupon.objects.filter(code=code).first()
+    coupon = find_coupon(cart.store, code)
     if coupon is None:
         return CouponResult(False, "کد تخفیف معتبر نیست.")
     if err := coupon.check_usable(cart.subtotal):

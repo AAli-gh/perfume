@@ -7,6 +7,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 
 from apps.catalog.models import Brand, Product, ProductVariant, ScentFamily
+from apps.core.stores import get_default_store
 
 GIF = b"GIF89a\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00\xff\xff\xff!\xf9\x04\x01\x00\x00\x00\x00,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;"
 MEDIA = tempfile.mkdtemp()
@@ -28,8 +29,15 @@ def make_product(slug="oud", name="عود تست", price=1_000_000, stock=5, bra
     return p, v50, v100
 
 
-@override_settings(MEDIA_ROOT=MEDIA, SHIPPING_COST=100_000, FREE_SHIPPING_OVER=0, DEBUG=True, ZARINPAL_MERCHANT_ID="")
+@override_settings(MEDIA_ROOT=MEDIA, DEBUG=True, ZARINPAL_MERCHANT_ID="")
 class ShopTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        # هزینه ارسال از Phase 2 در تنظیمات فروشگاه (دیتابیس) است، نه settings
+        config = get_default_store().config
+        config.shipping_cost, config.free_shipping_over = 100_000, 0
+        config.save()
+
     @classmethod
     def tearDownClass(cls):
         super().tearDownClass()

@@ -1,7 +1,7 @@
 from django.urls import reverse
 
 from apps.core.tests.factories import ShopTestCase, make_product
-from apps.orders.models import Coupon
+from apps.discounts.models import Coupon
 
 
 class CartTests(ShopTestCase):

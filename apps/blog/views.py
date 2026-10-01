@@ -8,7 +8,9 @@ from .models import Category, Post
 def post_list(request):
     q = request.GET.get("q", "").strip()
     cat = request.GET.get("cat", "")
-    posts = Post.objects.published().select_related("category")
+    store = request.store
+    published = Post.objects.for_store(store).published()
+    posts = published.select_related("category")
     if cat:
         posts = posts.filter(category__slug=cat)
     if q:
@@ -18,10 +20,10 @@ def post_list(request):
         "page": page,
         "q": q,
         "cat": cat,
-        "categories": Category.objects.annotate(
-            n=Count("posts", filter=Q(posts__in=Post.objects.published()))
-        ),
-        "total": Post.objects.published().count(),
+        "categories": Category.objects.for_store(store)
+        .annotate(n=Count("posts", filter=Q(posts__in=published)))
+        .order_by(*Category._meta.ordering),  # GROUP BY ترتیب پیش‌فرض را حذف می‌کند
+        "total": published.count(),
     }
     if request.htmx and not request.htmx.boosted:
         return render(request, "blog/partials/posts.html", context)
@@ -29,6 +31,7 @@ def post_list(request):
 
 
 def post_detail(request, slug):
-    post = get_object_or_404(Post.objects.published().select_related("category"), slug=slug)
-    more = Post.objects.published().exclude(pk=post.pk).select_related("category")[:2]
+    published = Post.objects.for_store(request.store).published()
+    post = get_object_or_404(published.select_related("category"), slug=slug)
+    more = published.exclude(pk=post.pk).select_related("category")[:2]
     return render(request, "blog/detail.html", {"post": post, "more": more})

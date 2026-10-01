@@ -3,9 +3,12 @@
 from django.db import transaction
 from django.db.models import F
 
+from apps.accounts.models import Address
+from apps.accounts.services import remember_address
 from apps.catalog.models import ProductVariant
+from apps.discounts.services import record_usage
 
-from .models import Coupon, Order, OrderItem
+from .models import Order, OrderItem
 
 
 class OutOfStock(Exception):
@@ -29,6 +32,7 @@ def create_order(cart, form, user=None):
 
     coupon = cart.coupon
     order = form.save(commit=False)
+    order.store = cart.store
     order.user = user if user and user.is_authenticated else None
     order.subtotal = cart.subtotal
     order.discount = cart.discount
@@ -47,7 +51,8 @@ def create_order(cart, form, user=None):
     for line in lines:
         ProductVariant.objects.filter(pk=line.variant.pk).update(stock=F("stock") - line.quantity)
     if coupon:
-        Coupon.objects.filter(pk=coupon.pk).update(used_count=F("used_count") + 1)
+        record_usage(coupon)
+    remember_address(order.user, {f: getattr(order, f) for f in Address.FIELDS})
     return order
 
 

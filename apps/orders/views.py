@@ -26,7 +26,7 @@ def _remember(request, order):
 
 
 def _get_owned_order(request, number):
-    order = get_object_or_404(Order.objects.prefetch_related("items"), number=number)
+    order = get_object_or_404(Order.objects.for_store(request.store).prefetch_related("items"), number=number)
     owns = (
         number in request.session.get(SESSION_ORDERS, [])
         or (request.user.is_authenticated and order.user_id == request.user.pk)
@@ -86,7 +86,7 @@ def callback(request):
     status = request.GET.get("Status", "")
     if not authority:
         raise Http404
-    order = get_object_or_404(Order, payment_authority=authority)
+    order = get_object_or_404(Order.objects.for_store(request.store), payment_authority=authority)
     if order.is_paid:
         return redirect(order)
     if status != "OK":

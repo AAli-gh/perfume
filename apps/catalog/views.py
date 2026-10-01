@@ -1,13 +1,10 @@
-from django.contrib import messages
 from django.core.paginator import Paginator
 from django.http import Http404
-from django.shortcuts import get_object_or_404, redirect, render
-from django.views.decorators.http import require_POST
+from django.shortcuts import render
 
 from . import selectors
-from .forms import ReviewForm, ShopFilterForm
+from .forms import ShopFilterForm
 from .models import Collection, Product
-from .services import submit_review
 
 PER_PAGE = 8
 
@@ -19,13 +16,14 @@ def _render_partial_or_page(request, partial, page, context):
 
 
 def shop(request):
-    brands = selectors.brands_with_counts()
-    scents = selectors.scents_with_counts()
+    store = request.store
+    brands = selectors.brands_with_counts(store)
+    scents = selectors.scents_with_counts(store)
     form = ShopFilterForm(request.GET or None, brands=brands, scents=scents)
-    lo, hi = selectors.price_bounds()
+    lo, hi = selectors.price_bounds(store)
 
     data = form.cleaned_data if form.is_bound and form.is_valid() else {}
-    collection = Collection.objects.filter(slug=data["collection"]).first() if data.get("collection") else None
+    collection = Collection.objects.for_store(store).filter(slug=data["collection"]).first() if data.get("collection") else None
     filters = selectors.ProductFilters(
         q=data.get("q", "").strip(),
         brands=data.get("brand", []),
@@ -35,7 +33,7 @@ def shop(request):
         max_price=data.get("max_price"),
         sort=data.get("sort", ""),
     )
-    products = selectors.filter_products(filters, bounds=(lo, hi))
+    products = selectors.filter_products(store, filters, bounds=(lo, hi))
     if data.get("collection") and collection is None:
         products = products.none()
     page = Paginator(products, PER_PAGE).get_page(request.GET.get("page"))
@@ -59,36 +57,17 @@ def shop(request):
 
 
 def collections(request):
-    return render(request, "catalog/collections.html", {"collections": selectors.collections_with_counts()})
+    return render(request, "catalog/collections.html", {"collections": selectors.collections_with_counts(request.store)})
 
 
 def product_detail(request, slug):
     try:
-        product = selectors.product_detail(slug)
+        product = selectors.product_detail(request.store, slug)
     except Product.DoesNotExist:
         raise Http404
-    initial = {"name": request.user.display_name} if request.user.is_authenticated else {}
     return render(request, "catalog/product.html", {
         "product": product,
         "gallery": selectors.product_gallery(product),
         "variants": list(product.variants.all()),
-        "reviews": product.reviews.filter(is_approved=True),
-        "review_form": ReviewForm(initial=initial),
         "related": selectors.related_products(product),
     })
-
-
-@require_POST
-def review_create(request, slug):
-    product = get_object_or_404(Product.objects.active(), slug=slug)
-    form = ReviewForm(request.POST)
-    submitted = form.is_valid()
-    if submitted:
-        submit_review(product, form, request.user)
-        form = ReviewForm()
-    context = {"product": product, "review_form": form, "submitted": submitted}
-    if request.htmx:
-        return render(request, "catalog/partials/review_form.html", context)
-    if submitted:
-        messages.success(request, "نظر شما ثبت شد و پس از تأیید نمایش داده می‌شود.")
-    return redirect(product.get_absolute_url() + "#reviews")

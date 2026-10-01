@@ -1,48 +1,63 @@
-from django.conf import settings
-from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Avg, Count, Min, Q
 from django.urls import reverse
 
+from apps.core.models import StoreOwned, StoreQuerySet
 
-class Brand(models.Model):
+
+class Brand(StoreOwned):
     name = models.CharField("نام", max_length=100)
-    slug = models.SlugField("نامک", unique=True, allow_unicode=True)
+    slug = models.SlugField("نامک", allow_unicode=True)
+
+    objects = StoreQuerySet.as_manager()
 
     class Meta:
         ordering = ["name"]
         verbose_name = "برند"
         verbose_name_plural = "برندها"
+        constraints = [
+            models.UniqueConstraint(fields=["store", "slug"], name="catalog_brand_unique_slug_per_store"),
+        ]
 
     def __str__(self):
         return self.name
 
 
-class ScentFamily(models.Model):
+class ScentFamily(StoreOwned):
     name = models.CharField("نام", max_length=100)
-    slug = models.SlugField("نامک", unique=True, allow_unicode=True)
+    slug = models.SlugField("نامک", allow_unicode=True)
+
+    objects = StoreQuerySet.as_manager()
 
     class Meta:
         ordering = ["id"]
         verbose_name = "خانواده رایحه"
         verbose_name_plural = "خانواده‌های رایحه"
+        constraints = [
+            models.UniqueConstraint(fields=["store", "slug"], name="catalog_scentfamily_unique_slug_per_store"),
+        ]
 
     def __str__(self):
         return self.name
 
 
-class Collection(models.Model):
+class Collection(StoreOwned):
     name = models.CharField("نام", max_length=150)
-    slug = models.SlugField("نامک", unique=True, allow_unicode=True)
+    slug = models.SlugField("نامک", allow_unicode=True)
     tagline = models.CharField("شعار", max_length=250, blank=True)
     image = models.ImageField("تصویر", upload_to="collections/")
     is_wide = models.BooleanField("نمایش عریض", default=False)
     order = models.PositiveSmallIntegerField("ترتیب", default=0)
 
+    objects = StoreQuerySet.as_manager()
+
     class Meta:
         ordering = ["order", "id"]
         verbose_name = "کالکشن"
         verbose_name_plural = "کالکشن‌ها"
+        constraints = [
+            models.UniqueConstraint(fields=["store", "slug"], name="catalog_collection_unique_slug_per_store"),
+        ]
 
     def __str__(self):
         return self.name
@@ -51,7 +66,7 @@ class Collection(models.Model):
         return f"{reverse('catalog:shop')}?collection={self.slug}"
 
 
-class ProductQuerySet(models.QuerySet):
+class ProductQuerySet(StoreQuerySet):
     def active(self):
         return self.filter(is_active=True)
 
@@ -65,9 +80,9 @@ class ProductQuerySet(models.QuerySet):
         )
 
 
-class Product(models.Model):
+class Product(StoreOwned):
     name = models.CharField("نام", max_length=150)
-    slug = models.SlugField("نامک", unique=True, allow_unicode=True, max_length=160)
+    slug = models.SlugField("نامک", allow_unicode=True, max_length=160)
     brand = models.ForeignKey(Brand, verbose_name="برند", on_delete=models.PROTECT, related_name="products")
     scent = models.ForeignKey(ScentFamily, verbose_name="خانواده رایحه", on_delete=models.PROTECT, related_name="products")
     collection = models.ForeignKey(
@@ -89,6 +104,9 @@ class Product(models.Model):
         ordering = ["-created_at"]
         verbose_name = "محصول"
         verbose_name_plural = "محصولات"
+        constraints = [
+            models.UniqueConstraint(fields=["store", "slug"], name="catalog_product_unique_slug_per_store"),
+        ]
 
     def __str__(self):
         return self.name
@@ -131,23 +149,3 @@ class ProductImage(models.Model):
         ordering = ["order", "id"]
         verbose_name = "تصویر گالری"
         verbose_name_plural = "گالری تصاویر"
-
-
-class Review(models.Model):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="reviews", verbose_name="محصول")
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="کاربر"
-    )
-    name = models.CharField("نام", max_length=80)
-    rating = models.PositiveSmallIntegerField("امتیاز", validators=[MinValueValidator(1), MaxValueValidator(5)])
-    text = models.TextField("متن نظر")
-    is_approved = models.BooleanField("تأیید شده", default=False)
-    created_at = models.DateTimeField("تاریخ", auto_now_add=True)
-
-    class Meta:
-        ordering = ["-created_at"]
-        verbose_name = "نظر"
-        verbose_name_plural = "نظرات"
-
-    def __str__(self):
-        return f"{self.name} — {self.product}"

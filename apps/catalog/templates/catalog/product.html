@@ -1,10 +1,10 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static reviews %}
 {% block title %}{{ product.name }} | {{ SITE.name }}{% endblock %}
 {% block description %}{{ product.short_description }}{% endblock %}
 {% block content %}
 <nav class="container border-b border-line py-4 text-sm text-muted" aria-label="مسیر">
-  <a class="text-muted" href="{% url 'core:home' %}">خانه</a><span class="mx-2">‹</span><a class="text-muted" href="{% url 'catalog:shop' %}">عطرها</a><span class="mx-2">‹</span><strong class="font-normal text-body">{{ product.name }}</strong>
+  <a class="text-muted" href="{% url 'pages:home' %}">خانه</a><span class="mx-2">‹</span><a class="text-muted" href="{% url 'catalog:shop' %}">عطرها</a><span class="mx-2">‹</span><strong class="font-normal text-body">{{ product.name }}</strong>
 </nav>
 
 <div class="container">
@@ -93,7 +93,7 @@
       {{ product.description|linebreaks }}
       <p>تمام عطرهای عطر مجد با ضمانت اصالت کالا و در بسته‌بندی نفیس ارائه می‌شوند. برای ماندگاری بیشتر، عطر را روی نقاط نبض بدن مانند مچ دست و گردن اسپری کنید.</p>
     </div>
-    <div id="tab-reviews" role="tabpanel" class="max-w-[820px]" hidden>
+    <div id="tab-reviews" role="tabpanel" class="max-w-[820px]" hidden>{% product_reviews product as reviews %}{% review_form_for product as review_form %}
       {% for r in reviews %}
         <article class="border-b border-line py-4 last:border-0">
           <header class="mb-1.5 flex flex-wrap items-center justify-between gap-2.5"><strong class="font-medium text-cream">{{ r.name }}</strong> {% stars r.rating %} <time class="text-xs text-muted">{{ r.created_at|jdate }}</time></header>
@@ -102,7 +102,7 @@
       {% empty %}
         <p class="text-muted">هنوز نظری ثبت نشده است. اولین نفر باشید!</p>
       {% endfor %}
-      {% include "catalog/partials/review_form.html" %}
+      {% include "reviews/partials/review_form.html" %}
     </div>
   </section>
 

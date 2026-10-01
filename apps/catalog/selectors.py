@@ -21,34 +21,52 @@ SORT_ORDER = {
 }
 
 
-def listable_products():
-    """محصولات فعال همراه با آمار (کمترین قیمت، امتیاز، تعداد نظر) و روابط لازم برای کارت محصول."""
+def listable_products(store):
+    """محصولات فعال فروشگاه همراه با آمار (کمترین قیمت، امتیاز، تعداد نظر) و روابط لازم برای کارت محصول."""
     return (
-        Product.objects.active()
+        Product.objects.for_store(store)
+        .active()
         .with_stats()
         .select_related("brand", "scent")
         .prefetch_related("variants")
     )
 
 
-def price_bounds():
-    """کمترین و بیشترین قیمت حجم‌های فعال، گردشده به PRICE_STEP."""
-    agg = ProductVariant.objects.filter(product__is_active=True).aggregate(lo=Min("price"), hi=Max("price"))
+def price_bounds(store):
+    """کمترین و بیشترین قیمت حجم‌های فعال فروشگاه، گردشده به PRICE_STEP."""
+    agg = ProductVariant.objects.filter(product__store=store, product__is_active=True).aggregate(lo=Min("price"), hi=Max("price"))
     lo = (agg["lo"] or 0) // PRICE_STEP * PRICE_STEP
     hi = -(-(agg["hi"] or 0) // PRICE_STEP) * PRICE_STEP
     return lo, hi
 
 
-def brands_with_counts():
-    return Brand.objects.annotate(n=Count("products", filter=Q(products__is_active=True))).filter(n__gt=0)
+# توجه: Django در کوئری‌های GROUP BY (annotate + Count) ترتیب پیش‌فرض Meta.ordering را اعمال نمی‌کند؛
+# پس ترتیب را صریح می‌نویسیم تا خروجی قطعی باشد.
+
+def brands_with_counts(store):
+    return (
+        Brand.objects.for_store(store)
+        .annotate(n=Count("products", filter=Q(products__is_active=True)))
+        .filter(n__gt=0)
+        .order_by(*Brand._meta.ordering)
+    )
 
 
-def scents_with_counts():
-    return ScentFamily.objects.annotate(n=Count("products", filter=Q(products__is_active=True))).filter(n__gt=0)
+def scents_with_counts(store):
+    return (
+        ScentFamily.objects.for_store(store)
+        .annotate(n=Count("products", filter=Q(products__is_active=True)))
+        .filter(n__gt=0)
+        .order_by(*ScentFamily._meta.ordering)
+    )
 
 
-def collections_with_counts():
-    return Collection.objects.annotate(n=Count("products", filter=Q(products__is_active=True)))
+def collections_with_counts(store):
+    return (
+        Collection.objects.for_store(store)
+        .annotate(n=Count("products", filter=Q(products__is_active=True)))
+        .order_by(*Collection._meta.ordering)
+    )
 
 
 @dataclass
@@ -62,10 +80,10 @@ class ProductFilters:
     sort: str = ""
 
 
-def filter_products(filters: ProductFilters, bounds=None):
+def filter_products(store, filters: ProductFilters, bounds=None):
     """اعمال فیلترهای فروشگاه روی محصولات قابل نمایش."""
-    lo, hi = bounds or price_bounds()
-    products = listable_products()
+    lo, hi = bounds or price_bounds(store)
+    products = listable_products(store)
     if filters.q:
         q = filters.q
         products = products.filter(
@@ -86,18 +104,18 @@ def filter_products(filters: ProductFilters, bounds=None):
     return products.order_by(*SORT_ORDER.get(filters.sort, SORT_ORDER[""]))
 
 
-def best_sellers(limit=8):
-    return listable_products().order_by(F("rating_avg").desc(nulls_last=True), "-review_count")[:limit]
+def best_sellers(store, limit=8):
+    return listable_products(store).order_by(F("rating_avg").desc(nulls_last=True), "-review_count")[:limit]
 
 
-def product_detail(slug):
-    """محصول فعال با گالری؛ اگر وجود نداشته باشد Product.DoesNotExist."""
-    return listable_products().prefetch_related("images").get(slug=slug)
+def product_detail(store, slug):
+    """محصول فعال فروشگاه با گالری؛ اگر وجود نداشته باشد Product.DoesNotExist."""
+    return listable_products(store).prefetch_related("images").get(slug=slug)
 
 
 def related_products(product, limit=8):
     return (
-        listable_products()
+        listable_products(product.store_id)
         .exclude(pk=product.pk)
         .filter(Q(collection=product.collection) | Q(scent=product.scent))
         .order_by(F("rating_avg").desc(nulls_last=True))[:limit]

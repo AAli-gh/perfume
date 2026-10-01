@@ -3,7 +3,7 @@
 {% block description %}{{ post.excerpt }}{% endblock %}
 {% block content %}
 <nav class="container border-b border-line py-4 text-sm text-muted" aria-label="مسیر">
-  <a class="text-muted" href="{% url 'core:home' %}">خانه</a><span class="mx-2">‹</span><a class="text-muted" href="{% url 'blog:list' %}">مجله</a><span class="mx-2">‹</span><strong class="font-normal text-body">{{ post.title }}</strong>
+  <a class="text-muted" href="{% url 'pages:home' %}">خانه</a><span class="mx-2">‹</span><a class="text-muted" href="{% url 'blog:list' %}">مجله</a><span class="mx-2">‹</span><strong class="font-normal text-body">{{ post.title }}</strong>
 </nav>
 <article class="container max-w-[852px] py-14">
   <img class="mb-7 aspect-[2/1] w-full border border-line object-cover" src="{{ post.cover.url }}" alt="">

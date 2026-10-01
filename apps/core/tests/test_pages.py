@@ -1,6 +1,7 @@
 from django.urls import reverse
 
-from apps.core.models import ContactMessage, NewsletterSubscriber
+from apps.marketing.models import NewsletterSubscriber
+from apps.pages.models import ContactMessage
 from apps.core.templatetags.majd import article, fa_int, toman
 
 from .factories import ShopTestCase
@@ -8,20 +9,20 @@ from .factories import ShopTestCase
 
 class PageTests(ShopTestCase):
     def test_static_pages_render(self):
-        for name in ["core:home", "core:about", "core:contact", "catalog:collections", "blog:list", "cart:detail", "accounts:login"]:
+        for name in ["pages:home", "pages:about", "pages:contact", "catalog:collections", "blog:list", "cart:detail", "accounts:login"]:
             with self.subTest(name=name):
                 self.assertEqual(self.client.get(reverse(name)).status_code, 200)
 
     def test_contact_form_htmx(self):
-        resp = self.htmx("post", reverse("core:contact"), {"name": "رضا", "email": "r@x.ir", "subject": "order", "message": "سلام، سفارشم کجاست؟"})
+        resp = self.htmx("post", reverse("pages:contact"), {"name": "رضا", "email": "r@x.ir", "subject": "order", "message": "سلام، سفارشم کجاست؟"})
         self.assertContains(resp, "پیام شما دریافت شد")
         self.assertEqual(ContactMessage.objects.count(), 1)
-        bad = self.htmx("post", reverse("core:contact"), {"name": "", "email": "x", "subject": "order", "message": "کوتاه"})
+        bad = self.htmx("post", reverse("pages:contact"), {"name": "", "email": "x", "subject": "order", "message": "کوتاه"})
         self.assertContains(bad, "field-error")
 
     def test_newsletter_is_idempotent(self):
         for _ in range(2):
-            self.htmx("post", reverse("core:newsletter"), {"email": "A@x.ir"})
+            self.htmx("post", reverse("marketing:newsletter"), {"email": "A@x.ir"})
         self.assertEqual(NewsletterSubscriber.objects.count(), 1)
 
     def test_filters(self):

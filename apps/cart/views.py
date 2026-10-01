@@ -29,7 +29,8 @@ def detail(request):
 def add(request):
     cart = Cart(request)
     variant = get_object_or_404(
-        ProductVariant.objects.select_related("product"), pk=request.POST.get("variant"), product__is_active=True
+        ProductVariant.objects.select_related("product"),
+        pk=request.POST.get("variant"), product__is_active=True, product__store=request.store,
     )
     ok = variant.stock > 0
     if ok:
@@ -46,7 +47,7 @@ def add(request):
 @require_POST
 def update(request, variant_id):
     cart = Cart(request)
-    variant = get_object_or_404(ProductVariant, pk=variant_id)
+    variant = get_object_or_404(ProductVariant, pk=variant_id, product__store=request.store)
     current = next((line.quantity for line in cart if line.variant.pk == variant.pk), 0)
     if "delta" in request.POST:
         qty = current + _qty(request.POST["delta"], 0)

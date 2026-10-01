@@ -1,11 +1,17 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 
-from .models import User
+from .models import Address, User
+
+
+class AddressInline(admin.StackedInline):
+    model = Address
+    extra = 0
 
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
+    inlines = [AddressInline]
     ordering = ["-date_joined"]
     list_display = ["email", "first_name", "last_name", "phone", "is_staff", "date_joined"]
     search_fields = ["email", "first_name", "last_name", "phone"]

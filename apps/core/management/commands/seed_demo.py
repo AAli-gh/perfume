@@ -1,7 +1,8 @@
 """داده‌های نمایشی فروشگاه: برندها، کالکشن‌ها، محصولات، نظرات، مقالات و کدهای تخفیف.
 
-اجرا:  python manage.py seed_demo          (فقط موارد جدید ساخته می‌شوند)
-       python manage.py seed_demo --reset  (حذف داده‌های کاتالوگ و مجله و ساخت دوباره)
+اجرا:  python manage.py seed_demo                 (فقط موارد جدید در فروشگاه پیش‌فرض ساخته می‌شوند)
+       python manage.py seed_demo --store=CODE    (ساخت داده نمایشی در یک فروشگاه مشخص)
+       python manage.py seed_demo --reset         (حذف داده‌های کاتالوگ و مجله همان فروشگاه و ساخت دوباره)
 """
 
 from datetime import timedelta
@@ -14,8 +15,11 @@ from django.db import transaction
 from django.utils import timezone
 
 from apps.blog.models import Category, Post
-from apps.catalog.models import Brand, Collection, Product, ProductImage, ProductVariant, Review, ScentFamily
-from apps.orders.models import Coupon
+from apps.catalog.models import Brand, Collection, Product, ProductImage, ProductVariant, ScentFamily
+from apps.reviews.models import Review
+from apps.core.models import Store
+from apps.core.stores import get_default_store, use_store
+from apps.discounts.models import Coupon
 
 IMAGES = Path(settings.BASE_DIR) / "seed" / "images"
 
@@ -177,19 +181,28 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("--reset", action="store_true", help="حذف داده‌های قبلی کاتالوگ و مجله")
+        parser.add_argument("--store", help="کد فروشگاه (پیش‌فرض: فروشگاه پیش‌فرض)")
 
     @transaction.atomic
-    def handle(self, *args, reset=False, **opts):
-        if reset:
-            for model in (Review, ProductImage, ProductVariant, Product, Collection, Brand, ScentFamily, Post, Category):
-                model.objects.all().delete()
+    def handle(self, *args, reset=False, store=None, **opts):
+        target = Store.objects.get(code=store) if store else get_default_store()
+        with use_store(target):
+            self.seed(target, reset)
 
-        brands = {k: Brand.objects.get_or_create(slug=k, defaults={"name": v})[0] for k, v in BRANDS.items()}
-        scents = {k: ScentFamily.objects.get_or_create(slug=k, defaults={"name": v})[0] for k, v in SCENTS.items()}
+    def seed(self, store, reset):
+        if reset:
+            Review.objects.filter(product__store=store).delete()
+            ProductImage.objects.filter(product__store=store).delete()
+            ProductVariant.objects.filter(product__store=store).delete()
+            for model in (Product, Collection, Brand, ScentFamily, Post, Category):
+                model.objects.for_store(store).delete()
+
+        brands = {k: Brand.objects.for_store(store).get_or_create(slug=k, defaults={"name": v})[0] for k, v in BRANDS.items()}
+        scents = {k: ScentFamily.objects.for_store(store).get_or_create(slug=k, defaults={"name": v})[0] for k, v in SCENTS.items()}
 
         collections = {}
         for order, (slug, name, tagline, img, wide) in enumerate(COLLECTIONS):
-            c = Collection.objects.filter(slug=slug).first()
+            c = Collection.objects.for_store(store).filter(slug=slug).first()
             if c is None:
                 c = Collection(slug=slug, name=name, tagline=tagline, is_wide=wide, order=order)
                 attach(c.image, img)
@@ -199,7 +212,7 @@ class Command(BaseCommand):
         created = 0
         now = timezone.now()
         for i, (slug, name, brand, scent, col, price, featured, notes, desc) in enumerate(PRODUCTS):
-            if Product.objects.filter(slug=slug).exists():
+            if Product.objects.for_store(store).filter(slug=slug).exists():
                 continue
             p = Product(
                 slug=slug, name=name, brand=brands[brand], scent=scents[scent], collection=collections[col],
@@ -220,10 +233,10 @@ class Command(BaseCommand):
                 Review.objects.create(product=p, name=name_, rating=rating if (i + j) % 4 else 4, text=text, is_approved=True)
             created += 1
 
-        cats = {k: Category.objects.get_or_create(slug=k, defaults={"name": v})[0] for k, v in CATEGORIES.items()}
+        cats = {k: Category.objects.for_store(store).get_or_create(slug=k, defaults={"name": v})[0] for k, v in CATEGORIES.items()}
         posts = 0
         for slug, title, cat, img, days_ago, excerpt, body in POSTS:
-            if Post.objects.filter(slug=slug).exists():
+            if Post.objects.for_store(store).filter(slug=slug).exists():
                 continue
             post = Post(slug=slug, title=title, category=cats[cat], excerpt=excerpt, body=body,
                         published_at=now - timedelta(days=days_ago))
@@ -232,6 +245,6 @@ class Command(BaseCommand):
             posts += 1
 
         for code, percent, max_discount in COUPONS:
-            Coupon.objects.get_or_create(code=code, defaults={"percent": percent, "max_discount": max_discount})
+            Coupon.objects.for_store(store).get_or_create(code=code, defaults={"percent": percent, "max_discount": max_discount})
 
-        self.stdout.write(self.style.SUCCESS(f"{created} محصول و {posts} مقاله ساخته شد."))
+        self.stdout.write(self.style.SUCCESS(f"{created} محصول و {posts} مقاله در «{store.name}» ساخته شد."))

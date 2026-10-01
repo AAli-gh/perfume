@@ -8,12 +8,19 @@ import pytest
 APPS_DIR = Path(__file__).resolve().parent.parent / "apps"
 
 # هسته فروشگاه — نباید به لایه نمایش یا افزونه‌ها وابسته باشد
-DOMAIN_APPS = ["accounts", "catalog", "cart", "orders", "blog"]
+DOMAIN_APPS = ["accounts", "catalog", "reviews", "discounts", "cart", "orders", "blog", "marketing"]
 PRESENTATION_AND_EXTENSIONS = ["themes", "pages", "ai"]
 
-# وابستگی‌های موقتی شناخته‌شده؛ هر مورد باید در Phase مشخص‌شده حذف شود.
-KNOWN_EXCEPTIONS = {
-    ("cart", "orders"): "Phase 2 — Coupon به اپ discounts منتقل می‌شود",
+# وابستگی‌های مجاز هر اپ هسته (به‌جز core که هسته مشترک است)
+ALLOWED_DEPENDENCIES = {
+    "accounts": set(),
+    "catalog": set(),
+    "reviews": {"catalog"},
+    "discounts": set(),
+    "cart": {"catalog", "discounts"},
+    "orders": {"accounts", "catalog", "cart", "discounts"},
+    "blog": set(),
+    "marketing": set(),
 }
 
 
@@ -52,10 +59,24 @@ def test_views_do_not_import_other_apps_views(app):
             assert not node.module.endswith(".views"), f"{app}/views.py imports {node.module}"
 
 
-def test_cart_only_known_dependency_on_orders():
-    deps = imported_apps("cart")
-    unexpected = {d for d in deps if ("cart", d) not in KNOWN_EXCEPTIONS} - {"core", "catalog"}
-    assert not unexpected, f"وابستگی غیرمجاز cart به: {unexpected}"
+@pytest.mark.parametrize("app", DOMAIN_APPS)
+def test_domain_dependencies_are_allowed(app):
+    unexpected = imported_apps(app) - ALLOWED_DEPENDENCIES[app] - {"core"}
+    assert not unexpected, f"وابستگی غیرمجاز {app} به: {unexpected}"
+
+
+def test_no_import_cycles_between_apps():
+    apps = [p.name for p in APPS_DIR.iterdir() if (p / "__init__.py").exists()]
+    graph = {a: imported_apps(a) for a in apps}
+    graph["core"] -= {"catalog", "reviews", "discounts", "blog"}  # seed_demo: ابزار توسعه، نه وابستگی زمان اجرا
+
+    def visit(node, path):
+        for dep in graph.get(node, ()):
+            assert dep not in path, f"چرخه وابستگی: {' → '.join(path + [dep])}"
+            visit(dep, path + [dep])
+
+    for a in apps:
+        visit(a, [a])
 
 
 def test_no_dependency_cycle_between_orders_and_cart_views():

@@ -15,8 +15,6 @@ env = environ.Env(
     ALLOWED_HOSTS=(list, ["localhost", "127.0.0.1"]),
     CSRF_TRUSTED_ORIGINS=(list, []),
     ZARINPAL_SANDBOX=(bool, True),
-    SHIPPING_COST=(int, 150000),
-    FREE_SHIPPING_OVER=(int, 0),
 )
 environ.Env.read_env(BASE_DIR / ".env")
 
@@ -37,9 +35,13 @@ INSTALLED_APPS = [
     "apps.accounts",
     "apps.core",
     "apps.catalog",
+    "apps.reviews",
+    "apps.discounts",
     "apps.cart",
     "apps.orders",
     "apps.blog",
+    "apps.marketing",
+    "apps.pages",
 ]
 
 MIDDLEWARE = [
@@ -51,6 +53,7 @@ MIDDLEWARE = [
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
+    "apps.core.stores.StoreMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django_htmx.middleware.HtmxMiddleware",
 ]
@@ -91,7 +94,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 LOGIN_URL = "accounts:login"
 LOGIN_REDIRECT_URL = "accounts:profile"
-LOGOUT_REDIRECT_URL = "core:home"
+LOGOUT_REDIRECT_URL = "pages:home"
 
 LANGUAGE_CODE = "fa"
 LANGUAGES = [("fa", "فارسی")]
@@ -116,22 +119,10 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 SESSION_COOKIE_AGE = 60 * 60 * 24 * 30  # سبد خرید تا ۳۰ روز می‌ماند
 
 # ---------- تنظیمات فروشگاه ----------
-SHIPPING_COST = env("SHIPPING_COST")
-FREE_SHIPPING_OVER = env("FREE_SHIPPING_OVER")
 ZARINPAL_MERCHANT_ID = env("ZARINPAL_MERCHANT_ID", default="")
 ZARINPAL_SANDBOX = env("ZARINPAL_SANDBOX")
 
-SITE_INFO = {
-    "name": "عطر مجد",
-    "tagline": "خانه عطرهای لوکس و دست‌ساز",
-    "phone": "۰۲۱-۱۲۳۴۵۶۷۸",
-    "phone_link": "+982112345678",
-    "email": "info@atremajd.ir",
-    "address": "تهران، خیابان ولیعصر، پلاک ۱۲۳",
-    "instagram": "#",
-    "telegram": "#",
-    "whatsapp": "#",
-}
+# اطلاعات فروشگاه (نام، تماس، هزینه ارسال، …) در دیتابیس و پنل مدیریت ← «فروشگاه‌ها» قرار دارد.
 
 # ---------- Cache / Celery (Redis) ----------
 REDIS_URL = env("REDIS_URL", default="")

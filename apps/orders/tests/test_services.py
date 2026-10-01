@@ -6,7 +6,8 @@ from apps.cart.cart import Cart
 from apps.cart.services import apply_coupon_code
 from apps.catalog.models import ProductVariant
 from apps.catalog.tests.factories import VariantFactory
-from apps.orders.models import Coupon, Order, OrderItem
+from apps.discounts.models import Coupon
+from apps.orders.models import Order, OrderItem
 from apps.orders.services import change_status
 
 pytestmark = pytest.mark.django_db

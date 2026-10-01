@@ -12,5 +12,5 @@ CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"
 CELERY_TASK_ALWAYS_EAGER = True
 CELERY_TASK_EAGER_PROPAGATES = True
 MEDIA_ROOT = tempfile.mkdtemp(prefix="majd-test-media-")
-ALLOWED_HOSTS = ["testserver", "localhost"]
+ALLOWED_HOSTS = ["testserver", "localhost", ".test"]
 LOGGING = {"version": 1, "disable_existing_loggers": False, "root": {"level": "WARNING"}}

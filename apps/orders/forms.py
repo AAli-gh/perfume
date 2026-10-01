@@ -1,6 +1,8 @@
 from django import forms
 from django.conf import settings
 
+from apps.accounts.models import Address
+from apps.accounts.services import default_address
 from apps.core.forms import StyledFormMixin, en_digits
 
 from .models import Order
@@ -56,7 +58,11 @@ class CheckoutForm(StyledFormMixin, forms.ModelForm):
 
 
 def checkout_initial(user):
-    """مقادیر اولیه فرم تسویه از روی پروفایل کاربر واردشده."""
+    """مقادیر اولیه فرم تسویه از روی آدرس پیش‌فرض یا پروفایل کاربر واردشده."""
     if not user.is_authenticated:
         return {}
-    return {"first_name": user.first_name, "last_name": user.last_name, "email": user.email, "phone": user.phone}
+    initial = {"first_name": user.first_name, "last_name": user.last_name, "email": user.email, "phone": user.phone}
+    address = default_address(user)
+    if address is not None:
+        initial.update({f: getattr(address, f) for f in Address.FIELDS})
+    return initial

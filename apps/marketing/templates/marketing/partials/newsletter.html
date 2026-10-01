@@ -1,5 +1,5 @@
 <div id="newsletter">
-  <form hx-post="{% url 'core:newsletter' %}" hx-target="#newsletter" hx-swap="outerHTML" action="{% url 'core:newsletter' %}" method="post"
+  <form hx-post="{% url 'marketing:newsletter' %}" hx-target="#newsletter" hx-swap="outerHTML" action="{% url 'marketing:newsletter' %}" method="post"
         class="mx-auto mt-5 flex max-w-[480px] flex-col gap-2.5 sm:flex-row">
     {% csrf_token %}
     <label class="sr-only" for="{{ newsletter_form.email.id_for_label }}">ایمیل</label>

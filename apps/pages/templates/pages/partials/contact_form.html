@@ -1,5 +1,5 @@
-<form id="contact-form" class="panel-body grid gap-4" method="post" action="{% url 'core:contact' %}"
-      hx-post="{% url 'core:contact' %}" hx-target="this" hx-swap="outerHTML" novalidate>
+<form id="contact-form" class="panel-body grid gap-4" method="post" action="{% url 'pages:contact' %}"
+      hx-post="{% url 'pages:contact' %}" hx-target="this" hx-swap="outerHTML" novalidate>
   {% csrf_token %}
   {% if sent %}<p class="alert alert-ok m-0">پیام شما دریافت شد. کارشناسان ما به‌زودی پاسخ می‌دهند.</p>{% endif %}
   {% include "components/field.html" with field=form.name %}

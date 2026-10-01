@@ -3,7 +3,8 @@ from django.urls import reverse
 
 from apps.catalog.models import ProductVariant
 from apps.core.tests.factories import ShopTestCase, make_product
-from apps.orders.models import Coupon, Order
+from apps.discounts.models import Coupon
+from apps.orders.models import Order
 
 VALID = {
     "first_name": "علی", "last_name": "رضایی", "phone": "۰۹۱۲۱۲۳۴۵۶۷", "email": "", "province": "تهران",

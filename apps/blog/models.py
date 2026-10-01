@@ -2,28 +2,35 @@ from django.db import models
 from django.urls import reverse
 from django.utils import timezone
 
+from apps.core.models import StoreOwned, StoreQuerySet
 
-class Category(models.Model):
+
+class Category(StoreOwned):
     name = models.CharField("نام", max_length=100)
-    slug = models.SlugField("نامک", unique=True, allow_unicode=True)
+    slug = models.SlugField("نامک", allow_unicode=True)
+
+    objects = StoreQuerySet.as_manager()
 
     class Meta:
         ordering = ["id"]
         verbose_name = "دسته‌بندی"
         verbose_name_plural = "دسته‌بندی‌ها"
+        constraints = [
+            models.UniqueConstraint(fields=["store", "slug"], name="blog_category_unique_slug_per_store"),
+        ]
 
     def __str__(self):
         return self.name
 
 
-class PostQuerySet(models.QuerySet):
+class PostQuerySet(StoreQuerySet):
     def published(self):
         return self.filter(is_published=True, published_at__lte=timezone.now())
 
 
-class Post(models.Model):
+class Post(StoreOwned):
     title = models.CharField("عنوان", max_length=200)
-    slug = models.SlugField("نامک", unique=True, allow_unicode=True, max_length=210)
+    slug = models.SlugField("نامک", allow_unicode=True, max_length=210)
     category = models.ForeignKey(Category, on_delete=models.PROTECT, related_name="posts", verbose_name="دسته‌بندی")
     cover = models.ImageField("تصویر شاخص", upload_to="blog/")
     excerpt = models.CharField("خلاصه", max_length=400)
@@ -37,6 +44,9 @@ class Post(models.Model):
         ordering = ["-published_at"]
         verbose_name = "مقاله"
         verbose_name_plural = "مقالات"
+        constraints = [
+            models.UniqueConstraint(fields=["store", "slug"], name="blog_post_unique_slug_per_store"),
+        ]
 
     def __str__(self):
         return self.title

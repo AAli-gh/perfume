@@ -37,7 +37,7 @@
           <p class="text-muted">پرداخت این سفارش هنوز انجام نشده است.</p>
           <a class="btn btn-lg" href="{% url 'orders:pay' order.number %}">پرداخت آنلاین</a>
         {% elif order.payment_method == "card" %}
-          <p>لطفاً مبلغ {{ order.total|toman }} را به کارت <strong dir="ltr">۶۰۳۷-۹۹۰۰-۰۰۰۰-۰۰۰۰</strong> به نام «عطر مجد» واریز کرده و رسید را همراه شماره سفارش برای پشتیبانی ارسال کنید.</p>
+          <p>لطفاً مبلغ {{ order.total|toman }} را به کارت <strong dir="ltr">{{ SITE.bank_card_number }}</strong> به نام «{{ SITE.bank_card_holder }}» واریز کرده و رسید را همراه شماره سفارش برای پشتیبانی ارسال کنید.</p>
         {% else %}
           <p>مبلغ سفارش هنگام تحویل از شما دریافت می‌شود.</p>
         {% endif %}

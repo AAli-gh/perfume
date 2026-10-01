@@ -3,7 +3,8 @@
 import factory
 from factory.django import DjangoModelFactory
 
-from apps.catalog.models import Brand, Collection, Product, ProductVariant, Review, ScentFamily
+from apps.catalog.models import Brand, Collection, Product, ProductVariant, ScentFamily
+from apps.reviews.models import Review
 
 GIF = b"GIF89a\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00\xff\xff\xff!\xf9\x04\x01\x00\x00\x00\x00,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;"
 

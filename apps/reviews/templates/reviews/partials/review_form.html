@@ -1,5 +1,5 @@
-<form id="review-form" class="panel panel-body mt-6 grid gap-3" method="post" action="{% url 'catalog:review' product.slug %}"
-      hx-post="{% url 'catalog:review' product.slug %}" hx-target="this" hx-swap="outerHTML">
+<form id="review-form" class="panel panel-body mt-6 grid gap-3" method="post" action="{% url 'reviews:create' product.slug %}"
+      hx-post="{% url 'reviews:create' product.slug %}" hx-target="this" hx-swap="outerHTML">
   {% csrf_token %}
   <h3 class="m-0 text-[1.15rem]">نظر خود را بنویسید</h3>
   {% if submitted %}<p class="alert alert-ok m-0">نظر شما ثبت شد و پس از تأیید مدیر نمایش داده می‌شود. سپاس!</p>{% endif %}

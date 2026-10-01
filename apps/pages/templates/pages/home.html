@@ -36,7 +36,7 @@
     <div class="px-6 py-8 lg:px-12 lg:py-10">
       <h2 class="text-[1.7rem] lg:text-[2.3rem]">هنر عطرسازی</h2>
       <p>ما روغن‌های اسانسی کمیاب و عصاره‌های طبیعی را از گوشه و کنار جهان گرد هم می‌آوریم؛ از زعفران خراسان و گل محمدی کاشان تا عود اصیل شرق دور، تا عطری بسازیم که روایتگر داستان شما باشد.</p>
-      <a class="btn mt-2" href="{% url 'core:about' %}">داستان ما را بخوانید</a>
+      <a class="btn mt-2" href="{% url 'pages:about' %}">داستان ما را بخوانید</a>
     </div>
     <img src="{% static 'img/about-art.jpg' %}" alt="عطرساز در حال ساخت عطر" loading="lazy" class="h-full min-h-[320px] w-full object-cover">
   </div>
@@ -58,7 +58,7 @@
   <div class="panel reveal px-6 py-12 text-center">
     <h2>عضویت در خبرنامه</h2>
     <p>از تازه‌ترین عطرها، کالکشن‌های محدود و تخفیف‌های ویژه باخبر شوید.</p>
-    {% include "core/partials/newsletter.html" %}
+    {% include "marketing/partials/newsletter.html" %}
   </div>
 </section>
 {% endblock %}
