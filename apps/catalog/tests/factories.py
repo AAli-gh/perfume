@@ -46,9 +46,6 @@ class ProductFactory(DjangoModelFactory):
     scent = factory.SubFactory(ScentFactory)
     short_description = "توضیح کوتاه"
     description = "توضیح کامل"
-    notes_top = "برگاموت"
-    notes_middle = "رز"
-    notes_base = "مشک"
     image = factory.django.ImageField(from_func=lambda **kw: __import__("io").BytesIO(GIF), filename="p.gif")
 
 

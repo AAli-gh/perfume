@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static reviews %}
+{% load static reviews wishlist %}
 {% block title %}{{ product.name }} | {{ SITE.name }}{% endblock %}
 {% block description %}{{ product.short_description }}{% endblock %}
 {% block content %}
@@ -39,11 +39,11 @@
         <div class="mb-3 text-[1.8rem] text-[#f3dcc4]"><span data-variant-price>{{ product.default_variant.price|toman }}</span></div>
         <p>{{ product.short_description }}</p>
 
-        <div class="my-6 grid grid-cols-3 gap-2 text-center sm:gap-2.5">
-          <div><img src="{% static 'img/note-top.jpg' %}" alt="" class="mb-2.5 aspect-video w-full border border-line object-cover"><h4 class="m-0 text-[.98rem] text-cream">نت آغازین</h4><p class="m-0 text-sm leading-relaxed text-muted">{{ product.notes_top }}</p></div>
-          <div><img src="{% static 'img/note-mid.jpg' %}" alt="" class="mb-2.5 aspect-video w-full border border-line object-cover"><h4 class="m-0 text-[.98rem] text-cream">نت میانی</h4><p class="m-0 text-sm leading-relaxed text-muted">{{ product.notes_middle }}</p></div>
-          <div><img src="{% static 'img/note-base.jpg' %}" alt="" class="mb-2.5 aspect-video w-full border border-line object-cover"><h4 class="m-0 text-[.98rem] text-cream">نت پایه</h4><p class="m-0 text-sm leading-relaxed text-muted">{{ product.notes_base }}</p></div>
-        </div>
+        <div class="my-6 grid grid-cols-3 gap-2 text-center sm:gap-2.5">{% with notes=product.notes_by_layer %}
+          <div><img src="{% static 'img/note-top.jpg' %}" alt="" class="mb-2.5 aspect-video w-full border border-line object-cover"><h4 class="m-0 text-[.98rem] text-cream">نت آغازین</h4><p class="m-0 text-sm leading-relaxed text-muted">{{ notes.top|join:"، " }}</p></div>
+          <div><img src="{% static 'img/note-mid.jpg' %}" alt="" class="mb-2.5 aspect-video w-full border border-line object-cover"><h4 class="m-0 text-[.98rem] text-cream">نت میانی</h4><p class="m-0 text-sm leading-relaxed text-muted">{{ notes.heart|join:"، " }}</p></div>
+          <div><img src="{% static 'img/note-base.jpg' %}" alt="" class="mb-2.5 aspect-video w-full border border-line object-cover"><h4 class="m-0 text-[.98rem] text-cream">نت پایه</h4><p class="m-0 text-sm leading-relaxed text-muted">{{ notes.base|join:"، " }}</p></div>
+        {% endwith %}</div>
 
         <div class="grid gap-[18px] border-t border-line pt-5">
           <div class="flex flex-wrap items-center gap-4">
@@ -81,6 +81,7 @@
           </div>
         </div>
       </form>
+      <div class="mt-3">{% wishlist_button product %}</div>
     </div>
   </section>
 

@@ -58,3 +58,17 @@ class CartTests(ShopTestCase):
         self.assertContains(self.htmx("post", reverse("cart:coupon"), {"code": "nope"}), "معتبر نیست")
         self.assertContains(self.htmx("post", reverse("cart:coupon"), {"code": "min"}), "کافی نیست")
         self.assertIsNone(self.cart().coupon)
+
+
+def test_cart_add_ignores_out_of_stock_variant(db):
+    from django.contrib.sessions.backends.db import SessionStore
+    from django.test import RequestFactory
+
+    from apps.cart.cart import Cart
+    from apps.catalog.tests.factories import VariantFactory
+
+    request = RequestFactory().get("/")
+    request.session = SessionStore()
+    cart = Cart(request)
+    assert cart.add(VariantFactory(stock=0)) is False
+    assert cart.is_empty

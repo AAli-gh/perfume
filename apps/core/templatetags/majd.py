@@ -31,9 +31,22 @@ def fa_int(value):
     return f"{n:,}".replace(",", "٬").translate(FA_DIGITS)
 
 
+def _currency_label():
+    from apps.core.stores import get_current_store
+
+    try:
+        return get_current_store().config.currency_label or "تومان"
+    except Exception:  # فروشگاه یا تنظیمات هنوز ساخته نشده (مثلاً حین migration)
+        return "تومان"
+
+
 @register.filter
 def toman(value):
-    return f"{fa_int(value or 0)} تومان"
+    """مبلغ با جداکننده و ارقام فارسی + واحد پول فروشگاه جاری (پیش‌فرض: تومان)."""
+    return f"{fa_int(value or 0)} {_currency_label()}"
+
+
+money = register.filter("money", toman)
 
 
 @register.filter
@@ -56,6 +69,13 @@ def stars(rating, count=None):
     return format_html(
         '<span class="stars" aria-label="{}">{}{}</span>', label, "★" * full + "☆" * (5 - full), extra
     )
+
+
+@register.filter
+def br_only(text):
+    """escape کامل متن؛ فقط شکست خط <br> مجاز است (جایگزین امن |safe در عنوان‌ها)."""
+    escaped = conditional_escape(text or "")
+    return mark_safe(re.sub(r"&lt;br\s*/?&gt;", "<br>", escaped))
 
 
 @register.filter

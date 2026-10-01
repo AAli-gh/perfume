@@ -8,7 +8,7 @@ from apps.catalog.models import ProductVariant
 from apps.catalog.tests.factories import VariantFactory
 from apps.discounts.models import Coupon
 from apps.orders.models import Order, OrderItem
-from apps.orders.services import change_status
+from apps.orders.workflow import transition
 
 pytestmark = pytest.mark.django_db
 
@@ -23,14 +23,12 @@ def order():
 
 
 def test_cancel_restocks(order):
-    change_status(order, Order.Status.CANCELLED)
-    order.save()
+    transition(order, Order.Status.CANCELLED)
     assert ProductVariant.objects.get().stock == 5
 
 
 def test_other_status_change_keeps_stock(order):
-    change_status(order, Order.Status.SHIPPED)
-    order.save()
+    transition(order, Order.Status.PROCESSING)
     assert ProductVariant.objects.get().stock == 3
 
 
@@ -41,6 +39,8 @@ def test_admin_cancel_uses_service(order, admin_client):
         "status": "cancelled", "payment_method": "online",
         "items-TOTAL_FORMS": "1", "items-INITIAL_FORMS": "1", "items-MIN_NUM_FORMS": "0", "items-MAX_NUM_FORMS": "1000",
         "items-0-id": str(order.items.get().pk), "items-0-order": str(order.pk),
+        "history-TOTAL_FORMS": "0", "history-INITIAL_FORMS": "0", "history-MIN_NUM_FORMS": "0", "history-MAX_NUM_FORMS": "1000",
+        "payments-TOTAL_FORMS": "0", "payments-INITIAL_FORMS": "0", "payments-MIN_NUM_FORMS": "0", "payments-MAX_NUM_FORMS": "1000",
     }
     resp = admin_client.post(f"/admin/orders/order/{order.pk}/change/", data)
     assert resp.status_code == 302, resp.content[:500]

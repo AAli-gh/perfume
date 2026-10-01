@@ -6,6 +6,7 @@ from .base import *  # noqa: F401,F403
 from .base import env
 
 DEBUG = False
+PAYMENT_TEST_GATEWAY_ENABLED = False  # درگاه آزمایشی هرگز در production فعال نمی‌شود
 if not SECRET_KEY:  # noqa: F405
     raise ImproperlyConfigured("SECRET_KEY باید در متغیرهای محیطی تنظیم شود.")
 

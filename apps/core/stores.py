@@ -23,9 +23,18 @@ def get_default_store():
 
 
 def default_store_id():
-    """پیش‌فرض فیلد store در مدل‌ها (برای سازگاری با کدی که فروشگاه را مشخص نمی‌کند)."""
+    """پیش‌فرض فیلد store در مدل‌ها (برای سازگاری با کدی که فروشگاه را مشخص نمی‌کند).
+
+    عمداً فقط شناسه خوانده می‌شود: این تابع حین migrationها هم صدا زده می‌شود و نباید به ستون‌هایی
+    از مدل‌های فعلی (مثل StoreSettings) که هنوز در دیتابیس ساخته نشده‌اند وابسته باشد.
+    """
     current = _current_store.get()
-    return current.pk if current is not None else get_default_store().pk
+    if current is not None:
+        return current.pk
+    from .models import Store
+
+    pk = Store.objects.filter(is_default=True).values_list("pk", flat=True).first()
+    return pk if pk is not None else get_default_store().pk
 
 
 def resolve_store(host):

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load payments %}
 {% block title %}سفارش {{ order.number }} | {{ SITE.name }}{% endblock %}
 {% block content %}
 <div class="container max-w-3xl py-14">
@@ -8,7 +9,7 @@
       <h1 class="text-[1.8rem]">{% if order.is_paid %}پرداخت با موفقیت انجام شد{% else %}سفارش شما ثبت شد{% endif %}</h1>
       <p class="text-muted">شماره سفارش: <strong class="text-cream" dir="ltr">{{ order.number }}</strong> · {{ order.created_at|jdate:"%d %B %Y، %H:%M" }}</p>
       <p class="inline-block rounded-full border border-line px-4 py-1 text-sm text-gold">{{ order.get_status_display }}</p>
-      {% if order.payment_ref_id %}<p class="mt-2 text-sm">کد پیگیری پرداخت: <strong dir="ltr">{{ order.payment_ref_id|fa }}</strong></p>{% endif %}
+      {% order_payment order as payment %}{% if payment %}<p class="mt-2 text-sm">کد پیگیری پرداخت: <strong dir="ltr">{{ payment.ref_id|fa }}</strong></p>{% endif %}
     </div>
 
     <table class="w-full text-sm">
@@ -35,7 +36,7 @@
       <div class="mt-6 text-center">
         {% if order.payment_method == "online" %}
           <p class="text-muted">پرداخت این سفارش هنوز انجام نشده است.</p>
-          <a class="btn btn-lg" href="{% url 'orders:pay' order.number %}">پرداخت آنلاین</a>
+          <a class="btn btn-lg" href="{% url 'payments:start' order.number %}">پرداخت آنلاین</a>
         {% elif order.payment_method == "card" %}
           <p>لطفاً مبلغ {{ order.total|toman }} را به کارت <strong dir="ltr">{{ SITE.bank_card_number }}</strong> به نام «{{ SITE.bank_card_holder }}» واریز کرده و رسید را همراه شماره سفارش برای پشتیبانی ارسال کنید.</p>
         {% else %}

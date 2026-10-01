@@ -1,68 +1,77 @@
 """ثبت سفارش از روی سبد خرید."""
 
+from dataclasses import dataclass
+from datetime import timedelta
+
 from django.db import transaction
-from django.db.models import F
+from django.utils import timezone
 
 from apps.accounts.models import Address
 from apps.accounts.services import remember_address
-from apps.catalog.models import ProductVariant
+from apps.cart.pricing import calculate
+from apps.catalog import inventory
+from apps.catalog.inventory import OutOfStock
+from apps.discounts.models import Coupon
 from apps.discounts.services import record_usage
 
 from .models import Order, OrderItem
 
+__all__ = ["CouponUnavailable", "OutOfStock", "create_order"]
 
-class OutOfStock(Exception):
-    def __init__(self, names):
-        self.names = names
-        super().__init__(", ".join(names))
+
+class CouponUnavailable(Exception):
+    """کد تخفیف بین نمایش سبد و ثبت سفارش نامعتبر شده (مثلاً ظرفیتش پر شده)."""
+
+
+@dataclass(frozen=True)
+class _Line:
+    variant: object
+    quantity: int
+
+    @property
+    def unit_price(self):
+        return self.variant.price
 
 
 @transaction.atomic
 def create_order(cart, form, user=None):
-    lines = list(cart)
-    variants = {
-        v.pk: v
-        for v in ProductVariant.objects.select_for_update().select_related("product").filter(
-            pk__in=[line.variant.pk for line in lines]
-        )
-    }
-    short = [f"{v.product.name} ({v.size_ml} میل)" for line in lines if (v := variants[line.variant.pk]).stock < line.quantity]
-    if short:
-        raise OutOfStock(short)
-
-    coupon = cart.coupon
+    """ثبت سفارش به‌صورت اتمیک: رزرو موجودی، قفل کد تخفیف، محاسبه قیمت با داده‌های قفل‌شده."""
     order = form.save(commit=False)
     order.store = cart.store
     order.user = user if user and user.is_authenticated else None
-    order.subtotal = cart.subtotal
-    order.discount = cart.discount
-    order.shipping = cart.shipping
-    order.total = cart.total
+    order.save()  # شماره سفارش برای مرجع گردش موجودی لازم است
+
+    variants = inventory.reserve(
+        [inventory.StockLine(line.variant.pk, line.quantity) for line in cart], order.number, user=order.user
+    )
+    lines = [_Line(variants[line.variant.pk], line.quantity) for line in cart]
+
+    coupon = None
+    if cart.coupon_code:
+        # قفل ردیف کد تخفیف: دو سفارش هم‌زمان نمی‌توانند از سقف استفاده عبور کنند
+        coupon = Coupon.objects.select_for_update().filter(store=cart.store, code=cart.coupon_code).first()
+        subtotal = sum(l.unit_price * l.quantity for l in lines)
+        error = "کد تخفیف دیگر معتبر نیست." if coupon is None else coupon.check_usable(subtotal)
+        if error:
+            raise CouponUnavailable(error)
+
+    pricing = calculate(lines, cart.store.config, coupon)
+    order.subtotal, order.discount, order.shipping, order.total = (
+        pricing.subtotal, pricing.discount, pricing.shipping, pricing.total,
+    )
     order.coupon_code = coupon.code if coupon else ""
+    if order.payment_method == Order.PaymentMethod.ONLINE:
+        order.reserved_until = timezone.now() + timedelta(minutes=cart.store.config.payment_timeout_minutes)
     order.save()
 
     OrderItem.objects.bulk_create([
         OrderItem(
-            order=order, variant=line.variant, product_name=line.product.name,
-            size_ml=line.variant.size_ml, unit_price=line.unit_price, quantity=line.quantity,
+            order=order, variant=l.variant, product_name=l.variant.product.name,
+            size_ml=l.variant.size_ml, unit_price=l.unit_price, quantity=l.quantity,
         )
-        for line in lines
+        for l in lines
     ])
-    for line in lines:
-        ProductVariant.objects.filter(pk=line.variant.pk).update(stock=F("stock") - line.quantity)
     if coupon:
         record_usage(coupon)
     remember_address(order.user, {f: getattr(order, f) for f in Address.FIELDS})
-    return order
-
-
-def change_status(order, new_status):
-    """تغییر وضعیت سفارش؛ با لغو سفارش، موجودی کالاها به انبار برمی‌گردد.
-
-    منطق کسب‌وکار اینجاست (نه در Admin) تا از هر مسیری — پنل، API یا Task — یکسان اجرا شود.
-    """
-    previous = Order.objects.filter(pk=order.pk).values_list("status", flat=True).first()
-    order.status = new_status
-    if previous != new_status and new_status == Order.Status.CANCELLED:
-        order.restock()
     return order

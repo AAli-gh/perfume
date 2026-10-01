@@ -8,7 +8,8 @@ from dataclasses import dataclass, field
 
 from django.db.models import Count, F, Max, Min, Q
 
-from .models import Brand, Collection, Product, ProductVariant, ScentFamily
+from .models import AttributeValue, Brand, Category, Collection, Product, ProductVariant, ScentFamily
+from .search import search_products
 
 PRICE_STEP = 100_000
 
@@ -78,6 +79,10 @@ class ProductFilters:
     min_price: int | None = None
     max_price: int | None = None
     sort: str = ""
+    categories: list = field(default_factory=list)  # slug دسته‌ها (شامل زیرشاخه‌ها)
+    tags: list = field(default_factory=list)
+    notes: list = field(default_factory=list)  # slug نت‌های رایحه
+    attributes: list = field(default_factory=list)  # slug مقادیر ویژگی
 
 
 def filter_products(store, filters: ProductFilters, bounds=None):
@@ -85,12 +90,23 @@ def filter_products(store, filters: ProductFilters, bounds=None):
     lo, hi = bounds or price_bounds(store)
     products = listable_products(store)
     if filters.q:
-        q = filters.q
-        products = products.filter(
-            Q(name__icontains=q) | Q(brand__name__icontains=q) | Q(scent__name__icontains=q)
-            | Q(short_description__icontains=q) | Q(notes_top__icontains=q)
-            | Q(notes_middle__icontains=q) | Q(notes_base__icontains=q)
-        )
+        products = search_products(products, filters.q)
+    if filters.categories:
+        ids = set()
+        for category in Category.objects.for_store(store).filter(slug__in=filters.categories):
+            ids |= category.descendant_ids()
+        products = products.filter(categories__in=ids)
+    if filters.tags:
+        products = products.filter(tags__slug__in=filters.tags)
+    if filters.notes:
+        products = products.filter(notes__note__slug__in=filters.notes)
+    if filters.attributes:
+        # مقادیر یک ویژگی با OR و ویژگی‌های مختلف با AND ترکیب می‌شوند
+        by_attr = {}
+        for value in AttributeValue.objects.filter(attribute__store=store, slug__in=filters.attributes):
+            by_attr.setdefault(value.attribute_id, []).append(value.pk)
+        for value_ids in by_attr.values():
+            products = products.filter(attribute_values__in=value_ids)
     if filters.brands:
         products = products.filter(brand__slug__in=filters.brands)
     if filters.scents:
@@ -101,7 +117,12 @@ def filter_products(store, filters: ProductFilters, bounds=None):
         products = products.filter(min_price__gte=filters.min_price)
     if filters.max_price is not None and filters.max_price < hi:
         products = products.filter(min_price__lte=filters.max_price)
-    return products.order_by(*SORT_ORDER.get(filters.sort, SORT_ORDER[""]))
+    if filters.categories or filters.tags or filters.notes or filters.attributes:
+        products = products.distinct()
+    order = SORT_ORDER.get(filters.sort, SORT_ORDER[""])
+    if filters.q and not filters.sort:
+        order = ["-search_rank", *order]  # نتایج مرتبط‌تر اول
+    return products.order_by(*order)
 
 
 def best_sellers(store, limit=8):
@@ -110,7 +131,7 @@ def best_sellers(store, limit=8):
 
 def product_detail(store, slug):
     """محصول فعال فروشگاه با گالری؛ اگر وجود نداشته باشد Product.DoesNotExist."""
-    return listable_products(store).prefetch_related("images").get(slug=slug)
+    return listable_products(store).prefetch_related("images", "notes__note").get(slug=slug)
 
 
 def related_products(product, limit=8):

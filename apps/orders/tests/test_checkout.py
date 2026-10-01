@@ -56,24 +56,26 @@ class CheckoutTests(ShopTestCase):
         self.assertEqual(other.get(order.get_absolute_url()).status_code, 404)
 
     def test_online_payment_with_test_gateway(self):
+        # از Phase 3: پرداخت در اپ payments (مدل Payment) است، نه فیلدهای Order
         resp = self.checkout(payment_method="online")
         order = Order.objects.get()
-        self.assertRedirects(resp, reverse("orders:pay", args=[order.number]), fetch_redirect_response=False)
-        resp = self.client.get(reverse("orders:pay", args=[order.number]))
-        order.refresh_from_db()
-        self.assertTrue(order.payment_authority.startswith("FAKE"))
-        cb = reverse("orders:callback")
-        self.client.get(cb, {"Authority": order.payment_authority, "Status": "NOK"})
+        self.assertRedirects(resp, reverse("payments:start", args=[order.number]), fetch_redirect_response=False)
+        self.client.get(reverse("payments:start", args=[order.number]))
+        cb = reverse("payments:callback", args=["test"])
+        self.client.get(cb, {"Authority": order.payments.get().authority, "Status": "NOK"})
         order.refresh_from_db()
         self.assertFalse(order.is_paid)
-        self.client.get(cb, {"Authority": order.payment_authority, "Status": "OK"})
+        self.client.get(reverse("payments:start", args=[order.number]))  # تلاش دوباره
+        payment = order.payments.filter(status="pending").get()
+        self.assertTrue(payment.authority.startswith("TEST"))
+        self.client.get(cb, {"Authority": payment.authority, "Status": "OK"})
         order.refresh_from_db()
         self.assertTrue(order.is_paid)
         self.assertEqual(order.status, Order.Status.PAID)
 
-    @override_settings(DEBUG=False)
+    @override_settings(PAYMENT_TEST_GATEWAY_ENABLED=False)
     def test_test_gateway_disabled_in_production(self):
         from apps.orders.forms import CheckoutForm
 
         self.assertNotIn("online", dict(CheckoutForm().fields["payment_method"].choices))
-        self.assertEqual(self.client.get(reverse("orders:fake_gateway", args=["FAKE1"])).status_code, 404)
+        self.assertEqual(self.client.get(reverse("payments:test_gateway", args=["TEST1"])).status_code, 404)

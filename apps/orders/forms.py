@@ -1,9 +1,11 @@
 from django import forms
-from django.conf import settings
 
 from apps.accounts.models import Address
 from apps.accounts.services import default_address
 from apps.core.forms import StyledFormMixin, en_digits
+from apps.core.stores import get_current_store
+
+from .integration import online_payment_available
 
 from .models import Order
 
@@ -13,11 +15,6 @@ PROVINCES = [
     "سیستان و بلوچستان", "فارس", "قزوین", "قم", "کردستان", "کرمان", "کرمانشاه", "کهگیلویه و بویراحمد",
     "گلستان", "گیلان", "لرستان", "مازندران", "مرکزی", "هرمزگان", "همدان", "یزد",
 ]
-
-
-def online_payment_available():
-    """درگاه آزمایشی فقط در حالت DEBUG مجاز است."""
-    return bool(settings.ZARINPAL_MERCHANT_ID) or settings.DEBUG
 
 
 class CheckoutForm(StyledFormMixin, forms.ModelForm):
@@ -42,10 +39,10 @@ class CheckoutForm(StyledFormMixin, forms.ModelForm):
             "payment_method": forms.RadioSelect,
         }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, store=None, **kwargs):
         super().__init__(*args, **kwargs)
         choices = list(Order.PaymentMethod.choices)
-        if not online_payment_available():
+        if not online_payment_available(store or get_current_store()):
             choices = [c for c in choices if c[0] != Order.PaymentMethod.ONLINE]
         self.fields["payment_method"].choices = choices
         self.fields["payment_method"].initial = choices[0][0]

@@ -70,6 +70,11 @@ class StoreSettings(models.Model):
     free_shipping_over = models.PositiveIntegerField(
         "ارسال رایگان برای سفارش‌های بالای (تومان)", default=0, help_text="۰ یعنی غیرفعال"
     )
+    currency_label = models.CharField("واحد پول (نمایشی)", max_length=20, default="تومان")
+    payment_timeout_minutes = models.PositiveSmallIntegerField(
+        "مهلت پرداخت آنلاین (دقیقه)", default=30,
+        help_text="بعد از این مدت سفارش پرداخت‌نشده لغو و موجودی آن آزاد می‌شود",
+    )
     bank_card_number = models.CharField("شماره کارت (کارت به کارت)", max_length=30, blank=True)
     bank_card_holder = models.CharField("نام صاحب کارت", max_length=100, blank=True)
 

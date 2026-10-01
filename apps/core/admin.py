@@ -13,7 +13,7 @@ class StoreSettingsInline(admin.StackedInline):
     fieldsets = (
         ("اطلاعات تماس", {"fields": ("tagline", "email", "phone", "phone_link", "address")}),
         ("شبکه‌های اجتماعی", {"fields": ("instagram_url", "telegram_url", "whatsapp_url")}),
-        ("ارسال", {"fields": ("shipping_cost", "free_shipping_over")}),
+        ("فروش و ارسال", {"fields": ("currency_label", "shipping_cost", "free_shipping_over", "payment_timeout_minutes")}),
         ("پرداخت کارت به کارت", {"fields": ("bank_card_number", "bank_card_holder")}),
     )
 

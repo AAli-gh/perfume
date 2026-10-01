@@ -7,7 +7,10 @@
       <h1 class="mb-0 text-[2rem]">سلام، {{ user.display_name }}</h1>
       <p class="m-0 text-muted" dir="ltr">{{ user.email }}</p>
     </div>
-    <form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}<button class="btn btn-ghost">{% icon "logout" "!h-4 !w-4" %} خروج</button></form>
+    <div class="flex flex-wrap gap-2.5">
+      <a class="btn btn-ghost" href="{% url 'wishlist:list' %}">علاقه‌مندی‌ها</a>
+      <form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}<button class="btn btn-ghost">{% icon "logout" "!h-4 !w-4" %} خروج</button></form>
+    </div>
   </div>
 
   {% if user.addresses.all %}

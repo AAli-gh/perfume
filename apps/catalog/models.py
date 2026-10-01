@@ -1,3 +1,6 @@
+from django.conf import settings
+from django.contrib.postgres.indexes import GinIndex
+from django.contrib.postgres.search import SearchVectorField
 from django.db import models
 from django.db.models import Avg, Count, Min, Q
 from django.urls import reverse
@@ -66,6 +69,134 @@ class Collection(StoreOwned):
         return f"{reverse('catalog:shop')}?collection={self.slug}"
 
 
+class Category(StoreOwned):
+    """دسته‌بندی درختی محصولات (مثلاً عطر ← عطر زنانه ← ادوپرفیوم)."""
+
+    name = models.CharField("نام", max_length=120)
+    slug = models.SlugField("نامک", allow_unicode=True, max_length=140)
+    parent = models.ForeignKey(
+        "self", on_delete=models.PROTECT, null=True, blank=True, related_name="children", verbose_name="دسته والد"
+    )
+    description = models.TextField("توضیحات", blank=True)
+    order = models.PositiveSmallIntegerField("ترتیب", default=0)
+    is_active = models.BooleanField("فعال", default=True)
+
+    objects = StoreQuerySet.as_manager()
+
+    class Meta:
+        ordering = ["order", "name"]
+        verbose_name = "دسته‌بندی"
+        verbose_name_plural = "دسته‌بندی‌ها"
+        constraints = [
+            models.UniqueConstraint(fields=["store", "slug"], name="catalog_category_unique_slug_per_store"),
+        ]
+
+    def __str__(self):
+        return " › ".join(c.name for c in self.ancestors(include_self=True))
+
+    def ancestors(self, include_self=False):
+        node, chain = (self if include_self else self.parent), []
+        while node is not None and len(chain) < 20:  # محافظت در برابر حلقه
+            chain.insert(0, node)
+            node = node.parent
+        return chain
+
+    def descendant_ids(self):
+        """شناسه خودش و همه زیرشاخه‌ها (برای فیلتر «همه محصولات این دسته»)."""
+        ids, frontier = {self.pk}, [self.pk]
+        while frontier:
+            frontier = list(Category.objects.filter(parent_id__in=frontier).values_list("pk", flat=True))
+            frontier = [i for i in frontier if i not in ids]
+            ids.update(frontier)
+        return ids
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+
+        if self.parent_id and self.pk and self.pk in {c.pk for c in self.parent.ancestors(include_self=True)}:
+            raise ValidationError({"parent": "دسته نمی‌تواند زیرمجموعه خودش باشد."})
+        if self.parent_id and self.parent.store_id != self.store_id:
+            raise ValidationError({"parent": "دسته والد باید متعلق به همین فروشگاه باشد."})
+
+
+class Tag(StoreOwned):
+    name = models.CharField("نام", max_length=80)
+    slug = models.SlugField("نامک", allow_unicode=True, max_length=100)
+
+    objects = StoreQuerySet.as_manager()
+
+    class Meta:
+        ordering = ["name"]
+        verbose_name = "برچسب"
+        verbose_name_plural = "برچسب‌ها"
+        constraints = [
+            models.UniqueConstraint(fields=["store", "slug"], name="catalog_tag_unique_slug_per_store"),
+        ]
+
+    def __str__(self):
+        return self.name
+
+
+class FragranceNote(StoreOwned):
+    """یک نت رایحه (مثلاً برگاموت، عود، مشک) — قابل استفاده در جستجو، فیلتر و پیشنهاد محصول."""
+
+    name = models.CharField("نام", max_length=80)
+    slug = models.SlugField("نامک", allow_unicode=True, max_length=100)
+
+    objects = StoreQuerySet.as_manager()
+
+    class Meta:
+        ordering = ["name"]
+        verbose_name = "نت رایحه"
+        verbose_name_plural = "نت‌های رایحه"
+        constraints = [
+            models.UniqueConstraint(fields=["store", "slug"], name="catalog_fragrancenote_unique_slug_per_store"),
+        ]
+
+    def __str__(self):
+        return self.name
+
+
+class Attribute(StoreOwned):
+    """ویژگی قابل فیلتر (مثلاً غلظت: ادوپرفیوم/ادوتویلت، جنسیت: زنانه/مردانه/یونیسکس)."""
+
+    name = models.CharField("نام", max_length=80)
+    slug = models.SlugField("نامک", allow_unicode=True, max_length=100)
+    is_filterable = models.BooleanField("قابل فیلتر در فروشگاه", default=True)
+    order = models.PositiveSmallIntegerField("ترتیب", default=0)
+
+    objects = StoreQuerySet.as_manager()
+
+    class Meta:
+        ordering = ["order", "name"]
+        verbose_name = "ویژگی"
+        verbose_name_plural = "ویژگی‌ها"
+        constraints = [
+            models.UniqueConstraint(fields=["store", "slug"], name="catalog_attribute_unique_slug_per_store"),
+        ]
+
+    def __str__(self):
+        return self.name
+
+
+class AttributeValue(models.Model):
+    attribute = models.ForeignKey(Attribute, on_delete=models.CASCADE, related_name="values", verbose_name="ویژگی")
+    value = models.CharField("مقدار", max_length=80)
+    slug = models.SlugField("نامک", allow_unicode=True, max_length=100)
+    order = models.PositiveSmallIntegerField("ترتیب", default=0)
+
+    class Meta:
+        ordering = ["attribute__order", "order", "value"]
+        verbose_name = "مقدار ویژگی"
+        verbose_name_plural = "مقادیر ویژگی"
+        constraints = [
+            models.UniqueConstraint(fields=["attribute", "slug"], name="catalog_attributevalue_unique_slug"),
+        ]
+
+    def __str__(self):
+        return f"{self.attribute.name}: {self.value}"
+
+
 class ProductQuerySet(StoreQuerySet):
     def active(self):
         return self.filter(is_active=True)
@@ -88,15 +219,20 @@ class Product(StoreOwned):
     collection = models.ForeignKey(
         Collection, verbose_name="کالکشن", on_delete=models.SET_NULL, null=True, blank=True, related_name="products"
     )
+    categories = models.ManyToManyField(Category, blank=True, related_name="products", verbose_name="دسته‌بندی‌ها")
+    tags = models.ManyToManyField(Tag, blank=True, related_name="products", verbose_name="برچسب‌ها")
+    attribute_values = models.ManyToManyField(
+        AttributeValue, blank=True, related_name="products", verbose_name="ویژگی‌ها"
+    )
     short_description = models.CharField("توضیح کوتاه", max_length=400)
     description = models.TextField("توضیحات کامل")
-    notes_top = models.CharField("نت آغازین", max_length=200)
-    notes_middle = models.CharField("نت میانی", max_length=200)
-    notes_base = models.CharField("نت پایه", max_length=200)
     image = models.ImageField("تصویر اصلی", upload_to="products/")
     is_active = models.BooleanField("فعال", default=True)
     is_featured = models.BooleanField("ویژه", default=False)
     created_at = models.DateTimeField("تاریخ ایجاد", auto_now_add=True)
+    # ستون‌های جستجو (به‌صورت خودکار توسط catalog.search به‌روز می‌شوند)
+    search_document = models.TextField(blank=True, default="", editable=False)
+    search_vector = SearchVectorField(null=True, editable=False)
 
     objects = ProductQuerySet.as_manager()
 
@@ -106,6 +242,10 @@ class Product(StoreOwned):
         verbose_name_plural = "محصولات"
         constraints = [
             models.UniqueConstraint(fields=["store", "slug"], name="catalog_product_unique_slug_per_store"),
+        ]
+        indexes = [
+            GinIndex(fields=["search_vector"], name="catalog_product_search_vec"),
+            GinIndex(fields=["search_document"], name="catalog_product_search_trgm", opclasses=["gin_trgm_ops"]),
         ]
 
     def __str__(self):
@@ -123,6 +263,38 @@ class Product(StoreOwned):
     def in_stock(self):
         return any(v.stock > 0 for v in self.variants.all())
 
+    def notes_by_layer(self):
+        """{"top": [نت‌ها], "heart": [...], "base": [...]} — با prefetch روی notes__note بدون کوئری اضافه."""
+        layers = {layer: [] for layer in ProductNote.Layer.values}
+        for link in sorted(self.notes.all(), key=lambda n: (n.order, n.pk)):
+            layers[link.layer].append(link.note.name)
+        return layers
+
+
+class ProductNote(models.Model):
+    """اتصال محصول به نت رایحه در یکی از سه لایه هرم بویایی."""
+
+    class Layer(models.TextChoices):
+        TOP = "top", "نت آغازین"
+        HEART = "heart", "نت میانی"
+        BASE = "base", "نت پایه"
+
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="notes", verbose_name="محصول")
+    note = models.ForeignKey(FragranceNote, on_delete=models.PROTECT, related_name="product_links", verbose_name="نت")
+    layer = models.CharField("لایه", max_length=5, choices=Layer.choices)
+    order = models.PositiveSmallIntegerField("ترتیب", default=0)
+
+    class Meta:
+        ordering = ["layer", "order", "id"]
+        verbose_name = "نت محصول"
+        verbose_name_plural = "هرم بویایی (نت‌ها)"
+        constraints = [
+            models.UniqueConstraint(fields=["product", "note", "layer"], name="catalog_productnote_unique"),
+        ]
+
+    def __str__(self):
+        return f"{self.get_layer_display()}: {self.note}"
+
 
 class ProductVariant(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="variants", verbose_name="محصول")
@@ -138,6 +310,37 @@ class ProductVariant(models.Model):
 
     def __str__(self):
         return f"{self.product.name} — {self.size_ml} میل"
+
+
+class StockMovement(models.Model):
+    """دفتر موجودی: هر تغییر موجودی یک ردیف تغییرناپذیر دارد؛ جمع change هر حجم = موجودی فعلی آن.
+
+    به سفارش با «reference» (شماره سفارش) اشاره می‌شود تا کاتالوگ به اپ سفارش وابسته نباشد.
+    """
+
+    class Reason(models.TextChoices):
+        INITIAL = "initial", "موجودی اولیه"
+        ADJUSTMENT = "adjustment", "اصلاح دستی"
+        RESERVED = "reserved", "رزرو برای سفارش"
+        RELEASED = "released", "آزادسازی رزرو / لغو سفارش"
+
+    variant = models.ForeignKey("ProductVariant", on_delete=models.CASCADE, related_name="movements", verbose_name="کالا")
+    change = models.IntegerField("تغییر")
+    reason = models.CharField("علت", max_length=12, choices=Reason.choices)
+    reference = models.CharField("مرجع", max_length=40, blank=True, db_index=True, help_text="مثلاً شماره سفارش")
+    note = models.CharField("یادداشت", max_length=200, blank=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="کاربر"
+    )
+    created_at = models.DateTimeField("زمان", auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at", "-id"]
+        verbose_name = "گردش موجودی"
+        verbose_name_plural = "گردش موجودی"
+
+    def __str__(self):
+        return f"{self.variant} {self.change:+d} ({self.get_reason_display()})"
 
 
 class ProductImage(models.Model):

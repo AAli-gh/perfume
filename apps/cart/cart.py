@@ -6,10 +6,11 @@ from apps.catalog.models import ProductVariant
 from apps.core.stores import get_current_store
 from apps.discounts.selectors import find_coupon
 
+from .pricing import calculate
+
 SESSION_KEY = "cart"
 COUPON_KEY = "coupon"
 MAX_QTY = 20
-_UNSET = object()
 
 
 @dataclass
@@ -36,20 +37,24 @@ class Cart:
         self.session = request.session
         self._data = self.session.get(SESSION_KEY) or {}
         self._lines = None
-        self._coupon = _UNSET
+        self._pricing = None
 
     # ---------- تغییر سبد ----------
     def _save(self):
         self.session[SESSION_KEY] = self._data
         self.session.modified = True
         self._lines = None
-        self._coupon = _UNSET
+        self._pricing = None
 
     def add(self, variant, quantity=1):
+        """افزودن به سبد؛ کالای ناموجود اضافه نمی‌شود (خروجی False)."""
+        if variant.stock <= 0:
+            return False
         key = str(variant.pk)
         current = self._data.get(key, 0)
         self._data[key] = max(1, min(MAX_QTY, variant.stock, current + quantity))
         self._save()
+        return True
 
     def set(self, variant, quantity):
         key = str(variant.pk)
@@ -91,44 +96,45 @@ class Cart:
     def is_empty(self):
         return not self._data
 
+    # ---------- قیمت (cart.pricing) ----------
+    @property
+    def pricing(self):
+        if self._pricing is None:
+            code = self.session.get(COUPON_KEY)
+            self._pricing = calculate(self.lines, self.store.config, find_coupon(self.store, code) if code else None)
+        return self._pricing
+
     @property
     def subtotal(self):
-        return sum(line.line_total for line in self.lines)
+        return self.pricing.subtotal
+
+    @property
+    def coupon(self):
+        return self.pricing.coupon
+
+    @property
+    def discount(self):
+        return self.pricing.discount
+
+    @property
+    def shipping(self):
+        return self.pricing.shipping
+
+    @property
+    def total(self):
+        return self.pricing.total
 
     # ---------- کد تخفیف ----------
     @property
-    def coupon(self):
-        if self._coupon is _UNSET:
-            code = self.session.get(COUPON_KEY)
-            coupon = find_coupon(self.store, code)
-            if coupon is not None and coupon.check_usable(self.subtotal):
-                coupon = None
-            self._coupon = coupon
-        return self._coupon
+    def coupon_code(self):
+        return self.session.get(COUPON_KEY) or ""
 
     def apply_coupon(self, coupon):
         self.session[COUPON_KEY] = coupon.code
         self.session.modified = True
-        self._coupon = _UNSET
+        self._pricing = None
 
     def remove_coupon(self):
         self.session.pop(COUPON_KEY, None)
-        self._coupon = _UNSET
-
-    @property
-    def discount(self):
-        coupon = self.coupon
-        return coupon.discount_for(self.subtotal) if coupon else 0
-
-    @property
-    def shipping(self):
-        if self.is_empty:
-            return 0
-        config = self.store.config
-        if config.free_shipping_over and self.subtotal - self.discount >= config.free_shipping_over:
-            return 0
-        return config.shipping_cost
-
-    @property
-    def total(self):
-        return self.subtotal - self.discount + self.shipping
+        self.session.modified = True
+        self._pricing = None

@@ -31,3 +31,10 @@ class PageTests(ShopTestCase):
         html = article("سلام <b>\n\n## تیتر\n\nپاراگراف")
         self.assertIn("<h2>تیتر</h2>", html)
         self.assertIn("&lt;b&gt;", html)
+
+
+def test_br_only_filter_escapes_everything_but_line_breaks():
+    from apps.core.templatetags.majd import br_only
+
+    assert br_only("سطر اول<br>سطر دوم") == "سطر اول<br>سطر دوم"
+    assert br_only("<script>alert(1)</script><br/>") == "&lt;script&gt;alert(1)&lt;/script&gt;<br>"

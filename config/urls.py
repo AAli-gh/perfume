@@ -10,6 +10,8 @@ urlpatterns = [
     path("", include("apps.catalog.urls")),
     path("", include("apps.reviews.urls")),
     path("cart/", include("apps.cart.urls")),
+    path("", include("apps.payments.urls")),
+    path("", include("apps.wishlist.urls")),
     path("orders/", include("apps.orders.urls")),
     path("account/", include("apps.accounts.urls")),
     path("blog/", include("apps.blog.urls")),

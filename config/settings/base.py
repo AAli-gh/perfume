@@ -14,7 +14,6 @@ env = environ.Env(
     DEBUG=(bool, False),
     ALLOWED_HOSTS=(list, ["localhost", "127.0.0.1"]),
     CSRF_TRUSTED_ORIGINS=(list, []),
-    ZARINPAL_SANDBOX=(bool, True),
 )
 environ.Env.read_env(BASE_DIR / ".env")
 
@@ -31,6 +30,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.humanize",
+    "django.contrib.postgres",
     "django_htmx",
     "apps.accounts",
     "apps.core",
@@ -38,7 +38,9 @@ INSTALLED_APPS = [
     "apps.reviews",
     "apps.discounts",
     "apps.cart",
+    "apps.wishlist",
     "apps.orders",
+    "apps.payments",
     "apps.blog",
     "apps.marketing",
     "apps.pages",
@@ -119,8 +121,9 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 SESSION_COOKIE_AGE = 60 * 60 * 24 * 30  # سبد خرید تا ۳۰ روز می‌ماند
 
 # ---------- تنظیمات فروشگاه ----------
-ZARINPAL_MERCHANT_ID = env("ZARINPAL_MERCHANT_ID", default="")
-ZARINPAL_SANDBOX = env("ZARINPAL_SANDBOX")
+# درگاه‌های پرداخت هر فروشگاه در پنل مدیریت ← «حساب‌های درگاه پرداخت» تنظیم می‌شوند.
+# درگاه آزمایشی داخلی فقط با این پرچم فعال می‌شود (در prod همیشه خاموش است):
+PAYMENT_TEST_GATEWAY_ENABLED = env.bool("PAYMENT_TEST_GATEWAY_ENABLED", default=False)
 
 # اطلاعات فروشگاه (نام، تماس، هزینه ارسال، …) در دیتابیس و پنل مدیریت ← «فروشگاه‌ها» قرار دارد.
 
@@ -138,7 +141,9 @@ CELERY_RESULT_BACKEND = env("CELERY_RESULT_BACKEND", default="") or None
 CELERY_TASK_ALWAYS_EAGER = env.bool("CELERY_TASK_ALWAYS_EAGER", default=False)
 CELERY_TASK_TIME_LIMIT = 300
 CELERY_TIMEZONE = TIME_ZONE
-CELERY_BEAT_SCHEDULE = {}
+CELERY_BEAT_SCHEDULE = {
+    "release-expired-reservations": {"task": "apps.orders.tasks.release_expired_reservations", "schedule": 300.0},
+}
 
 # ---------- لایه هوش مصنوعی (اختیاری؛ apps/ai) ----------
 AI_PROVIDER = env("AI_PROVIDER", default="")  # خالی = غیرفعال

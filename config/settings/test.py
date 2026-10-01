@@ -14,3 +14,4 @@ CELERY_TASK_EAGER_PROPAGATES = True
 MEDIA_ROOT = tempfile.mkdtemp(prefix="majd-test-media-")
 ALLOWED_HOSTS = ["testserver", "localhost", ".test"]
 LOGGING = {"version": 1, "disable_existing_loggers": False, "root": {"level": "WARNING"}}
+PAYMENT_TEST_GATEWAY_ENABLED = True

@@ -1,6 +1,7 @@
 import pytest
 
 from apps.catalog import selectors
+from apps.catalog.services import set_product_notes
 from apps.reviews.forms import ReviewForm
 from apps.reviews.services import submit_review
 
@@ -14,7 +15,8 @@ def catalog(store):
     floral = ScentFactory(slug="floral", name="گلی")
     col = CollectionFactory(slug="spring")
     rose = ProductFactory(name="گل سرخ", scent=floral, collection=col)
-    oud = ProductFactory(name="عود شب", notes_middle="قلب عود")
+    oud = ProductFactory(name="عود شب")
+    set_product_notes(oud, top=["برگاموت"], heart=["قلب عود"], base=["مشک"])
     hidden = ProductFactory(name="مخفی", is_active=False)
     VariantFactory(product=rose, price=2_000_000)
     VariantFactory(product=rose, size_ml=100, price=3_000_000)

@@ -2,7 +2,7 @@
 <section class="page-hero {% if large %}md:!min-h-[520px]{% endif %}">
   <div class="hero-bg" style="background-image:url('{% static image %}')"></div>
   <div class="container relative z-10 py-14">
-    <h1 class="mb-1 text-[2rem] sm:text-[2.6rem] lg:text-[3.4rem]">{{ title|safe }}</h1>
+    <h1 class="mb-1 text-[2rem] sm:text-[2.6rem] lg:text-[3.4rem]">{{ title|br_only }}</h1>
     {% if subtitle %}<p class="max-w-[460px] text-base sm:text-lg">{{ subtitle }}</p>{% endif %}
     {% if cta_url %}<a class="btn {% if large %}btn-lg{% endif %} mt-3" href="{{ cta_url }}">{{ cta_text }}</a>{% endif %}
   </div>

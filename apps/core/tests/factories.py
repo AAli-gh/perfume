@@ -22,14 +22,14 @@ def make_product(slug="oud", name="عود تست", price=1_000_000, stock=5, bra
     scent = scent or ScentFamily.objects.get_or_create(slug="woody", defaults={"name": "چوبی"})[0]
     p = Product.objects.create(
         slug=slug, name=name, brand=brand, scent=scent, image=img(),
-        short_description="توضیح", description="توضیح کامل", notes_top="a", notes_middle="b", notes_base="c", **extra,
+        short_description="توضیح", description="توضیح کامل", **extra,
     )
     v50 = ProductVariant.objects.create(product=p, size_ml=50, price=price, stock=stock)
     v100 = ProductVariant.objects.create(product=p, size_ml=100, price=price * 2, stock=stock)
     return p, v50, v100
 
 
-@override_settings(MEDIA_ROOT=MEDIA, DEBUG=True, ZARINPAL_MERCHANT_ID="")
+@override_settings(MEDIA_ROOT=MEDIA, DEBUG=True)
 class ShopTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):

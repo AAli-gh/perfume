@@ -1,0 +1,8 @@
+<form id="wishlist-{{ product.pk }}" method="post" action="{% url 'wishlist:toggle' product.pk %}"
+      hx-post="{% url 'wishlist:toggle' product.pk %}" hx-target="this" hx-swap="outerHTML">
+  {% csrf_token %}
+  <button type="submit" class="btn btn-ghost htmx-dim w-full" aria-pressed="{{ active|yesno:'true,false' }}">
+    <svg class="icon {% if active %}text-copper{% endif %}" viewBox="0 0 24 24" aria-hidden="true" {% if active %}style="fill:currentColor"{% endif %}><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>
+    {% if active %}در فهرست علاقه‌مندی‌ها{% else %}افزودن به علاقه‌مندی‌ها{% endif %}
+  </button>
+</form>

@@ -17,6 +17,8 @@ from django.utils import timezone
 from apps.blog.models import Category, Post
 from apps.catalog.models import Brand, Collection, Product, ProductImage, ProductVariant, ScentFamily
 from apps.reviews.models import Review
+from apps.catalog.inventory import record_initial
+from apps.catalog.services import set_product_notes
 from apps.core.models import Store
 from apps.core.stores import get_default_store, use_store
 from apps.discounts.models import Coupon
@@ -217,13 +219,13 @@ class Command(BaseCommand):
             p = Product(
                 slug=slug, name=name, brand=brands[brand], scent=scents[scent], collection=collections[col],
                 is_featured=featured, short_description=desc.split("؛")[0] + ".", description=desc,
-                notes_top=notes[0], notes_middle=notes[1], notes_base=notes[2],
             )
             attach(p.image, PRODUCT_IMAGES[slug])
             p.save()
+            set_product_notes(p, *(n.split("، ") for n in notes))
             Product.objects.filter(pk=p.pk).update(created_at=now - timedelta(days=i))
-            ProductVariant.objects.create(product=p, size_ml=50, price=price, stock=25)
-            ProductVariant.objects.create(product=p, size_ml=100, price=round(price * 1.6, -4), stock=15)
+            for size, amount, stock in ((50, price, 25), (100, round(price * 1.6, -4), 15)):
+                record_initial(ProductVariant.objects.create(product=p, size_ml=size, price=amount, stock=stock))
             for order, img in enumerate(GALLERY.get(slug, [])):
                 pi = ProductImage(product=p, order=order)
                 attach(pi.image, img)

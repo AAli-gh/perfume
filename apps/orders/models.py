@@ -48,8 +48,12 @@ class Order(StoreOwned):
     total = models.PositiveIntegerField("مبلغ نهایی", default=0)
     coupon_code = models.CharField("کد تخفیف", max_length=30, blank=True)
 
-    payment_authority = models.CharField("شناسه پرداخت", max_length=64, blank=True, db_index=True)
-    payment_ref_id = models.CharField("کد پیگیری", max_length=64, blank=True)
+    reserved_until = models.DateTimeField(
+        "مهلت پرداخت", null=True, blank=True, db_index=True,
+        help_text="سفارش آنلاین پرداخت‌نشده بعد از این زمان لغو و موجودی آزاد می‌شود",
+    )
+    inventory_released = models.BooleanField("موجودی آزاد شده", default=False, editable=False)
+
     paid_at = models.DateTimeField("زمان پرداخت", null=True, blank=True)
     created_at = models.DateTimeField("تاریخ ثبت", auto_now_add=True)
 
@@ -79,13 +83,6 @@ class Order(StoreOwned):
     def is_paid(self):
         return self.paid_at is not None
 
-    def restock(self):
-        """بازگرداندن موجودی کالاها (هنگام لغو یا پرداخت ناموفق)."""
-        from apps.catalog.models import ProductVariant
-
-        for item in self.items.exclude(variant=None):
-            ProductVariant.objects.filter(pk=item.variant_id).update(stock=models.F("stock") + item.quantity)
-
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="items", verbose_name="سفارش")
@@ -107,3 +104,22 @@ class OrderItem(models.Model):
     @property
     def line_total(self):
         return self.unit_price * self.quantity
+
+
+class OrderStatusHistory(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="history", verbose_name="سفارش")
+    from_status = models.CharField("از وضعیت", max_length=20, choices=Order.Status.choices)
+    to_status = models.CharField("به وضعیت", max_length=20, choices=Order.Status.choices)
+    changed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="توسط"
+    )
+    note = models.CharField("توضیح", max_length=200, blank=True)
+    created_at = models.DateTimeField("زمان", auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at", "-id"]
+        verbose_name = "تاریخچه وضعیت"
+        verbose_name_plural = "تاریخچه وضعیت"
+
+    def __str__(self):
+        return f"{self.order}: {self.get_from_status_display()} ← {self.get_to_status_display()}"
