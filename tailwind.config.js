@@ -2,9 +2,9 @@
 module.exports = {
   content: [
     "./templates/**/*.html",
-    "./*/templates/**/*.html",
-    "./*/templatetags/*.py",
-    "./*/forms.py",
+    "./apps/*/templates/**/*.html",
+    "./apps/*/templatetags/*.py",
+    "./apps/*/forms.py",
     "./static/js/**/*.js",
   ],
   theme: {

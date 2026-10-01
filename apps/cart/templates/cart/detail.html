@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% load checkout %}
+{% block title %}سبد خرید | {{ SITE.name }}{% endblock %}
+{% block content %}
+{% include "components/page_hero.html" with image="img/hero-collections.jpg" title="سبد خرید" subtitle="یک قدم تا داشتن رایحه دلخواهتان فاصله دارید." %}
+
+<div class="container pb-5 pt-14">
+  {% include "cart/partials/cart_area.html" %}
+
+  {% if not cart.is_empty %}{% checkout_form as form %}
+  <section id="order-section" class="scroll-mt-24">
+    <h2 class="mb-5 mt-12 text-[2rem] lg:text-[2.6rem]">ثبت سفارش</h2>
+    {% if form.non_field_errors %}<p class="alert alert-err mb-4">{{ form.non_field_errors|join:" " }}</p>{% endif %}
+    {% if form_error %}<p class="alert alert-err mb-4">لطفاً خطاهای فرم را برطرف کنید.</p>{% endif %}
+    <form class="grid items-start gap-7 lg:grid-cols-[1.2fr_1fr]" method="post" action="{% url 'orders:checkout' %}" novalidate>
+      {% csrf_token %}
+      <div class="panel min-w-0">
+        <h3 class="panel-title">اطلاعات گیرنده</h3>
+        <div class="panel-body grid gap-x-5 gap-y-4 sm:grid-cols-2">
+          {% include "components/field.html" with field=form.first_name %}
+          {% include "components/field.html" with field=form.last_name %}
+          {% include "components/field.html" with field=form.phone %}
+          {% include "components/field.html" with field=form.email %}
+          {% include "components/field.html" with field=form.province %}
+          {% include "components/field.html" with field=form.city %}
+          {% include "components/field.html" with field=form.address class="sm:col-span-2" %}
+          {% include "components/field.html" with field=form.postal_code %}
+          {% include "components/field.html" with field=form.note class="sm:col-span-2" %}
+        </div>
+      </div>
+      <div class="panel min-w-0">
+        <h3 class="panel-title">خلاصه سفارش</h3>
+        <div class="panel-body">
+          {% include "cart/partials/summary.html" with summary_id="checkout-summary" %}
+          <fieldset class="my-4 grid gap-2">
+            <legend class="mb-2 text-[.95rem]">روش پرداخت</legend>
+            {% for radio in form.payment_method %}
+              <label class="flex cursor-pointer items-center gap-2.5 rounded border border-line px-3 py-2.5 text-[.92rem] has-[:checked]:border-copper has-[:checked]:bg-copper/10">
+                {{ radio.tag }} {{ radio.choice_label }}
+              </label>
+            {% endfor %}
+            {% for e in form.payment_method.errors %}<span class="field-error">{{ e }}</span>{% endfor %}
+          </fieldset>
+          <label class="check">{{ form.accept_terms }} {{ form.accept_terms.label }}</label>
+          {% for e in form.accept_terms.errors %}<span class="field-error block">{{ e }}</span>{% endfor %}
+          <button class="btn btn-lg mt-4 w-full" type="submit">ثبت سفارش</button>
+        </div>
+      </div>
+    </form>
+  </section>
+  {% endif %}
+</div>
+{% endblock %}

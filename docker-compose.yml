@@ -12,17 +12,49 @@ services:
       interval: 5s
       retries: 10
 
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 10
+
   web:
     build: .
     env_file: .env
-    environment:
+    environment: &app-env
       DATABASE_URL: postgres://majd:majd@db:5432/majd
+      REDIS_URL: redis://redis:6379/0
+      # nginx محلی روی http است؛ پشت TLS واقعی این سه را حذف یا True کنید
+      SECURE_SSL_REDIRECT: "False"
+      SESSION_COOKIE_SECURE: "False"
+      CSRF_COOKIE_SECURE: "False"
     volumes:
       - media:/app/media
       - static:/app/staticfiles
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker:
+    build: .
+    command: celery -A config worker -l info
+    env_file: .env
+    environment: *app-env
+    volumes:
+      - media:/app/media
+    depends_on:
+      - web
+
+  beat:
+    build: .
+    command: celery -A config beat -l info
+    env_file: .env
+    environment: *app-env
+    depends_on:
+      - redis
 
   nginx:
     image: nginx:alpine

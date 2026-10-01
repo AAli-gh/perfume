@@ -1,0 +1,10 @@
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings.test"
+python_files = ["test_*.py", "tests.py"]
+testpaths = ["apps", "tests"]
+addopts = "-q --strict-markers"
+filterwarnings = ["ignore::DeprecationWarning:celery.*", "ignore:No directory at:UserWarning"]
+
+[tool.coverage.run]
+source = ["apps"]
+omit = ["*/migrations/*", "*/tests/*"]

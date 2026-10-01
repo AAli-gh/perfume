@@ -5,12 +5,12 @@ from django.urls import include, path
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("", include("core.urls")),
-    path("", include("catalog.urls")),
-    path("cart/", include("cart.urls")),
-    path("orders/", include("orders.urls")),
-    path("account/", include("accounts.urls")),
-    path("blog/", include("blog.urls")),
+    path("", include("apps.core.urls")),
+    path("", include("apps.catalog.urls")),
+    path("cart/", include("apps.cart.urls")),
+    path("orders/", include("apps.orders.urls")),
+    path("account/", include("apps.accounts.urls")),
+    path("blog/", include("apps.blog.urls")),
 ]
 
 if settings.DEBUG:

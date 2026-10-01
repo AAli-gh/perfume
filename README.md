@@ -2,24 +2,36 @@
 
 فروشگاه اینترنتی عطر، فارسی و راست‌به‌چپ، با طراحی تیره و طلایی.
 
-**معماری:** Django 5.2 · PostgreSQL · Django Templates · HTMX 2 · Tailwind CSS 3
+**معماری:** Modular Monolith — Django 5.2 · PostgreSQL · Celery + Redis · Django Templates · HTMX 2 · Tailwind CSS 3
+
+> این پروژه در حال تبدیل شدن به یک پلتفرم فروشگاهی White-Label است. نقشه راه مرحله‌ای در `docs/` (Phase 13) مستند می‌شود.
 
 ## ساختار پروژه
 
 ```
-config/        تنظیمات، urls، wsgi
-core/          صفحه اصلی، درباره ما، تماس، خبرنامه، فیلترهای قالب (اعداد فارسی، تومان، تاریخ شمسی)، seed_demo
-catalog/       برند، خانواده رایحه، کالکشن، محصول، حجم/قیمت (Variant)، گالری، نظرات
-cart/          سبد خرید مبتنی بر session + کد تخفیف
-orders/        کد تخفیف، سفارش، اقلام سفارش، ثبت سفارش، درگاه زرین‌پال
-accounts/      کاربر سفارشی (ورود با ایمیل)، ورود/ثبت‌نام، سفارش‌های من
-blog/          دسته‌بندی و مقاله
-templates/     قالب پایه و کامپوننت‌های مشترک (کارت محصول، هیرو، صفحه‌بندی، …)
-static/src/    ورودی Tailwind  →  static/css/app.css (ساخته می‌شود)
-static/js/     app.js (تعاملات کوچک: منو، گالری، اسلایدر، تب‌ها)
-static/vendor/ htmx.min.js
-seed/images/   تصاویر داده‌های نمایشی
+config/
+  settings/     base.py (مشترک) · dev.py · prod.py · test.py
+  celery.py     پیکربندی Celery (کشف خودکار tasks.py هر اپ)
+apps/
+  core/         صفحه اصلی، درباره ما، تماس، خبرنامه، فیلترهای قالب (اعداد فارسی، تومان، تاریخ شمسی)، seed_demo
+  catalog/      برند، خانواده رایحه، کالکشن، محصول، حجم/قیمت، گالری، نظرات
+                selectors.py (کوئری‌های خواندنی) · services.py (عملیات نوشتنی)
+  cart/         سبد خرید مبتنی بر session · services.py (اعمال کد تخفیف)
+  orders/       کد تخفیف، سفارش، ثبت سفارش (services.py)، درگاه زرین‌پال
+  accounts/     کاربر سفارشی (ورود با ایمیل)، ورود/ثبت‌نام، سفارش‌های من
+  blog/         دسته‌بندی و مقاله
+  ai/           اسکلت لایه هوش مصنوعی (غیرفعال؛ هسته به آن وابسته نیست)
+templates/      قالب پایه و کامپوننت‌های مشترک
+static/         src/input.css → css/app.css (Tailwind) · js/app.js · vendor/htmx.min.js
+tests/          تست‌های معماری (جهت وابستگی ماژول‌ها) و لایه AI
+seed/images/    تصاویر داده‌های نمایشی
 ```
+
+### قواعد معماری
+
+- **View نازک است:** کوئری‌های خواندنی در `selectors.py` و عملیات نوشتنی در `services.py` هر اپ قرار دارند.
+- **جهت وابستگی:** `themes / pages / ai → هسته (catalog، orders، …) → core`. هسته هرگز از لایه نمایش یا AI چیزی import نمی‌کند. این قاعده با `tests/test_architecture.py` قفل شده است.
+- **app label:** اپ‌ها در `apps/` هستند، اما `label` هر اپ (مثلاً `catalog`) ثابت مانده تا جدول‌ها و migrationها تغییر نکنند.
 
 ### HTMX کجا استفاده شده است
 
@@ -45,7 +57,7 @@ createdb -O majd majd
 
 # ۲. پایتون
 python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
+pip install -r requirements-dev.txt     # در production فقط requirements.txt
 cp .env.example .env          # در صورت نیاز DATABASE_URL را تغییر دهید
 
 # ۳. Tailwind
@@ -58,6 +70,9 @@ python manage.py seed_demo    # ۱۲ محصول، ۵ کالکشن، ۶ مقال�
 python manage.py createsuperuser
 
 python manage.py runserver
+
+# (اختیاری) Celery — نیاز به Redis و REDIS_URL در .env دارد
+celery -A config worker -l info
 ```
 
 - سایت: http://localhost:8000
@@ -72,15 +87,17 @@ docker compose exec web python manage.py seed_demo
 docker compose exec web python manage.py createsuperuser
 ```
 
-سایت روی http://localhost:8080 بالا می‌آید. nginx فایل‌های static و media را سرو می‌کند.
+سایت روی http://localhost:8080 بالا می‌آید. سرویس‌ها: `db`، `redis`، `web` (gunicorn)، `worker` و `beat` (Celery)، `nginx` (فایل‌های static و media).
+کانتینرها با `config.settings.prod` اجرا می‌شوند. در `docker-compose.yml`، کوکی امن و ریدایرکت HTTPS برای اجرای محلی روی http خاموش شده‌اند. پشت TLS واقعی آن‌ها را فعال کنید.
 
 ## تست‌ها
 
 ```bash
-python manage.py test
+pytest                    # با تنظیمات config.settings.test
+pytest --cov              # همراه با گزارش پوشش کد
 ```
 
-تست‌ها روی PostgreSQL اجرا می‌شوند و این موارد را پوشش می‌دهند: فیلترها و جستجو، پاسخ‌های partial در HTMX، سبد خرید و کد تخفیف، ثبت سفارش و کم شدن موجودی، اعتبارسنجی فرم‌ها، پرداخت، ورود و ثبت‌نام.
+تست‌ها روی PostgreSQL اجرا می‌شوند و این موارد را پوشش می‌دهند: قواعد معماری، selectorها و سرویس‌ها، فیلترها و جستجو، پاسخ‌های partial در HTMX، سبد خرید و کد تخفیف، ثبت سفارش و کم شدن موجودی، اعتبارسنجی فرم‌ها، پرداخت، ورود و ثبت‌نام.
 
 ## پرداخت
 
@@ -93,11 +110,15 @@ python manage.py test
 
 | متغیر | توضیح |
 |---|---|
-| `DEBUG` | حالت توسعه |
+| `DJANGO_SETTINGS_MODULE` | پیش‌فرض: `config.settings.dev` (manage.py) و `config.settings.prod` (wsgi و Docker) |
+| `DEBUG` | حالت توسعه (در prod همیشه False است) |
 | `SECRET_KEY` | در production الزامی است |
 | `ALLOWED_HOSTS` | دامنه‌های مجاز، جدا شده با کاما |
 | `CSRF_TRUSTED_ORIGINS` | آدرس‌های مجاز برای CSRF، جدا شده با کاما |
 | `DATABASE_URL` | مثلاً `postgres://user:pass@host:5432/db` |
+| `REDIS_URL` | cache و broker مربوط به Celery؛ اگر خالی باشد cache در حافظه است |
+| `CELERY_TASK_ALWAYS_EAGER` | اجرای taskها بدون worker (برای توسعه) |
+| `AI_PROVIDER` | ارائه‌دهنده AI؛ خالی یعنی غیرفعال |
 | `ZARINPAL_MERCHANT_ID` / `ZARINPAL_SANDBOX` | درگاه پرداخت |
 | `SHIPPING_COST` | هزینه ارسال به تومان |
 | `FREE_SHIPPING_OVER` | حداقل مبلغ سفارش برای ارسال رایگان؛ مقدار ۰ یعنی ارسال رایگان غیرفعال است |
