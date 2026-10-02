@@ -1,0 +1,53 @@
+{% load static studio %}<!doctype html>
+<html lang="fa" dir="rtl" {% studio_attrs %}>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>{% block title %}استودیو{% endblock %} | {{ SITE.name }}</title>
+  {% studio_head %}
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  <script src="{% static 'vendor/htmx.min.js' %}" defer></script>
+  <script src="{% static 'js/studio.js' %}" defer></script>
+</head>
+<body class="studio" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+  <header class="border-b border-line bg-ink-2/90">
+    <div class="mx-auto flex h-14 max-w-[1320px] items-center gap-4 px-4">
+      <a href="{% url 'builder:dashboard' %}" class="font-display text-2xl leading-none text-gold">{{ SITE.name }}</a>
+      <span class="rounded-sm border border-line px-2 text-xs text-muted">استودیو</span>
+      <nav class="ms-auto flex items-center gap-1 text-sm">
+        <a class="studio-top-link" href="{% url 'pages:home' %}" target="_blank" rel="noopener">{% icon "bag" "!w-4 !h-4" %}<span class="hidden sm:inline">مشاهده فروشگاه</span></a>
+        {% if user.is_superuser or perms.themes.view_themesettings or perms.catalog.view_product %}
+        <a class="studio-top-link" href="{% url 'admin:index' %}">{% icon "grid" "!w-4 !h-4" %}<span class="hidden sm:inline">پنل مدیریت</span></a>
+        {% endif %}
+        <form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}<button class="studio-top-link" type="submit">{% icon "logout" "!w-4 !h-4" %}<span class="hidden sm:inline">خروج</span></button></form>
+      </nav>
+    </div>
+  </header>
+
+  <div class="mx-auto grid w-full max-w-[1320px] flex-1 grid-cols-[minmax(0,1fr)] gap-6 px-4 py-6 lg:grid-cols-[220px_minmax(0,1fr)]">
+    <aside class="min-w-0">
+      <nav class="studio-nav" aria-label="بخش‌های استودیو">
+        <a href="{% url 'builder:dashboard' %}" {% if nav == 'dashboard' %}aria-current="page"{% endif %}>{% icon "diamond" "!w-4 !h-4" %} پیشخوان</a>
+        {% if perms.themes.change_themesettings %}
+        <a href="{% url 'builder:theme' %}" {% if nav == 'theme' %}aria-current="page"{% endif %}>{% icon "flame" "!w-4 !h-4" %} ظاهر و پوسته</a>
+        {% endif %}
+        {% if perms.pages.change_pagesection %}
+        <a href="{% url 'builder:pages' %}" {% if nav == 'pages' %}aria-current="page"{% endif %}>{% icon "list" "!w-4 !h-4" %} صفحه‌ها و بخش‌ها</a>
+        {% endif %}
+      </nav>
+    </aside>
+
+    <main class="min-w-0">
+      {% if messages %}
+      <div class="mb-4 grid gap-2" role="status">
+        {% for message in messages %}
+        <div class="alert {% if message.level_tag == 'error' or message.level_tag == 'warning' %}alert-err{% else %}alert-ok{% endif %}">{{ message }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</body>
+</html>

@@ -4,6 +4,7 @@ import logging
 from dataclasses import dataclass
 
 from django.db import transaction
+from django.utils import timezone
 
 from . import sections
 from .defaults import DEFAULT_HOME_SECTIONS
@@ -62,3 +63,65 @@ def build_blocks(page, request, status=PageSection.Status.PUBLISHED):
             spacing, after_hero = (SPACING_AFTER_HERO if after_hero else SPACING_DEFAULT), False
         blocks.append(Block(section, section_type.template, context, spacing))
     return blocks
+
+
+# ---------- مدیریت بخش‌ها (سازنده صفحه) ----------
+# فعلاً روی نسخه منتشرشده؛ پیش‌نویس و انتشار در فاز ۸.
+
+ORDER_STEP = 10
+
+
+def page_sections(page, status=PageSection.Status.PUBLISHED):
+    return page.sections.filter(status=status).order_by("order", "id")
+
+
+@transaction.atomic
+def reorder_sections(page, ids, status=PageSection.Status.PUBLISHED):
+    """ترتیب جدید بر اساس فهرست شناسه‌ها؛ شناسه‌های ناشناخته نادیده و بخش‌های جاافتاده به انتها می‌روند."""
+    sections = list(page_sections(page, status).select_for_update())
+    by_id = {s.pk: s for s in sections}
+    ordered = list(dict.fromkeys(pk for pk in ids if pk in by_id))
+    ordered += [s.pk for s in sections if s.pk not in ordered]
+    for index, pk in enumerate(ordered):
+        by_id[pk].order = index * ORDER_STEP
+    PageSection.objects.bulk_update(sections, ["order"])
+    Page.objects.filter(pk=page.pk).update(updated_at=timezone.now())
+
+
+def move_section(section, delta):
+    """جابه‌جایی یک بخش به بالا (-۱) یا پایین (+۱)."""
+    ids = list(page_sections(section.page, section.status).values_list("pk", flat=True))
+    i = ids.index(section.pk)
+    j = max(0, min(len(ids) - 1, i + delta))
+    ids[i], ids[j] = ids[j], ids[i]
+    reorder_sections(section.page, ids, section.status)
+
+
+def add_section(page, type_key, status=PageSection.Status.PUBLISHED):
+    section_type = sections.get(type_key)
+    if section_type is None:
+        raise ValueError(f"unknown section type {type_key!r}")
+    last = page_sections(page, status).last()
+    return PageSection.objects.create(
+        page=page, type=type_key, status=status, order=(last.order + ORDER_STEP) if last else 0,
+        settings=section_type.clean_settings({}),
+    )
+
+
+def toggle_section(section):
+    section.is_enabled = not section.is_enabled
+    section.save(update_fields=["is_enabled", "updated_at"])
+
+
+def delete_section(section):
+    section.delete()
+
+
+def update_section(section, settings, *, image=None, clear_image=False):
+    """settings باید از فرم همان نوع بخش اعتبارسنجی شده باشد؛ اینجا دوباره پاک‌سازی می‌شود."""
+    section.settings = section.section_type.clean_settings(settings)
+    if image:
+        section.image = image
+    elif clear_image:
+        section.image = ""
+    section.save()

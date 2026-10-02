@@ -13,28 +13,14 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.templatetags.static import static
 
-SAFE_URL = re.compile(r"^(/[^\s]*|https?://[^\s]+|#[\w-]*)$")
+from apps.core.schema import SAFE_URL, LinkField, validate_link  # noqa: F401 — بازصادر برای سازگاری
+
 STATIC_IMAGE = re.compile(r"^[a-z0-9][a-z0-9/_.-]*\.(jpg|jpeg|png|webp|svg)$")
-
-
-def validate_link(value):
-    """فقط مسیر داخلی (/…)، http(s) یا لنگر (#…) — javascript: و مشابه رد می‌شوند."""
-    if value and not SAFE_URL.match(value):
-        raise ValidationError("پیوند باید با / یا https:// شروع شود.")
 
 
 def validate_static_image(value):
     if value and (".." in value or not STATIC_IMAGE.match(value)):
         raise ValidationError("مسیر تصویر پوسته نامعتبر است.")
-
-
-class LinkField(forms.CharField):
-    default_validators = [validate_link]
-
-    def __init__(self, **kwargs):
-        kwargs.setdefault("max_length", 300)
-        kwargs.setdefault("required", False)
-        super().__init__(**kwargs)
 
 
 class SectionForm(forms.Form):

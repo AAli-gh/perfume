@@ -1,0 +1,21 @@
+<form method="post" novalidate>{% csrf_token %}
+  <p class="mb-5 text-sm text-muted">رنگ‌ها روی پیش‌تنظیم «{{ theme_settings.preset.name|default:"پیش‌فرض" }}» اعمال می‌شوند.{% if customized %} <span class="text-gold-soft">(شخصی‌سازی‌شده)</span>{% endif %}</p>
+  {% for group, fields in form.groups %}
+  <fieldset class="mb-6">
+    <legend class="mb-3 text-gold-soft">{{ group }}</legend>
+    <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      {% for field in fields %}
+      <div class="studio-color {% if field.errors %}has-error{% endif %}">
+        {{ field }}
+        <label for="{{ field.id_for_label }}" class="min-w-0 flex-1">
+          <span class="block truncate text-[.9rem] text-body" title="{{ field.label }}">{{ field.label }}</span>
+          <span class="block font-mono text-xs text-muted" dir="ltr" data-color-value>{{ field.value }}</span>
+        </label>
+        {% for error in field.errors %}<p class="field-error w-full">{{ error }}</p>{% endfor %}
+      </div>
+      {% endfor %}
+    </div>
+  </fieldset>
+  {% endfor %}
+  {% include "builder/theme/_actions.html" with reset="بازگشت به رنگ‌های پیش‌تنظیم" %}
+</form>

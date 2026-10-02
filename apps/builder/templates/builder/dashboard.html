@@ -1,0 +1,28 @@
+{% extends "builder/base.html" %}
+{% block title %}پیشخوان{% endblock %}
+{% block content %}
+<h1 class="mb-1 text-[1.7rem]">سلام، {{ user.display_name|default:user.get_username }}</h1>
+<p class="mb-6 text-muted">ظاهر فروشگاه و چیدمان صفحه اصلی را از اینجا بدون کدنویسی تغییر دهید. تغییرات بلافاصله در فروشگاه منتشر می‌شوند.</p>
+<div class="grid gap-4 md:grid-cols-2">
+  {% if perms.themes.change_themesettings %}
+  <a href="{% url 'builder:theme' %}" class="studio-card">
+    <span class="studio-card-icon">{% icon "flame" %}</span>
+    <span>
+      <strong class="block text-lg text-gold">ظاهر و پوسته</strong>
+      {% if theme_settings %}
+      <span class="text-sm text-muted">پوسته «{{ theme_settings.theme.name }}»{% if theme_settings.preset %} · پیش‌تنظیم «{{ theme_settings.preset.name }}»{% endif %}{% if theme_settings.overrides %} · شخصی‌سازی‌شده{% endif %}</span>
+      {% endif %}
+    </span>
+  </a>
+  {% endif %}
+  {% if perms.pages.change_pagesection %}
+  <a href="{% url 'builder:page' home.pk %}" class="studio-card">
+    <span class="studio-card-icon">{% icon "list" %}</span>
+    <span>
+      <strong class="block text-lg text-gold">صفحه اصلی</strong>
+      <span class="text-sm text-muted">{{ section_count|fa }} بخش فعال · جابه‌جایی، افزودن و ویرایش بخش‌ها</span>
+    </span>
+  </a>
+  {% endif %}
+</div>
+{% endblock %}

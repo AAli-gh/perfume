@@ -154,6 +154,32 @@
   .reveal.visible { @apply translate-y-0 opacity-100; }
   @media (prefers-reduced-motion: reduce) { .reveal { @apply translate-y-0 opacity-100 transition-none; } }
 
+  /* ---------- استودیو (سازنده فروشگاه) ---------- */
+  .studio-top-link { @apply inline-flex items-center gap-1.5 rounded px-2.5 py-1.5 text-body hover:bg-copper/10 hover:text-gold; }
+  .studio-nav { @apply flex gap-1 overflow-x-auto lg:flex-col; }
+  .studio-nav a { @apply flex items-center gap-2 whitespace-nowrap rounded border border-transparent px-3 py-2 text-[.95rem] text-body hover:bg-copper/10 hover:text-gold; }
+  .studio-nav a[aria-current="page"] { @apply border-line bg-panel text-gold; }
+  .studio-tabs { @apply flex gap-1 overflow-x-auto border-b border-line; }
+  .studio-tabs a { @apply -mb-px flex items-center gap-1.5 whitespace-nowrap border border-b-0 border-transparent px-3 py-2 text-sm text-muted hover:text-gold; }
+  .studio-tabs a[aria-current="page"] { @apply border-line bg-panel text-gold; }
+  .studio-card { @apply flex items-center gap-4 rounded border border-line bg-panel/[.72] p-4 text-body transition hover:border-line-strong hover:text-body; }
+  .studio-card-icon { @apply grid h-11 w-11 shrink-0 place-items-center rounded-full border border-line text-gold; }
+  .studio-choice { @apply block cursor-pointer rounded border border-line bg-input/20 p-3 transition hover:border-line-strong; }
+  .studio-choice:has(:checked) { @apply border-copper ring-2 ring-copper/30; }
+  .studio-choice:has(:focus-visible) { @apply outline outline-2 outline-copper; }
+  .studio-color { @apply flex flex-wrap items-center gap-3 rounded border border-line bg-input/20 p-2; }
+  .studio-color.has-error { @apply border-danger; }
+  .color-input { @apply h-10 w-12 shrink-0 cursor-pointer rounded-sm border border-line bg-transparent p-0.5; }
+  .studio-media { @apply flex min-h-[88px] flex-col items-center justify-center gap-1 rounded border border-dashed border-line p-3; }
+  .studio-preview { @apply rounded border border-line bg-panel/[.72] p-4; }
+  .studio-preview-surface { @apply rounded border border-line p-4; background: rgb(var(--color-background)); }
+  .studio-row { @apply flex flex-wrap items-center gap-3 rounded border border-line bg-panel/[.72] p-2.5 sm:flex-nowrap; }
+  .studio-row.is-disabled { @apply opacity-60; }
+  .studio-row.is-dragging { @apply border-copper opacity-50; }
+  .studio-drag { @apply hidden cursor-grab select-none px-1 text-muted sm:block; }
+  .studio-repeater-row { @apply flex items-start gap-2 rounded border border-line bg-input/10 p-2; }
+  .studio-repeater-num { @apply mt-6 w-5 shrink-0 text-center text-xs text-muted; }
+
   /* نشانگر بارگذاری htmx */
   .htmx-request .htmx-dim, .htmx-request.htmx-dim { @apply opacity-50 transition-opacity; }
 }

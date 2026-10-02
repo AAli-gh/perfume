@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     "apps.marketing",
     "apps.pages",
     "apps.themes",
+    "apps.builder",
 ]
 
 MIDDLEWARE = [

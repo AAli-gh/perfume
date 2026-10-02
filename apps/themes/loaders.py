@@ -22,9 +22,18 @@ def theme_template_dirs(code):
     return dirs
 
 
+# قالب‌هایی که پوسته‌ها نمی‌توانند تغییر دهند (رابط استودیو مستقل از پوسته فروشگاه است)
+PROTECTED_PREFIXES = ("builder/", "admin/")
+
+
 class ThemeLoader(FilesystemLoader):
     def get_dirs(self):
         return theme_template_dirs(get_active_theme_code())
+
+    def get_template_sources(self, template_name):
+        if template_name.startswith(PROTECTED_PREFIXES):
+            return
+        yield from super().get_template_sources(template_name)
 
 
 class ThemeCachedLoader(CachedLoader):

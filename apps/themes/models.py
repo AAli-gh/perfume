@@ -103,3 +103,10 @@ class ThemeSettings(StoreOwned):
             tokens.validate(self.overrides, partial=True)
         except ValidationError as exc:
             raise ValidationError({"overrides": exc.messages}) from exc
+        from . import chrome
+
+        for part in ("header", "footer"):
+            try:
+                chrome.clean(part, getattr(self, part))
+            except ValidationError as exc:
+                raise ValidationError({part: exc.messages}) from exc

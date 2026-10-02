@@ -1,0 +1,24 @@
+<form method="post" enctype="multipart/form-data" novalidate>{% csrf_token %}
+  <div class="grid gap-6 sm:grid-cols-2">
+    <div class="grid content-start gap-3">
+      <p class="text-gold-soft">لوگو</p>
+      <div class="studio-media">
+        {% if theme_settings.logo %}<img src="{{ theme_settings.logo.url }}" alt="لوگوی فعلی" class="max-h-16 w-auto">{% else %}<span class="font-display text-3xl text-gold">{{ SITE.name }}</span><span class="text-xs text-muted">(بدون لوگو، نام فروشگاه نمایش داده می‌شود)</span>{% endif %}
+      </div>
+      {% include "builder/theme/_field.html" with field=form.logo %}
+      {% if theme_settings.logo %}{% include "builder/theme/_field.html" with field=form.clear_logo %}{% endif %}
+      {% include "builder/theme/_field.html" with field=form.logo_height %}
+    </div>
+    <div class="grid content-start gap-3">
+      <p class="text-gold-soft">فاوآیکون</p>
+      <div class="studio-media">
+        {% if theme_settings.favicon %}<img src="{{ theme_settings.favicon.url }}" alt="فاوآیکون فعلی" class="h-10 w-10">{% else %}<span class="text-xs text-muted">فاوآیکون خودکار با حرف نماد و رنگ‌های پوسته ساخته می‌شود.</span>{% endif %}
+      </div>
+      {% include "builder/theme/_field.html" with field=form.favicon %}
+      {% if theme_settings.favicon %}{% include "builder/theme/_field.html" with field=form.clear_favicon %}{% endif %}
+      {% include "builder/theme/_field.html" with field=form.monogram %}
+    </div>
+  </div>
+  {% for error in form.non_field_errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+  {% include "builder/theme/_actions.html" %}
+</form>

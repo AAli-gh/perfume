@@ -1,11 +1,11 @@
 """انواع بخش‌های صفحه."""
 
 from django import forms
-from django.core.exceptions import ValidationError
 
 from apps.blog.models import Post
 from apps.catalog import selectors as catalog
 from apps.catalog.models import Category, Collection
+from apps.core.schema import ListOfDictsField
 from apps.core.templatetags.majd import ICONS
 from apps.marketing.forms import NewsletterForm
 from apps.reviews.models import Review
@@ -21,34 +21,6 @@ def _text(label, initial="", required=False, max_length=300, textarea=False):
 
 def _limit(initial, max_value=24):
     return forms.IntegerField(label="تعداد", initial=initial, min_value=1, max_value=max_value)
-
-
-class ListOfDictsField(forms.JSONField):
-    """فهرست آیتم‌ها با کلیدهای مشخص و متن کوتاه (مثلاً ویژگی‌ها یا پرسش‌ها)."""
-
-    def __init__(self, *, keys, max_items=12, choices=None, **kwargs):
-        self.keys, self.max_items, self.key_choices = keys, max_items, choices or {}
-        kwargs.setdefault("required", False)
-        super().__init__(**kwargs)
-
-    def clean(self, value):
-        value = super().clean(value) or []
-        if not isinstance(value, list) or len(value) > self.max_items:
-            raise ValidationError(f"فهرستی با حداکثر {self.max_items} آیتم")
-        cleaned = []
-        for item in value:
-            if not isinstance(item, dict):
-                raise ValidationError("هر آیتم باید یک شیء باشد")
-            row = {}
-            for key in self.keys:
-                text = item.get(key, "")
-                if not isinstance(text, str) or len(text) > 600:
-                    raise ValidationError(f"مقدار «{key}» نامعتبر است")
-                if key in self.key_choices and text not in self.key_choices[key]:
-                    raise ValidationError(f"«{text}» برای {key} مجاز نیست")
-                row[key] = text.strip()
-            cleaned.append(row)
-        return cleaned
 
 
 # ---------- هیرو ----------
@@ -78,6 +50,7 @@ class HeroSection(SectionType):
 class FeaturesForm(SectionForm):
     items = ListOfDictsField(
         label="آیتم‌ها", keys=("icon", "title", "text"), max_items=8, choices={"icon": set(ICONS)},
+        labels={"icon": "آیکن", "title": "عنوان", "text": "توضیح"},
         initial=[
             {"icon": "truck", "title": "ارسال سریع", "text": "به سراسر ایران"},
             {"icon": "shield-check", "title": "ضمانت اصالت", "text": "۱۰۰٪ اورجینال"},
@@ -257,7 +230,8 @@ class NewsletterSection(SectionType):
 
 class FaqForm(SectionForm):
     title = _text("عنوان", "پرسش‌های متداول", required=True)
-    items = ListOfDictsField(label="پرسش و پاسخ‌ها", keys=("question", "answer"), max_items=20, initial=[])
+    items = ListOfDictsField(label="پرسش و پاسخ‌ها", keys=("question", "answer"), max_items=20, initial=[],
+                             labels={"question": "پرسش", "answer": "پاسخ"}, textareas=("answer",))
 
 
 @register

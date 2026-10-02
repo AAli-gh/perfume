@@ -6,9 +6,11 @@ const v = (name) => `rgb(var(--color-${name}) / <alpha-value>)`;
 module.exports = {
   content: [
     "./themes/*/templates/**/*.html",
+    "./apps/*/templates/**/*.html",
     "./apps/*/templatetags/*.py",
     "./apps/*/forms.py",
     "./apps/pages/services.py",
+    "./apps/builder/*.py",
     "./static/js/**/*.js",
   ],
   theme: {

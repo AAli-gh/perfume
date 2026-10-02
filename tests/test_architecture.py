@@ -9,7 +9,7 @@ APPS_DIR = Path(__file__).resolve().parent.parent / "apps"
 
 # هسته فروشگاه — نباید به لایه نمایش یا افزونه‌ها وابسته باشد
 DOMAIN_APPS = ["accounts", "catalog", "reviews", "discounts", "cart", "wishlist", "orders", "payments", "blog", "marketing"]
-PRESENTATION_AND_EXTENSIONS = ["themes", "pages", "ai"]
+PRESENTATION_AND_EXTENSIONS = ["themes", "pages", "builder", "ai"]
 
 # وابستگی‌های مجاز هر اپ هسته (به‌جز core که هسته مشترک است)
 ALLOWED_DEPENDENCIES = {
@@ -88,7 +88,23 @@ def test_no_dependency_cycle_between_orders_and_cart_views():
     assert not any(m.startswith("apps.orders") for m in modules)
 
 
+# قالب‌هایی که جزو فروشگاه نیستند و قابل override توسط پوسته‌ها نیستند: رابط استودیو و ویجت‌های فرم
+NON_STOREFRONT_TEMPLATES = ("builder/templates/builder/", "core/templates/core/widgets/")
+
+
 def test_storefront_templates_live_in_themes_not_apps():
     """لایه نمایش جدا از منطق: قالب‌های فروشگاه فقط در themes/ هستند."""
-    stray = [str(p.relative_to(APPS_DIR)) for p in APPS_DIR.rglob("templates/**/*.html")]
+    stray = [
+        rel for p in APPS_DIR.rglob("templates/**/*.html")
+        if not (rel := p.relative_to(APPS_DIR).as_posix()).startswith(NON_STOREFRONT_TEMPLATES)
+    ]
     assert not stray, f"قالب در اپ‌ها: {stray}"
+
+
+def test_themes_do_not_override_studio_templates():
+    """استودیو مستقل از پوسته است؛ پوسته خراب نباید ابزار ویرایش را از کار بیندازد."""
+    from apps.themes.loaders import PROTECTED_PREFIXES
+
+    themes_dir = APPS_DIR.parent / "themes"
+    assert "builder/" in PROTECTED_PREFIXES
+    assert not list(themes_dir.glob("*/templates/builder/**/*.html"))

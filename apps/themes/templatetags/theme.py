@@ -4,9 +4,10 @@ from urllib.parse import quote
 
 from django import template
 from django.core.cache import cache
-from django.utils.html import format_html
+from django.utils.html import escape, format_html
 from django.utils.safestring import mark_safe
 
+from .. import chrome
 from .. import tokens as T
 
 register = template.Library()
@@ -35,12 +36,13 @@ def _favicon(context, tokens):
     if settings_ and settings_.favicon:
         return settings_.favicon.url
     site = context.get("SITE") or {}
-    monogram = ((settings_.header or {}).get("monogram") if settings_ else None) or (site.get("name") or "•")[:1]
+    monogram = chrome.resolve("header", settings_)["monogram"] or (site.get("name") or "•")[:1]
+    monogram = escape(monogram[:1])
     bg, fg = tokens["colors"]["background"], tokens["colors"]["accent"]
     svg = (
         "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'>"
         f"<rect width='64' height='64' rx='12' fill='{bg}'/>"
-        f"<text x='32' y='44' font-size='34' text-anchor='middle' fill='{fg}' font-family='serif'>{monogram[:1]}</text></svg>"
+        f"<text x='32' y='44' font-size='34' text-anchor='middle' fill='{fg}' font-family='serif'>{monogram}</text></svg>"
     )
     return "data:image/svg+xml," + quote(svg, safe="/:='. ")
 
