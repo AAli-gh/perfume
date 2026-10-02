@@ -41,6 +41,8 @@ class Page(StoreOwned):
     title = models.CharField("عنوان", max_length=150)
     slug = models.SlugField("نامک", allow_unicode=True, max_length=160)
     is_home = models.BooleanField("صفحه اصلی", default=False)
+    # پیش‌نویس جداگانه دارد (حتی اگر پیش‌نویس هیچ بخشی نداشته باشد)
+    has_draft = models.BooleanField("پیش‌نویس دارد", default=False, editable=False)
     updated_at = models.DateTimeField("آخرین تغییر", auto_now=True)
 
     objects = StoreQuerySet.as_manager()

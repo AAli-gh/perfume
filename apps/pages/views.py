@@ -2,12 +2,13 @@ from django.contrib import messages
 from django.shortcuts import redirect, render
 
 from .forms import ContactForm
-from .services import build_blocks, ensure_home_page
+from .services import build_blocks, ensure_home_page, rendered_status
 
 
 def home(request):
     page = ensure_home_page(request.store)
-    return render(request, "pages/home.html", {"page": page, "blocks": build_blocks(page, request)})
+    blocks = build_blocks(page, request, status=rendered_status(page, request))
+    return render(request, "pages/home.html", {"page": page, "blocks": blocks})
 
 
 def about(request):

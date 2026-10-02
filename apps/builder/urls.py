@@ -15,4 +15,12 @@ urlpatterns = [
     path("pages/<int:pk>/sections/<int:section_pk>/move/", views.section_move, name="section_move"),
     path("pages/<int:pk>/sections/<int:section_pk>/toggle/", views.section_toggle, name="section_toggle"),
     path("pages/<int:pk>/sections/<int:section_pk>/delete/", views.section_delete, name="section_delete"),
+    path("preview/", views.preview_page, name="preview"),
+    path("preview/exit/", views.preview_exit, name="preview_exit"),
+    path("preview/link/", views.preview_link, name="preview_link"),
+    path("preview/s/<str:token>/", views.preview_share, name="preview_share"),
+    path("publish/", views.publish, name="publish"),
+    path("discard/", views.discard, name="discard"),
+    path("history/", views.history, name="history"),
+    path("history/<int:number>/restore/", views.restore, name="restore"),
 ]

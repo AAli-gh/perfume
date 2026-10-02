@@ -180,6 +180,10 @@
   .studio-repeater-row { @apply flex items-start gap-2 rounded border border-line bg-input/10 p-2; }
   .studio-repeater-num { @apply mt-6 w-5 shrink-0 text-center text-xs text-muted; }
 
+  .studio-publish { @apply flex flex-wrap items-center gap-3 rounded border border-line bg-panel/[.5] px-4 py-2.5; }
+  .studio-publish.has-changes { @apply border-copper/60 bg-copper/10; }
+  .studio-frame-wrap { @apply flex justify-center overflow-x-auto rounded border border-line bg-media p-2; }
+  .studio-frame { @apply h-[75vh] min-h-[480px] max-w-full rounded-sm border border-line bg-ink transition-[width]; }
   /* نشانگر بارگذاری htmx */
   .htmx-request .htmx-dim, .htmx-request.htmx-dim { @apply opacity-50 transition-opacity; }
 }

@@ -2,7 +2,7 @@
 هیچ‌وقت ابزار ویرایش آن را غیرقابل استفاده نکند."""
 
 from django import template
-from django.utils.html import escape, format_html
+from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 
 from apps.themes import tokens as T
@@ -27,8 +27,11 @@ def studio_attrs():
     return mark_safe(T.component_attrs(T.merge()))
 
 
-@register.filter
-def token_css_vars(tokens):
-    """متغیرهای توکن برای پیش‌نمایش کوچک داخل استودیو (برای ویژگی style؛ escape‌شده)."""
-    css = T.to_css(tokens)
-    return escape(css[len(":root{"):-1])
+@register.simple_tag(takes_context=True)
+def studio_status(context):
+    """وضعیت پیش‌نویس برای نوار انتشار: بخش‌های تغییرکرده و مجوز انتشار کاربر."""
+    from ..access import PUBLISH_PERM
+    from ..services import pending_changes
+
+    request = context["request"]
+    return {"changes": pending_changes(request.store), "can_publish": request.user.has_perm(PUBLISH_PERM)}

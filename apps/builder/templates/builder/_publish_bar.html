@@ -1,0 +1,27 @@
+<div id="publish-bar" class="studio-publish {% if status.changes %}has-changes{% endif %} mb-4"{% if oob %} hx-swap-oob="true"{% endif %}>
+  {% if status.changes %}
+    <div class="min-w-0 flex-1">
+      <p class="text-cream">تغییرات منتشرنشده</p>
+      <p class="truncate text-sm text-muted" title="{{ status.changes|join:'، ' }}">{{ status.changes|join:"، " }}</p>
+    </div>
+    <div class="flex flex-wrap items-center gap-2">
+      {% if nav != 'preview' %}<a class="btn btn-ghost btn-sm" href="{% url 'builder:preview' %}">پیش‌نمایش</a>{% endif %}
+      {% if status.can_publish %}
+      <form method="post" action="{% url 'builder:discard' %}" data-confirm="همه تغییرات منتشرنشده کنار گذاشته شود؟ این کار برگشت‌پذیر نیست.">{% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <button class="btn btn-ghost btn-sm" type="submit">کنار گذاشتن</button>
+      </form>
+      <form method="post" action="{% url 'builder:publish' %}" class="flex items-center gap-2">{% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <label class="sr-only" for="publish-label">توضیح این انتشار</label>
+        <input id="publish-label" name="label" maxlength="120" placeholder="توضیح (اختیاری)" class="input !w-44 !py-1.5 text-sm">
+        <button class="btn btn-sm" type="submit">انتشار</button>
+      </form>
+      {% else %}
+      <span class="text-sm text-muted">برای انتشار، مدیر دارای مجوز انتشار را خبر کنید.</span>
+      {% endif %}
+    </div>
+  {% else %}
+    <p class="text-sm text-muted">{% icon "check" "!w-4 !h-4 inline text-success" %} همه تغییرات منتشر شده است؛ پیش‌نویس با فروشگاه یکی است.</p>
+  {% endif %}
+</div>

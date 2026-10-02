@@ -1,0 +1,25 @@
+{% extends "builder/base.html" %}
+{% block title %}تاریخچه انتشار{% endblock %}
+{% block content %}
+<h1 class="mb-1 text-[1.7rem]">تاریخچه انتشار</h1>
+<p class="mb-5 text-sm text-muted">هر انتشار یک نسخه ثبت می‌کند. «بازگردانی» آن نسخه را در پیش‌نویس بارگذاری می‌کند؛ فروشگاه تا انتشار بعدی تغییری نمی‌کند.</p>
+<ol class="grid gap-2">
+  {% for revision in revisions %}
+  <li class="studio-row">
+    <span class="studio-card-icon !h-9 !w-9 text-sm">{{ revision.number|fa }}</span>
+    <span class="min-w-0 flex-1">
+      <span class="block text-cream">{% if revision.kind == 'baseline' %}نسخه اولیه (پیش از اولین انتشار){% else %}{{ revision.label|default:"انتشار" }}{% endif %}
+        {% if forloop.first %}<span class="ms-1 rounded-sm border border-success/40 px-1.5 text-xs text-success">نسخه فعلی فروشگاه</span>{% endif %}</span>
+      <span class="block text-sm text-muted">{{ revision.created_at|jdate }}{% if revision.created_by %} · <bdi>{{ revision.created_by.display_name|default:revision.created_by.get_username }}</bdi>{% endif %}{% if revision.changes %} · {{ revision.changes|join:"، " }}{% endif %}</span>
+    </span>
+    {% if perms.builder.publish_site and not forloop.first %}
+    <form method="post" action="{% url 'builder:restore' revision.number %}" data-confirm="محتوای نسخه {{ revision.number }} جایگزین پیش‌نویس فعلی شود؟ تغییرات منتشرنشده از بین می‌رود.">{% csrf_token %}
+      <button class="btn btn-ghost btn-sm" type="submit">بازگردانی</button>
+    </form>
+    {% endif %}
+  </li>
+  {% empty %}
+  <li class="rounded border border-dashed border-line p-6 text-center text-muted">هنوز چیزی منتشر نشده است.</li>
+  {% endfor %}
+</ol>
+{% endblock %}

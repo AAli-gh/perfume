@@ -13,14 +13,14 @@
   {% endfor %}
 </nav>
 
-<div class="grid grid-cols-[minmax(0,1fr)] gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
+<div class="grid grid-cols-[minmax(0,1fr)] gap-6 xl:grid-cols-[minmax(0,1fr)_400px]">
   <div class="panel">
     <div class="panel-body">
       {% include "builder/theme/"|add:panel|add:".html" %}
     </div>
   </div>
   <aside class="xl:sticky xl:top-4 xl:self-start">
-    {% include "builder/_mini_preview.html" %}
+    {% include "builder/_live_preview.html" with path="/" %}
   </aside>
 </div>
 {% endblock %}

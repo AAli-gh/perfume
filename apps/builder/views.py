@@ -3,11 +3,16 @@
 Viewها فقط هماهنگ‌کننده هستند: اعتبارسنجی در فرم‌ها/schemaها و ذخیره‌سازی در services هر اپ انجام می‌شود.
 """
 
+from functools import wraps
+
 from django.contrib import messages
+from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
+from apps.core.templatetags.majd import fa
 from apps.pages import services as page_services
 from apps.pages.models import Page, PageSection
 from apps.themes import chrome
@@ -15,7 +20,27 @@ from apps.themes import services as theme_services
 from apps.themes import tokens as T
 
 from . import forms as F
-from .access import SECTION_ADD_PERM, SECTION_CHANGE_PERM, SECTION_DELETE_PERM, THEME_PERM, studio_required
+from . import preview
+from . import services as builder
+from .access import (
+    PUBLISH_PERM, SECTION_ADD_PERM, SECTION_CHANGE_PERM, SECTION_DELETE_PERM, THEME_PERM, studio_required,
+)
+from .models import Revision
+
+SAVED = "در پیش‌نویس ذخیره شد. برای دیدن نتیجه «پیش‌نمایش» را باز کنید و سپس منتشر کنید."
+
+
+def edits_draft(view):
+    """هر درخواست POST موفق در استودیو، آخرین ویرایشگر پیش‌نویس را ثبت می‌کند."""
+
+    @wraps(view)
+    def wrapped(request, *args, **kwargs):
+        response = view(request, *args, **kwargs)
+        if request.method == "POST" and response.status_code < 400:
+            builder.touch(request.store, request.user)
+        return response
+
+    return wrapped
 
 PANELS = [
     ("preset", "پوسته و پیش‌تنظیم", "diamond"),
@@ -37,10 +62,13 @@ SWATCHES = ["background", "panel", "primary", "accent", "text"]
 @studio_required()
 def dashboard(request):
     page = page_services.ensure_home_page(request.store)
+    status = PageSection.Status.DRAFT if page.has_draft else PageSection.Status.PUBLISHED
     return render(request, "builder/dashboard.html", {
-        "theme_settings": theme_services.editable_settings(request.store),
+        "theme_settings": theme_services.draft_settings(request.store, create=False)
+        or theme_services.ensure_store_theme(request.store),
         "home": page,
-        "section_count": page_services.page_sections(page).filter(is_enabled=True).count(),
+        "section_count": page_services.page_sections(page, status).filter(is_enabled=True).count(),
+        "last_revision": Revision.objects.for_store(request.store).select_related("created_by").first(),
         "nav": "dashboard",
     })
 
@@ -48,6 +76,7 @@ def dashboard(request):
 # ---------- ظاهر ----------
 
 @studio_required(THEME_PERM)
+@edits_draft
 def theme_editor(request, panel="preset"):
     if panel not in dict((p[0], p) for p in PANELS):
         panel = "preset"
@@ -55,6 +84,7 @@ def theme_editor(request, panel="preset"):
     if ts is None:
         messages.error(request, "هیچ پوسته‌ای نصب نیست. ابتدا دستور sync_themes را اجرا کنید.")
         return redirect("builder:dashboard")
+    preview.enter_staff_preview(request)  # برای iframe پیش‌نمایش زنده کنار ویرایشگر
     tokens = T.resolve(ts)
     here = reverse("builder:theme_panel", args=[panel])
     context = {"panel": panel, "panels": PANELS, "theme_settings": ts, "tokens": tokens, "nav": "theme"}
@@ -94,7 +124,7 @@ def theme_editor(request, panel="preset"):
             form = form_class(request.POST)
             if form.is_valid():
                 theme_services.save_tokens(ts, form.to_tokens())
-                messages.success(request, "تغییرات ذخیره و منتشر شد.")
+                messages.success(request, SAVED)
                 return redirect(here)
         context.update(form=form, customized=any(g in (ts.overrides or {}) for g in groups))
 
@@ -110,7 +140,7 @@ def theme_editor(request, panel="preset"):
                     favicon=data["favicon"], clear_favicon=data["clear_favicon"],
                 )
                 theme_services.save_chrome(ts, "header", form.chrome_values())
-                messages.success(request, "لوگو و نماد ذخیره شد.")
+                messages.success(request, SAVED)
                 return redirect(here)
         context.update(form=form)
 
@@ -125,7 +155,7 @@ def theme_editor(request, panel="preset"):
             form = form_class(request.POST)
             if form.is_valid():
                 theme_services.save_chrome(ts, panel, form.cleaned_data)
-                messages.success(request, "تغییرات ذخیره و منتشر شد.")
+                messages.success(request, SAVED)
                 return redirect(here)
         context.update(form=form)
 
@@ -141,13 +171,13 @@ def _store_page(request, pk):
 def _store_section(request, page_pk, pk):
     return get_object_or_404(
         PageSection.objects.select_related("page"),
-        pk=pk, page_id=page_pk, page__store=request.store, status=PageSection.Status.PUBLISHED,
+        pk=pk, page_id=page_pk, page__store=request.store, status=PageSection.Status.DRAFT,
     )
 
 
 def _section_rows(page):
     rows = []
-    for section in page_services.page_sections(page):
+    for section in page_services.page_sections(page, PageSection.Status.DRAFT):
         section_type = section.section_type
         title = str((section.settings or {}).get("title", "")).splitlines()
         rows.append({
@@ -173,7 +203,9 @@ def _editor_context(request, page):
 
 def _sections_response(request, page):
     if request.htmx:
-        return render(request, "builder/_sections.html", _editor_context(request, page))
+        response = render(request, "builder/_sections.html", _editor_context(request, page))
+        response["HX-Trigger"] = "preview-refresh"  # iframe پیش‌نمایش کنار ویرایشگر تازه می‌شود
+        return response
     return redirect("builder:page", pk=page.pk)
 
 
@@ -186,13 +218,16 @@ def page_list(request):
 
 @studio_required(SECTION_CHANGE_PERM)
 def page_editor(request, pk):
-    return render(request, "builder/page_editor.html", _editor_context(request, _store_page(request, pk)))
+    page = builder.editable_page(_store_page(request, pk))
+    preview.enter_staff_preview(request)
+    return render(request, "builder/page_editor.html", _editor_context(request, page))
 
 
 @require_POST
 @studio_required(SECTION_CHANGE_PERM)
+@edits_draft
 def section_reorder(request, pk):
-    page = _store_page(request, pk)
+    page = builder.editable_page(_store_page(request, pk))
     ids = []
     for value in request.POST.getlist("order"):
         try:
@@ -205,6 +240,7 @@ def section_reorder(request, pk):
 
 @require_POST
 @studio_required(SECTION_CHANGE_PERM)
+@edits_draft
 def section_move(request, pk, section_pk):
     section = _store_section(request, pk, section_pk)
     page_services.move_section(section, -1 if request.POST.get("direction") == "up" else 1)
@@ -213,6 +249,7 @@ def section_move(request, pk, section_pk):
 
 @require_POST
 @studio_required(SECTION_CHANGE_PERM)
+@edits_draft
 def section_toggle(request, pk, section_pk):
     section = _store_section(request, pk, section_pk)
     page_services.toggle_section(section)
@@ -221,6 +258,7 @@ def section_toggle(request, pk, section_pk):
 
 @require_POST
 @studio_required(SECTION_CHANGE_PERM, SECTION_DELETE_PERM)
+@edits_draft
 def section_delete(request, pk, section_pk):
     section = _store_section(request, pk, section_pk)
     page_services.delete_section(section)
@@ -231,8 +269,9 @@ def section_delete(request, pk, section_pk):
 
 @require_POST
 @studio_required(SECTION_CHANGE_PERM, SECTION_ADD_PERM)
+@edits_draft
 def section_add(request, pk):
-    page = _store_page(request, pk)
+    page = builder.editable_page(_store_page(request, pk))
     form = F.AddSectionForm(request.POST)
     if not form.is_valid():
         messages.error(request, "نوع بخش نامعتبر است.")
@@ -243,6 +282,7 @@ def section_add(request, pk):
 
 
 @studio_required(SECTION_CHANGE_PERM)
+@edits_draft
 def section_edit(request, pk, section_pk):
     section = _store_section(request, pk, section_pk)
     section_type = section.section_type
@@ -265,10 +305,90 @@ def section_edit(request, pk, section_pk):
                 section, form.cleaned_data,
                 image=image_data.get("image"), clear_image=image_data.get("clear_image", False),
             )
-            messages.success(request, f"بخش «{section_type.label}» ذخیره و منتشر شد.")
+            messages.success(request, f"بخش «{section_type.label}» {SAVED}")
             return redirect("builder:page", pk=pk)
     return render(request, "builder/section_edit.html", {
         "page": section.page, "section": section, "section_type": section_type,
         "form": form, "image_form": image_form, "nav": "pages",
     })
 
+
+
+# ---------- پیش‌نمایش، انتشار و تاریخچه ----------
+
+def _back(request, default="builder:dashboard"):
+    target = request.POST.get("next") or request.GET.get("next")
+    if target and url_has_allowed_host_and_scheme(target, {request.get_host()}, require_https=request.is_secure()):
+        return redirect(target)
+    return redirect(default)
+
+
+@studio_required()
+def preview_page(request):
+    """فروشگاه با پیش‌نویس، داخل iframe با اندازه‌های دسکتاپ / تبلت / موبایل."""
+    preview.enter_staff_preview(request)
+    path = request.GET.get("path") or "/"
+    if not url_has_allowed_host_and_scheme(path, set()) or not path.startswith("/") or path.startswith("/studio/"):
+        path = "/"
+    return render(request, "builder/preview.html", {
+        "path": path, "nav": "preview",
+        "share_link": request.session.pop("builder_share_link", None), "link_hours": builder.PREVIEW_LINK_HOURS,
+    })
+
+
+def preview_exit(request):
+    """خروج از حالت پیش‌نمایش (برای کارکنان و دارندگان لینک)."""
+    preview.exit_preview(request)
+    return redirect("pages:home")
+
+
+def preview_share(request, token):
+    """لینک عمومی و موقت پیش‌نمایش؛ نیازی به ورود ندارد ولی فقط دیدن پیش‌نویس را ممکن می‌کند."""
+    if not builder.check_preview_token(token, request.store):
+        raise Http404("لینک پیش‌نمایش نامعتبر یا منقضی شده است.")
+    preview.enter_link_preview(request, token)
+    return redirect("pages:home")
+
+
+@require_POST
+@studio_required(PUBLISH_PERM)
+def preview_link(request):
+    token = builder.preview_link_token(request.store)
+    request.session["builder_share_link"] = request.build_absolute_uri(reverse("builder:preview_share", args=[token]))
+    return redirect("builder:preview")
+
+
+@require_POST
+@studio_required(PUBLISH_PERM)
+def publish(request):
+    try:
+        revision = builder.publish(request.store, request.user, request.POST.get("label", "").strip())
+    except builder.NothingToPublish:
+        messages.info(request, "تغییری برای انتشار وجود ندارد.")
+    else:
+        messages.success(request, f"نسخه {fa(revision.number)} منتشر شد: {'، '.join(revision.changes)}.")
+    return _back(request)
+
+
+@require_POST
+@studio_required(PUBLISH_PERM)
+def discard(request):
+    builder.discard(request.store)
+    messages.success(request, "تغییرات منتشرنشده کنار گذاشته شد؛ پیش‌نویس برابر نسخه فعلی فروشگاه است.")
+    return _back(request)
+
+
+@studio_required()
+def history(request):
+    revisions = Revision.objects.for_store(request.store).select_related("created_by")
+    return render(request, "builder/history.html", {"revisions": revisions, "nav": "history"})
+
+
+@require_POST
+@studio_required(PUBLISH_PERM)
+def restore(request, number):
+    revision = get_object_or_404(Revision.objects.for_store(request.store), number=number)
+    builder.restore(request.store, revision, request.user)
+    messages.success(request, f"نسخه {fa(revision.number)} در پیش‌نویس بارگذاری شد. پیش‌نمایش را ببینید و در صورت "
+                              f"رضایت منتشر کنید.")
+    return redirect("builder:preview")

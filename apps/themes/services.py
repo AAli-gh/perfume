@@ -15,11 +15,65 @@ def ensure_store_theme(store):
     return ThemeSettings.objects.create(store=store, status=ThemeSettings.Status.PUBLISHED, theme=theme, preset=preset)
 
 
+# ---------- پیش‌نویس و انتشار ----------
+# استودیو همیشه نسخه «پیش‌نویس» را ویرایش می‌کند؛ فروشگاه نسخه «منتشرشده» را نشان می‌دهد
+# (مگر در حالت پیش‌نمایش). فایل‌های لوگو/فاوآیکون بین دو نسخه مشترک‌اند و هرگز حذف نمی‌شوند.
+
+COPY_FIELDS = ["theme", "preset", "overrides", "logo", "favicon", "header", "footer"]
+
+
+def _copy(source, target):
+    for field in COPY_FIELDS:
+        value = getattr(source, field)
+        setattr(target, field, dict(value) if isinstance(value, dict) else value)
+
+
+def draft_settings(store, create=True):
+    """نسخه پیش‌نویس ظاهر فروشگاه؛ در اولین ویرایش از روی نسخه منتشرشده ساخته می‌شود."""
+    draft = ThemeSettings.objects.select_related("theme", "preset").filter(
+        store=store, status=ThemeSettings.Status.DRAFT
+    ).first()
+    if draft or not create:
+        return draft
+    published = ensure_store_theme(store)
+    if published is None:
+        return None
+    draft = ThemeSettings(store=store, status=ThemeSettings.Status.DRAFT)
+    _copy(published, draft)
+    draft.save()
+    return draft
+
+
+def publish_draft(store):
+    """پیش‌نویس ← نسخه منتشرشده."""
+    from django.utils import timezone
+
+    draft = draft_settings(store, create=False)
+    published = ensure_store_theme(store)
+    if draft is None or published is None:
+        return published
+    _copy(draft, published)
+    published.published_at = timezone.now()
+    published.save()
+    return published
+
+
+def reset_draft(store):
+    """کنار گذاشتن تغییرات: پیش‌نویس دوباره برابر نسخه منتشرشده می‌شود."""
+    draft = draft_settings(store, create=False)
+    published = ensure_store_theme(store)
+    if draft is None or published is None:
+        return draft
+    _copy(published, draft)
+    draft.save()
+    return draft
+
+
 # ---------- ویرایش ظاهر (سازنده پوسته) ----------
-# فعلاً ویرایش‌ها مستقیم روی نسخه منتشرشده اعمال می‌شوند؛ پیش‌نویس و پیش‌نمایش زنده در فاز ۸.
 
 def editable_settings(store):
-    return ensure_store_theme(store)
+    """استودیو فقط پیش‌نویس را تغییر می‌دهد."""
+    return draft_settings(store)
 
 
 def preset_tokens(theme_settings):

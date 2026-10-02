@@ -66,17 +66,60 @@ def build_blocks(page, request, status=PageSection.Status.PUBLISHED):
 
 
 # ---------- مدیریت بخش‌ها (سازنده صفحه) ----------
-# فعلاً روی نسخه منتشرشده؛ پیش‌نویس و انتشار در فاز ۸.
+# استودیو بخش‌های «پیش‌نویس» را ویرایش می‌کند؛ با انتشار، پیش‌نویس جایگزین نسخه منتشرشده می‌شود.
+# تصاویر بخش‌ها بین دو نسخه مشترک‌اند و حذف نمی‌شوند.
 
 ORDER_STEP = 10
+DRAFT, PUBLISHED = PageSection.Status.DRAFT, PageSection.Status.PUBLISHED
 
 
-def page_sections(page, status=PageSection.Status.PUBLISHED):
+def page_sections(page, status=PUBLISHED):
     return page.sections.filter(status=status).order_by("order", "id")
 
 
+def _clone_sections(page, source_status, target_status):
+    page.sections.filter(status=target_status).delete()
+    PageSection.objects.bulk_create([
+        PageSection(page=page, type=s.type, status=target_status, order=s.order, is_enabled=s.is_enabled,
+                    settings=dict(s.settings or {}), image=s.image.name)
+        for s in page_sections(page, source_status)
+    ])
+
+
 @transaction.atomic
-def reorder_sections(page, ids, status=PageSection.Status.PUBLISHED):
+def ensure_draft(page):
+    """پیش‌نویس صفحه را (در صورت نبود) از روی نسخه منتشرشده می‌سازد."""
+    page = Page.objects.select_for_update().get(pk=page.pk)
+    if not page.has_draft:
+        _clone_sections(page, PUBLISHED, DRAFT)
+        page.has_draft = True
+        page.save(update_fields=["has_draft", "updated_at"])
+    return page
+
+
+@transaction.atomic
+def publish_page(page):
+    page = Page.objects.select_for_update().get(pk=page.pk)
+    if page.has_draft:
+        _clone_sections(page, DRAFT, PUBLISHED)
+    return page
+
+
+@transaction.atomic
+def reset_page_draft(page):
+    page = Page.objects.select_for_update().get(pk=page.pk)
+    if page.has_draft:
+        _clone_sections(page, PUBLISHED, DRAFT)
+    return page
+
+
+def rendered_status(page, request):
+    """فروشگاه نسخه منتشرشده را نشان می‌دهد؛ در حالت پیش‌نمایش، پیش‌نویس را."""
+    return DRAFT if getattr(request, "is_preview", False) and page.has_draft else PUBLISHED
+
+
+@transaction.atomic
+def reorder_sections(page, ids, status=DRAFT):
     """ترتیب جدید بر اساس فهرست شناسه‌ها؛ شناسه‌های ناشناخته نادیده و بخش‌های جاافتاده به انتها می‌روند."""
     sections = list(page_sections(page, status).select_for_update())
     by_id = {s.pk: s for s in sections}
@@ -97,7 +140,7 @@ def move_section(section, delta):
     reorder_sections(section.page, ids, section.status)
 
 
-def add_section(page, type_key, status=PageSection.Status.PUBLISHED):
+def add_section(page, type_key, status=DRAFT):
     section_type = sections.get(type_key)
     if section_type is None:
         raise ValueError(f"unknown section type {type_key!r}")

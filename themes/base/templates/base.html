@@ -9,8 +9,10 @@
   <link rel="stylesheet" href="{% static 'css/app.css' %}">
   <script src="{% static 'vendor/htmx.min.js' %}" defer></script>
   <script src="{% static 'js/app.js' %}" defer></script>
+  {% if request.is_preview %}<script src="{% static 'js/preview.js' %}" defer></script>{% endif %}
 </head>
 <body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+  {% if request.is_preview %}{% include "components/preview_banner.html" %}{% endif %}
   {% include "components/header.html" %}
 
   <main class="flex-1">

@@ -46,13 +46,37 @@
     form.requestSubmit();
   });
 
-  // ---------- رنگ‌ها: نمایش مقدار و پیش‌نمایش سریع ----------
+  // ---------- رنگ‌ها: نمایش مقدار و اعمال فوری در پیش‌نمایش زنده (قبل از ذخیره) ----------
   const hexToRgb = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)).join(" ");
+  const frames = () => document.querySelectorAll("iframe[data-preview-frame]");
+  const pending = {};
+  const pushTokens = (frame) => frame.contentWindow?.postMessage({ type: "majd:tokens", vars: pending }, window.location.origin);
   document.addEventListener("input", (e) => {
     const input = e.target;
     if (!input.matches?.("input[type=color][data-token]")) return;
     const label = input.parentNode.querySelector("[data-color-value]");
     if (label) label.textContent = input.value;
-    document.querySelector("[data-mini-preview]")?.style.setProperty(`--color-${input.dataset.token}`, hexToRgb(input.value));
+    pending[`--color-${input.dataset.token}`] = hexToRgb(input.value);
+    frames().forEach(pushTokens);
+  });
+  // اگر iframe دوباره بارگذاری شد (مثلاً کاربر داخلش جابه‌جا شد)، رنگ‌های ذخیره‌نشده دوباره اعمال شوند
+  document.addEventListener("load", (e) => { if (e.target.matches?.("iframe[data-preview-frame]")) pushTokens(e.target); }, true);
+
+  // ---------- پیش‌نمایش: اندازه دستگاه، بارگذاری دوباره، کپی لینک ----------
+  const reloadFrames = () => frames().forEach((f) => { try { f.contentWindow.location.reload(); } catch { f.src = f.src; } });
+  document.body.addEventListener("preview-refresh", reloadFrames);  // HX-Trigger پس از تغییر بخش‌ها
+  document.addEventListener("click", (e) => {
+    const device = e.target.closest?.("[data-device]");
+    if (device) {
+      frames().forEach((f) => { f.style.width = device.dataset.device; });
+      document.querySelectorAll("[data-device]").forEach((b) => b.setAttribute("aria-pressed", String(b === device)));
+    }
+    if (e.target.closest?.("[data-preview-reload]")) reloadFrames();
+    const copy = e.target.closest?.("[data-copy]");
+    if (copy) {
+      const field = document.querySelector(copy.dataset.copy);
+      field.select();
+      navigator.clipboard?.writeText(field.value).then(() => { copy.textContent = "کپی شد"; }, () => {});
+    }
   });
 })();

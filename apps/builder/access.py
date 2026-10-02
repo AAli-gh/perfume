@@ -3,6 +3,7 @@
 مجوزها از سیستم استاندارد Django (گروه‌ها / مجوزهای کاربر در پنل مدیریت) خوانده می‌شوند:
 - ظاهر و پوسته:   themes.change_themesettings
 - ویرایش بخش‌ها:  pages.change_pagesection   (افزودن: pages.add_pagesection، حذف: pages.delete_pagesection)
+- انتشار:         builder.publish_site        (ویرایشگر بدون این مجوز فقط پیش‌نویس می‌سازد)
 """
 
 from functools import wraps
@@ -14,7 +15,8 @@ THEME_PERM = "themes.change_themesettings"
 SECTION_CHANGE_PERM = "pages.change_pagesection"
 SECTION_ADD_PERM = "pages.add_pagesection"
 SECTION_DELETE_PERM = "pages.delete_pagesection"
-STUDIO_PERMS = (THEME_PERM, SECTION_CHANGE_PERM)
+PUBLISH_PERM = "builder.publish_site"  # انتشار، کنار گذاشتن تغییرات و بازگشت به نسخه قبلی
+STUDIO_PERMS = (THEME_PERM, SECTION_CHANGE_PERM, PUBLISH_PERM)
 
 
 def can_use_studio(user):

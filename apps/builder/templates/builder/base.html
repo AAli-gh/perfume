@@ -35,10 +35,14 @@
         {% if perms.pages.change_pagesection %}
         <a href="{% url 'builder:pages' %}" {% if nav == 'pages' %}aria-current="page"{% endif %}>{% icon "list" "!w-4 !h-4" %} صفحه‌ها و بخش‌ها</a>
         {% endif %}
+        <a href="{% url 'builder:preview' %}" {% if nav == 'preview' %}aria-current="page"{% endif %}>{% icon "search" "!w-4 !h-4" %} پیش‌نمایش</a>
+        <a href="{% url 'builder:history' %}" {% if nav == 'history' %}aria-current="page"{% endif %}>{% icon "check" "!w-4 !h-4" %} تاریخچه انتشار</a>
       </nav>
     </aside>
 
     <main class="min-w-0">
+      {% studio_status as status %}
+      {% include "builder/_publish_bar.html" %}
       {% if messages %}
       <div class="mb-4 grid gap-2" role="status">
         {% for message in messages %}

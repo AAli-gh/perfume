@@ -58,6 +58,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "apps.core.stores.StoreMiddleware",
+    "apps.builder.preview.PreviewMiddleware",  # حالت پیش‌نمایش پیش‌نویس (قبل از ThemeMiddleware)
     "apps.themes.runtime.ThemeMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django_htmx.middleware.HtmxMiddleware",

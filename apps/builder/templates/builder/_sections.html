@@ -1,4 +1,4 @@
-<div id="sections">
+{% load studio %}<div id="sections">
   <form id="reorder-form" method="post" action="{% url 'builder:section_reorder' page.pk %}"
         hx-post="{% url 'builder:section_reorder' page.pk %}" hx-target="#sections" hx-swap="outerHTML">{% csrf_token %}</form>
   <ol class="grid gap-2" data-sortable aria-label="بخش‌های صفحه">
@@ -33,3 +33,4 @@
     {% endfor %}
   </ol>
 </div>
+{% if request.htmx %}{% studio_status as status %}{% include "builder/_publish_bar.html" with oob=True %}{% endif %}
