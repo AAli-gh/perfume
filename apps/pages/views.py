@@ -1,21 +1,13 @@
 from django.contrib import messages
 from django.shortcuts import redirect, render
 
-from apps.blog.models import Post
-from apps.catalog import selectors as catalog
-from apps.catalog.models import Collection
-from apps.marketing.forms import NewsletterForm
-
 from .forms import ContactForm
+from .services import build_blocks, ensure_home_page
 
 
 def home(request):
-    return render(request, "pages/home.html", {
-        "collections": Collection.objects.for_store(request.store)[:3],
-        "bestsellers": catalog.best_sellers(request.store, limit=8),
-        "posts": Post.objects.for_store(request.store).published().select_related("category")[:2],
-        "newsletter_form": NewsletterForm(),
-    })
+    page = ensure_home_page(request.store)
+    return render(request, "pages/home.html", {"page": page, "blocks": build_blocks(page, request)})
 
 
 def about(request):

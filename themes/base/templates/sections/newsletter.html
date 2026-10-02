@@ -1,0 +1,7 @@
+<section class="container {{ spacing }}">
+  <div class="panel reveal px-6 py-12 text-center">
+    <h2>{{ section.title }}</h2>
+    {% if section.text %}<p>{{ section.text }}</p>{% endif %}
+    {% include "marketing/partials/newsletter.html" with newsletter_form=section.form %}
+  </div>
+</section>

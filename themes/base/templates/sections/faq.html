@@ -1,0 +1,11 @@
+<section class="container {{ spacing }}">
+  {% include "sections/_heading.html" %}
+  <div class="panel divide-y divide-line">
+    {% for item in section.items %}
+      <details class="group px-6 py-4">
+        <summary class="cursor-pointer list-none font-medium text-cream marker:hidden">{{ item.question }}</summary>
+        <p class="m-0 mt-3 text-[.95rem] text-muted">{{ item.answer|linebreaksbr }}</p>
+      </details>
+    {% endfor %}
+  </div>
+</section>

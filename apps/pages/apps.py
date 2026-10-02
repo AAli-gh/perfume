@@ -6,3 +6,7 @@ class PagesConfig(AppConfig):
     name = "apps.pages"
     label = "pages"
     verbose_name = "صفحات"
+
+    def ready(self):
+        from . import signals  # noqa: F401
+
