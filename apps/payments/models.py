@@ -1,11 +1,15 @@
 from django.db import models
 
 from apps.core.models import StoreOwned, StoreQuerySet
+from apps.core.stores import default_store_id
 
 
 class GatewayAccount(StoreOwned):
     """درگاه پرداخت فعال یک فروشگاه و اطلاعات اتصال آن."""
 
+    # تنظیمات خود فروشگاه است (نه داده تجاری) ← با حذف فروشگاه حذف می‌شود
+    store = models.ForeignKey("core.Store", on_delete=models.CASCADE, related_name="+", verbose_name="فروشگاه",
+                              default=default_store_id)
     gateway = models.CharField("درگاه", max_length=30, help_text="کد درگاه، مثلاً zarinpal")
     title = models.CharField("عنوان نمایشی", max_length=80, default="پرداخت آنلاین")
     merchant_id = models.CharField("مرچنت کد", max_length=100, blank=True)

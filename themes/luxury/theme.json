@@ -1,0 +1,34 @@
+{
+  "code": "luxury",
+  "name": "لاکچری عطر",
+  "version": "1.0.0",
+  "description": "پوسته تیره و طلایی برای برندهای لوکس؛ پوسته شماره ۱ (طراحی فعلی عطر مجد).",
+  "extends": "base",
+  "direction": "rtl",
+  "presets": [
+    {
+      "code": "luxury-gold",
+      "name": "طلایی لوکس",
+      "default": true,
+      "tokens": {
+        "colors": {
+          "background": "#110b08",
+          "background-2": "#170f0b",
+          "surface": "#1d140f",
+          "primary": "#c47a45",
+          "primary-dark": "#8a4119",
+          "accent": "#e7b98c",
+          "accent-soft": "#d8a77a",
+          "text-strong": "#f0dcc6",
+          "text": "#dccab8",
+          "muted": "#9b8574",
+          "border": "#c48454",
+          "success": "#9cc28a",
+          "danger": "#e0806a"
+        },
+        "typography": {"font_body": "Vazirmatn", "font_display": "Aref Ruqaa"},
+        "radius": {"base": 4}
+      }
+    }
+  ]
+}

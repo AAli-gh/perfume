@@ -86,3 +86,9 @@ def test_no_dependency_cycle_between_orders_and_cart_views():
     tree = ast.parse((APPS_DIR / "cart" / "views.py").read_text())
     modules = {n.module for n in ast.walk(tree) if isinstance(n, ast.ImportFrom) and n.module}
     assert not any(m.startswith("apps.orders") for m in modules)
+
+
+def test_storefront_templates_live_in_themes_not_apps():
+    """لایه نمایش جدا از منطق: قالب‌های فروشگاه فقط در themes/ هستند."""
+    stray = [str(p.relative_to(APPS_DIR)) for p in APPS_DIR.rglob("templates/**/*.html")]
+    assert not stray, f"قالب در اپ‌ها: {stray}"

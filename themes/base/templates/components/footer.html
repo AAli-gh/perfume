@@ -1,0 +1,40 @@
+{% load i18n %}<footer class="mt-16 border-t border-line bg-[rgba(12,8,6,.55)]">
+  <div class="container grid gap-8 py-12 sm:grid-cols-2 lg:grid-cols-[1.6fr_1fr_1fr_1.2fr]">
+    <div>
+      <a href="{% url 'pages:home' %}" class="mb-3 inline-block font-display text-[2rem] text-gold">{{ SITE.name }}</a>
+      <p class="text-[.9rem] text-muted">{{ SITE.tagline }}؛ {% translate "رایحه‌هایی برای ماندگاری در خاطره‌ها." %}<br>{{ SITE.address }}</p>
+      <div class="mt-4 flex gap-2.5">
+        <a href="{{ SITE.instagram }}" aria-label="{% translate "اینستاگرام" %}" class="footer-social">{% icon "instagram" "!w-4 !h-4" %}</a>
+        <a href="{{ SITE.telegram }}" aria-label="{% translate "تلگرام" %}" class="footer-social">{% icon "telegram" "!w-4 !h-4" %}</a>
+        <a href="{{ SITE.whatsapp }}" aria-label="{% translate "واتس‌اپ" %}" class="footer-social">{% icon "whatsapp" "!w-4 !h-4" %}</a>
+      </div>
+    </div>
+    <div>
+      <h4 class="mb-3.5 text-[1.05rem] text-gold-soft">{% translate "دسترسی سریع" %}</h4>
+      <ul class="footer-list">
+        <li><a href="{% url 'catalog:shop' %}">{% translate "فروشگاه" %}</a></li>
+        <li><a href="{% url 'catalog:collections' %}">{% translate "کالکشن‌ها" %}</a></li>
+        <li><a href="{% url 'blog:list' %}">{% translate "مجله" %}</a></li>
+        <li><a href="{% url 'pages:about' %}">{% translate "درباره ما" %}</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4 class="mb-3.5 text-[1.05rem] text-gold-soft">{% translate "خدمات مشتریان" %}</h4>
+      <ul class="footer-list">
+        <li><a href="{% url 'pages:contact' %}">{% translate "سوالات متداول" %}</a></li>
+        <li><a href="{% url 'pages:contact' %}">{% translate "بازگشت و تعویض" %}</a></li>
+        <li><a href="{% url 'pages:contact' %}">{% translate "شرایط ارسال" %}</a></li>
+        <li><a href="{% url 'accounts:profile' %}">{% translate "پیگیری سفارش" %}</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4 class="mb-3.5 text-[1.05rem] text-gold-soft">{% translate "تماس با ما" %}</h4>
+      <ul class="footer-list">
+        <li><a href="mailto:{{ SITE.email }}">{{ SITE.email }}</a></li>
+        <li><a href="tel:{{ SITE.phone_link }}" dir="ltr">{{ SITE.phone }}</a></li>
+        <li>{% translate "شنبه تا پنجشنبه، ۱۰ تا ۲۱" %}</li>
+      </ul>
+    </div>
+  </div>
+  <div class="border-t border-line py-4 text-center text-[.82rem] text-muted">© {{ SITE.name }} — {% translate "تمامی حقوق محفوظ است." %}</div>
+</footer>

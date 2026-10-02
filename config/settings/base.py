@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "apps.blog",
     "apps.marketing",
     "apps.pages",
+    "apps.themes",
 ]
 
 MIDDLEWARE = [
@@ -56,24 +57,37 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "apps.core.stores.StoreMiddleware",
+    "apps.themes.runtime.ThemeMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django_htmx.middleware.HtmxMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
 
+# ---------- Theme Engine ----------
+THEMES_DIR = BASE_DIR / "themes"
+DEFAULT_THEME = env("DEFAULT_THEME", default="luxury")
+
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "templates"],
-        "APP_DIRS": True,
+        "DIRS": [],
+        "APP_DIRS": False,
         "OPTIONS": {
+            # پوسته فعال ← themes/base ← قالب‌های اپ‌ها (Admin و …)؛ cache به تفکیک پوسته
+            "loaders": [
+                ("apps.themes.loaders.ThemeCachedLoader", [
+                    "apps.themes.loaders.ThemeLoader",
+                    "django.template.loaders.app_directories.Loader",
+                ]),
+            ],
             "context_processors": [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "apps.core.context_processors.site",
                 "apps.cart.context_processors.cart",
+                "apps.themes.context_processors.theme",
             ],
             "builtins": ["apps.core.templatetags.majd"],
         },
@@ -100,6 +114,9 @@ LOGOUT_REDIRECT_URL = "pages:home"
 
 LANGUAGE_CODE = "fa"
 LANGUAGES = [("fa", "فارسی")]
+# متن‌های رابط کاربری با {% translate %} علامت‌گذاری می‌شوند (msgid فارسی است).
+# برای افزودن زبان: makemessages -l en (نیاز به gettext) ← ترجمه در locale/ ← compilemessages
+LOCALE_PATHS = [BASE_DIR / "locale"]
 TIME_ZONE = "Asia/Tehran"
 USE_I18N = True
 USE_TZ = True
