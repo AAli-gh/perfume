@@ -1,4 +1,8 @@
 /** @type {import('tailwindcss').Config} */
+// رنگ‌ها، فونت‌ها و گردی گوشه‌ها از CSS Variables خوانده می‌شوند (apps/themes/tokens.py → <style> در base.html).
+// تغییر پالت در پنل مدیریت نیازی به build دوباره CSS ندارد.
+const v = (name) => `rgb(var(--color-${name}) / <alpha-value>)`;
+
 module.exports = {
   content: [
     "./themes/*/templates/**/*.html",
@@ -10,21 +14,42 @@ module.exports = {
     container: { center: true, padding: "1rem", screens: { "2xl": "1232px" } },
     extend: {
       colors: {
-        ink: { DEFAULT: "#110b08", 2: "#170f0b", 3: "#1d140f" },
-        line: { DEFAULT: "rgba(196,132,84,.2)", strong: "rgba(196,132,84,.38)" },
-        copper: { DEFAULT: "#c47a45", dark: "#8a4119" },
-        gold: { DEFAULT: "#e7b98c", soft: "#d8a77a" },
-        cream: "#f0dcc6",
-        body: "#dccab8",
-        muted: "#9b8574",
-        danger: "#e0806a",
-        success: "#9cc28a",
+        // نام‌های معنایی (برای قالب‌های جدید)
+        background: { DEFAULT: v("background"), 2: v("background-2") },
+        surface: v("surface"),
+        panel: v("panel"),
+        media: v("media"),
+        hero: v("hero"),
+        overlay: v("overlay"),
+        footer: v("footer"),
+        input: v("input"),
+        primary: { DEFAULT: v("primary"), dark: v("primary-dark") },
+        accent: { DEFAULT: v("accent"), soft: v("accent-soft") },
+        text: { DEFAULT: v("text"), strong: v("text-strong") },
+        placeholder: v("placeholder"),
+        price: v("price"),
+        border: { DEFAULT: "rgb(var(--color-border) / 0.2)", strong: "rgb(var(--color-border) / 0.38)" },
+        // نام‌های قبلی (سازگاری با قالب‌های پوسته لوکس) — همان متغیرها
+        ink: { DEFAULT: v("background"), 2: v("background-2"), 3: v("surface") },
+        line: { DEFAULT: "rgb(var(--color-border) / 0.2)", strong: "rgb(var(--color-border) / 0.38)" },
+        copper: { DEFAULT: v("primary"), dark: v("primary-dark") },
+        gold: { DEFAULT: v("accent"), soft: v("accent-soft") },
+        cream: v("text-strong"),
+        body: v("text"),
+        muted: v("muted"),
+        danger: v("danger"),
+        success: v("success"),
       },
       fontFamily: {
-        sans: ["Vazirmatn", "Tahoma", "sans-serif"],
-        display: ["Aref Ruqaa", "Vazirmatn", "serif"],
+        sans: ["var(--font-body)"],
+        display: ["var(--font-display)"],
       },
-      boxShadow: { luxe: "0 18px 40px rgba(0,0,0,.45)" },
+      borderRadius: {
+        sm: "var(--radius-sm)",
+        DEFAULT: "var(--radius)",
+        lg: "var(--radius-lg)",
+      },
+      boxShadow: { luxe: "0 18px 40px rgb(0 0 0 / var(--shadow-alpha, .45))" },
     },
   },
   plugins: [],

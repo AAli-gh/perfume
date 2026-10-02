@@ -6,13 +6,22 @@
   html { scroll-behavior: smooth; }
   body {
     @apply bg-ink font-sans font-light leading-[1.9] text-body min-h-screen flex flex-col;
-    background-image:
-      radial-gradient(ellipse at 15% 0%, rgba(140, 70, 30, 0.18), transparent 55%),
-      radial-gradient(ellipse at 90% 40%, rgba(120, 60, 25, 0.12), transparent 50%),
-      radial-gradient(ellipse at 30% 90%, rgba(110, 55, 25, 0.12), transparent 50%),
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3CfeColorMatrix values='0 0 0 0 .55 0 0 0 0 .35 0 0 0 0 .2 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-image: var(--bg-glow-1), var(--bg-glow-2), var(--bg-glow-3), var(--bg-texture);
     background-attachment: fixed;
   }
+  /* جلوه‌های پس‌زمینه (توکن components.background / components.texture) */
+  :root {
+    --bg-glow-1: radial-gradient(ellipse at 15% 0%, rgb(var(--color-glow-1) / 0.18), transparent 55%);
+    --bg-glow-2: radial-gradient(ellipse at 90% 40%, rgb(var(--color-glow-2) / 0.12), transparent 50%);
+    --bg-glow-3: radial-gradient(ellipse at 30% 90%, rgb(var(--color-glow-3) / 0.12), transparent 50%);
+    --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3CfeColorMatrix values='0 0 0 0 .55 0 0 0 0 .35 0 0 0 0 .2 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  html { font-size: var(--font-size-base, 16px); }
+  [data-background="plain"] { --bg-glow-1: none; --bg-glow-2: none; --bg-glow-3: none; }
+  [data-texture="none"] { --bg-texture: none; }
+  [data-shadow="soft"] { --shadow-alpha: .08; }
+  [data-shadow="none"] { --shadow-alpha: 0; }
+  [data-header="solid"] body > header:first-of-type { @apply backdrop-blur-none; background: rgb(var(--color-background)); }
   h1, h2, h3, h4 { @apply text-gold font-normal leading-normal; }
   a { @apply text-gold-soft transition-colors hover:text-gold; }
   select option { @apply bg-ink-3; }
@@ -24,10 +33,15 @@
 
   /* دکمه‌ها */
   .btn {
-    @apply inline-flex items-center justify-center gap-2 whitespace-nowrap rounded border border-[#c9763d] px-6 py-2 text-[.95rem] font-normal text-[#f6dcc4] transition hover:brightness-110 hover:text-[#fff3e6] active:translate-y-px disabled:opacity-50 disabled:cursor-not-allowed;
-    background: linear-gradient(180deg, #a9582a 0%, #7d3a16 100%);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 210, 170, .25);
+    @apply inline-flex items-center justify-center gap-2 whitespace-nowrap rounded border px-6 py-2 text-[.95rem] font-normal transition hover:brightness-110 active:translate-y-px disabled:opacity-50 disabled:cursor-not-allowed;
+    border-color: rgb(var(--color-button-border));
+    color: rgb(var(--color-button-text));
+    background: linear-gradient(180deg, rgb(var(--color-button-from)) 0%, rgb(var(--color-button-to)) 100%);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, .35), inset 0 1px 0 rgb(var(--color-button-highlight) / .25);
   }
+  .btn:hover { color: rgb(var(--color-button-text-hover)); }
+  [data-button="solid"] .btn:not(.btn-ghost) { background: rgb(var(--color-primary)); border-color: rgb(var(--color-primary)); box-shadow: none; }
+  [data-button="outline"] .btn:not(.btn-ghost) { background: transparent; border-color: rgb(var(--color-primary)); color: rgb(var(--color-primary)); box-shadow: none; }
   .btn-sm { @apply px-4 py-1 text-sm; }
   .btn-lg { @apply px-10 py-3 text-lg; }
   .btn-ghost { @apply border-line-strong text-gold-soft hover:bg-copper/10; background: transparent; box-shadow: none; }
@@ -56,13 +70,13 @@
   .cat-item:has(:focus-visible) { @apply outline outline-1 outline-copper; }
 
   /* پنل‌ها */
-  .panel { @apply rounded border border-line bg-[rgba(34,22,16,.72)] shadow-luxe; }
+  .panel { @apply rounded border border-line bg-panel/[.72] shadow-luxe; }
   .panel-title { @apply m-0 border-b border-line px-6 pb-3.5 pt-5 text-[1.4rem]; }
   .panel-body { @apply px-6 py-5; }
 
   /* فرم‌ها */
   .input {
-    @apply w-full rounded border border-line bg-black/30 px-3.5 py-2.5 text-cream outline-none transition placeholder:text-[#7a6656] focus:border-copper focus:ring-4 focus:ring-copper/15;
+    @apply w-full rounded border border-line bg-input/30 px-3.5 py-2.5 text-cream outline-none transition placeholder:text-placeholder focus:border-copper focus:ring-4 focus:ring-copper/15;
   }
   .field { @apply grid gap-1.5; }
   .field > label { @apply text-[.92rem]; }
@@ -71,7 +85,7 @@
   .req { @apply text-copper; }
   .check { @apply flex cursor-pointer items-center gap-2.5 py-0.5 text-[.9rem]; }
   .check input[type="checkbox"] {
-    @apply grid h-[15px] w-[15px] shrink-0 cursor-pointer appearance-none place-items-center rounded-sm border border-line-strong bg-black/25 checked:border-copper checked:bg-copper;
+    @apply grid h-[15px] w-[15px] shrink-0 cursor-pointer appearance-none place-items-center rounded-sm border border-line-strong bg-input/25 checked:border-copper checked:bg-copper;
   }
   .check input[type="checkbox"]:checked::after { content: "✓"; @apply text-[11px] leading-none text-ink; }
   .alert { @apply rounded border px-3.5 py-2.5 text-[.92rem]; }
@@ -79,23 +93,25 @@
   .alert-err { @apply border-danger/35 bg-danger/10 text-danger; }
 
   /* هیرو صفحات */
-  .page-hero { @apply relative flex min-h-[280px] items-center overflow-hidden border-b border-line bg-[#150d09] md:min-h-[360px]; }
+  .page-hero { @apply relative flex min-h-[280px] items-center overflow-hidden border-b border-line bg-hero md:min-h-[360px]; }
   .page-hero .hero-bg { @apply absolute inset-0 bg-no-repeat; background-size: auto 100%; background-position: left center; }
   .page-hero::after {
     content: ""; @apply absolute inset-0;
     background:
-      linear-gradient(to left, #150d09 0%, rgba(21, 13, 9, .92) 38%, rgba(21, 13, 9, .15) 70%, rgba(21, 13, 9, 0) 100%),
-      linear-gradient(to top, rgba(17, 11, 8, .6), transparent 40%);
+      linear-gradient(to left, rgb(var(--color-hero)) 0%, rgb(var(--color-hero) / .92) 38%, rgb(var(--color-hero) / .15) 70%, rgb(var(--color-hero) / 0) 100%),
+      linear-gradient(to top, rgb(var(--color-background) / .6), transparent 40%);
   }
   @media (max-width: 640px) {
-    .page-hero::after { background: linear-gradient(to left, rgba(21, 13, 9, .95) 20%, rgba(21, 13, 9, .55)); }
+    .page-hero::after { background: linear-gradient(to left, rgb(var(--color-hero) / .95) 20%, rgb(var(--color-hero) / .55)); }
   }
 
   /* کارت محصول */
   .product-card {
     @apply flex flex-col overflow-hidden rounded border border-line text-center transition duration-300 hover:-translate-y-1 hover:border-line-strong hover:shadow-luxe;
-    background: linear-gradient(180deg, rgba(40, 27, 20, .75), rgba(24, 16, 12, .85));
+    background: linear-gradient(180deg, rgb(var(--color-card-from) / .75), rgb(var(--color-card-to) / .85));
   }
+  [data-card="flat"] .product-card { background: rgb(var(--color-surface)); }
+  [data-card="outline"] .product-card { background: transparent; }
   .product-card .thumb img { @apply transition-transform duration-700; }
   .product-card:hover .thumb img { @apply scale-105; }
   .list-view { @apply grid-cols-1 sm:grid-cols-1 lg:grid-cols-1; }
@@ -115,9 +131,10 @@
   .carousel-btn { @apply absolute top-[40%] z-10 grid h-[38px] w-[38px] place-items-center rounded-full border border-line-strong bg-ink/85 text-gold hover:bg-copper-dark; }
 
   /* صفحه‌بندی */
-  .pager a, .pager span { @apply grid h-9 min-w-[38px] place-items-center rounded border border-line bg-black/30 px-2.5 text-body; }
+  .pager a, .pager span { @apply grid h-9 min-w-[38px] place-items-center rounded border border-line bg-input/30 px-2.5 text-body; }
   .pager a:hover { @apply border-copper text-gold; }
-  .pager .current { @apply border-[#c9763d] text-white; background: linear-gradient(180deg, #a9582a, #7d3a16); }
+  .pager .current { @apply text-white; border-color: rgb(var(--color-button-border)); background: linear-gradient(180deg, rgb(var(--color-button-from)), rgb(var(--color-button-to))); }
+  [data-button="solid"] .pager .current, [data-button="outline"] .pager .current { background: rgb(var(--color-primary)); border-color: rgb(var(--color-primary)); }
   .pager .disabled { @apply opacity-40; }
 
   /* مقاله */

@@ -5,7 +5,7 @@
     <a href="{{ home_url }}" class="whitespace-nowrap font-display text-[1.7rem] leading-none text-gold sm:text-[1.9rem]">{{ SITE.name }}</a>
 
     <nav id="main-nav" aria-label="{% translate "منوی اصلی" %}"
-         class="fixed inset-x-0 bottom-0 top-[72px] translate-x-full bg-[#0e0906]/[.98] p-5 transition-transform data-[open]:translate-x-0 lg:static lg:flex-1 lg:translate-x-0 lg:bg-transparent lg:p-0">
+         class="fixed inset-x-0 bottom-0 top-[72px] translate-x-full bg-overlay/[.98] p-5 transition-transform data-[open]:translate-x-0 lg:static lg:flex-1 lg:translate-x-0 lg:bg-transparent lg:p-0">
       <ul class="flex flex-col lg:flex-row lg:gap-7 xl:gap-9">
         {% with s=nav_section %}
         <li><a href="{{ home_url }}" class="nav-link {% if s == 'pages' and request.path == home_url %}is-active{% endif %}">{% translate "خانه" %}</a></li>
@@ -30,7 +30,7 @@
   </div>
 </header>
 
-<div data-search-panel class="invisible fixed inset-0 z-[100] grid place-items-start justify-center bg-[#0a0604]/[.93] pt-[18vh] opacity-0 transition data-[open]:visible data-[open]:opacity-100">
+<div data-search-panel class="invisible fixed inset-0 z-[100] grid place-items-start justify-center bg-overlay/[.93] pt-[18vh] opacity-0 transition data-[open]:visible data-[open]:opacity-100">
   <button class="icon-btn absolute left-5 top-5" data-search-close aria-label="{% translate "بستن" %}">{% icon "close" %}</button>
   <form action="{% url 'catalog:shop' %}" role="search" class="flex w-[min(92vw,640px)] gap-2.5">
     <label class="sr-only" for="site-search">{% translate "جستجوی عطر" %}</label>

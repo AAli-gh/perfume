@@ -39,6 +39,16 @@ class ThemePreset(models.Model):
     is_default = models.BooleanField("پیش‌فرض پوسته", default=False)
     order = models.PositiveSmallIntegerField("ترتیب", default=0)
 
+    def clean(self):
+        from django.core.exceptions import ValidationError
+
+        from . import tokens
+
+        try:
+            tokens.validate(self.tokens, partial=True)
+        except ValidationError as exc:
+            raise ValidationError({"tokens": exc.messages}) from exc
+
     class Meta:
         ordering = ["theme", "order", "name"]
         verbose_name = "پیش‌تنظیم پوسته"
@@ -85,5 +95,11 @@ class ThemeSettings(StoreOwned):
     def clean(self):
         from django.core.exceptions import ValidationError
 
+        from . import tokens
+
         if self.preset_id and self.preset.theme_id != self.theme_id:
             raise ValidationError({"preset": "این پیش‌تنظیم متعلق به پوسته انتخاب‌شده نیست."})
+        try:
+            tokens.validate(self.overrides, partial=True)
+        except ValidationError as exc:
+            raise ValidationError({"overrides": exc.messages}) from exc

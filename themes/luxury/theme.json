@@ -1,7 +1,7 @@
 {
   "code": "luxury",
   "name": "لاکچری عطر",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "پوسته تیره و طلایی برای برندهای لوکس؛ پوسته شماره ۱ (طراحی فعلی عطر مجد).",
   "extends": "base",
   "direction": "rtl",
@@ -15,6 +15,12 @@
           "background": "#110b08",
           "background-2": "#170f0b",
           "surface": "#1d140f",
+          "panel": "#221610",
+          "media": "#0d0806",
+          "hero": "#150d09",
+          "overlay": "#0a0604",
+          "footer": "#0c0806",
+          "input": "#000000",
           "primary": "#c47a45",
           "primary-dark": "#8a4119",
           "accent": "#e7b98c",
@@ -22,12 +28,238 @@
           "text-strong": "#f0dcc6",
           "text": "#dccab8",
           "muted": "#9b8574",
+          "placeholder": "#7a6656",
+          "price": "#f3dcc4",
           "border": "#c48454",
           "success": "#9cc28a",
-          "danger": "#e0806a"
+          "danger": "#e0806a",
+          "button-from": "#a9582a",
+          "button-to": "#7d3a16",
+          "button-border": "#c9763d",
+          "button-text": "#f6dcc4",
+          "button-text-hover": "#fff3e6",
+          "button-highlight": "#ffd2aa",
+          "card-from": "#281b14",
+          "card-to": "#18100c",
+          "glow-1": "#8c461e",
+          "glow-2": "#783c19",
+          "glow-3": "#6e3719"
         },
-        "typography": {"font_body": "Vazirmatn", "font_display": "Aref Ruqaa"},
-        "radius": {"base": 4}
+        "typography": {
+          "font_body": "Vazirmatn",
+          "font_display": "Aref Ruqaa",
+          "base_size": 16
+        },
+        "radius": {
+          "sm": 2,
+          "base": 4,
+          "lg": 8
+        },
+        "spacing": {
+          "section": 70
+        },
+        "components": {
+          "button": "gradient",
+          "card": "gradient",
+          "header": "blur",
+          "background": "glow",
+          "texture": "noise",
+          "shadow": "strong"
+        }
+      }
+    },
+    {
+      "code": "luxury-emerald",
+      "name": "زمرد لوکس",
+      "tokens": {
+        "colors": {
+          "background": "#07130f",
+          "background-2": "#0b1a15",
+          "surface": "#10221b",
+          "panel": "#12261f",
+          "media": "#050e0b",
+          "hero": "#091812",
+          "overlay": "#040b08",
+          "footer": "#050d0a",
+          "input": "#000000",
+          "primary": "#c9a45c",
+          "primary-dark": "#8a6d2f",
+          "accent": "#e8cf9a",
+          "accent-soft": "#d4b77a",
+          "text-strong": "#eef3ee",
+          "text": "#cfdcd4",
+          "muted": "#84a093",
+          "placeholder": "#5f7a6e",
+          "price": "#f0e2bf",
+          "border": "#b8995a",
+          "success": "#9cc28a",
+          "danger": "#e0806a",
+          "button-from": "#b38a3e",
+          "button-to": "#7e5f24",
+          "button-border": "#c9a45c",
+          "button-text": "#fff6e0",
+          "button-text-hover": "#ffffff",
+          "button-highlight": "#fff0c8",
+          "card-from": "#13291f",
+          "card-to": "#0a1813",
+          "glow-1": "#1f6b4f",
+          "glow-2": "#1a5a43",
+          "glow-3": "#6b5a2a"
+        }
+      }
+    },
+    {
+      "code": "luxury-black",
+      "name": "مشکی لوکس",
+      "tokens": {
+        "colors": {
+          "background": "#000000",
+          "background-2": "#070707",
+          "surface": "#111111",
+          "panel": "#141414",
+          "media": "#050505",
+          "hero": "#050505",
+          "overlay": "#000000",
+          "footer": "#030303",
+          "input": "#000000",
+          "primary": "#c8b28a",
+          "primary-dark": "#8c7a58",
+          "accent": "#e9dcc3",
+          "accent-soft": "#cfc0a2",
+          "text-strong": "#f5f2ec",
+          "text": "#d6d1c7",
+          "muted": "#8f897f",
+          "placeholder": "#66625b",
+          "price": "#f1e7d3",
+          "border": "#a89a7f",
+          "success": "#9cc28a",
+          "danger": "#e0806a",
+          "button-from": "#2a2620",
+          "button-to": "#11100d",
+          "button-border": "#c8b28a",
+          "button-text": "#f1e7d3",
+          "button-text-hover": "#ffffff",
+          "button-highlight": "#ffffff",
+          "card-from": "#161616",
+          "card-to": "#0a0a0a",
+          "glow-1": "#3a3226",
+          "glow-2": "#2a251d",
+          "glow-3": "#1f1c17"
+        },
+        "typography": {
+          "font_body": "Vazirmatn",
+          "font_display": "Noto Naskh Arabic"
+        }
+      }
+    },
+    {
+      "code": "pearl",
+      "name": "مروارید",
+      "tokens": {
+        "colors": {
+          "background": "#faf6f1",
+          "background-2": "#f3ece4",
+          "surface": "#ffffff",
+          "panel": "#ffffff",
+          "media": "#efe7de",
+          "hero": "#f4ece3",
+          "overlay": "#faf6f1",
+          "footer": "#f1e9e0",
+          "input": "#ffffff",
+          "primary": "#b06f5a",
+          "primary-dark": "#8a4f3d",
+          "accent": "#7a4b3a",
+          "accent-soft": "#9a5d48",
+          "text-strong": "#2b1d17",
+          "text": "#4a3a33",
+          "muted": "#7d6a60",
+          "placeholder": "#a8968c",
+          "price": "#5a3a2e",
+          "border": "#b08b78",
+          "success": "#4f8a3c",
+          "danger": "#b4483a",
+          "button-from": "#c08068",
+          "button-to": "#9a5c47",
+          "button-border": "#9a5c47",
+          "button-text": "#ffffff",
+          "button-text-hover": "#ffffff",
+          "button-highlight": "#ffffff",
+          "card-from": "#ffffff",
+          "card-to": "#f6efe8",
+          "glow-1": "#e8c9b8",
+          "glow-2": "#f0d9cc",
+          "glow-3": "#e6d3c3"
+        },
+        "typography": {
+          "font_body": "Vazirmatn",
+          "font_display": "Amiri"
+        },
+        "radius": {
+          "sm": 4,
+          "base": 8,
+          "lg": 16
+        },
+        "components": {
+          "texture": "none",
+          "shadow": "soft"
+        }
+      }
+    },
+    {
+      "code": "minimal-light",
+      "name": "مینیمال روشن",
+      "tokens": {
+        "colors": {
+          "background": "#ffffff",
+          "background-2": "#f7f7f7",
+          "surface": "#ffffff",
+          "panel": "#ffffff",
+          "media": "#f2f2f2",
+          "hero": "#f5f5f5",
+          "overlay": "#ffffff",
+          "footer": "#fafafa",
+          "input": "#ffffff",
+          "primary": "#111111",
+          "primary-dark": "#000000",
+          "accent": "#111111",
+          "accent-soft": "#333333",
+          "text-strong": "#111111",
+          "text": "#333333",
+          "muted": "#6b6b6b",
+          "placeholder": "#a3a3a3",
+          "price": "#111111",
+          "border": "#8a8a8a",
+          "success": "#2f7d32",
+          "danger": "#c62828",
+          "button-from": "#111111",
+          "button-to": "#111111",
+          "button-border": "#111111",
+          "button-text": "#ffffff",
+          "button-text-hover": "#ffffff",
+          "button-highlight": "#ffffff",
+          "card-from": "#ffffff",
+          "card-to": "#ffffff",
+          "glow-1": "#ffffff",
+          "glow-2": "#ffffff",
+          "glow-3": "#ffffff"
+        },
+        "typography": {
+          "font_body": "Vazirmatn",
+          "font_display": "Vazirmatn"
+        },
+        "radius": {
+          "sm": 0,
+          "base": 2,
+          "lg": 4
+        },
+        "components": {
+          "button": "solid",
+          "card": "outline",
+          "header": "solid",
+          "background": "plain",
+          "texture": "none",
+          "shadow": "soft"
+        }
       }
     }
   ]

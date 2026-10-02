@@ -10,7 +10,7 @@
 <div class="container">
   <section class="grid gap-12 py-11 lg:grid-cols-[1.05fr_1fr]">
     <div class="grid items-start gap-4 sm:grid-cols-[1fr_82px]" data-gallery>
-      <div class="relative aspect-[4/5] overflow-hidden border border-line bg-[#0d0806]">
+      <div class="relative aspect-[4/5] overflow-hidden border border-line bg-media">
         <img data-gallery-main src="{{ gallery.0.url }}" alt="عطر {{ product.name }}" class="h-full w-full object-cover">
         {% if gallery|length > 1 %}
         <button class="carousel-btn right-2.5 !top-[calc(50%-19px)]" data-gallery-prev aria-label="تصویر قبلی">{% icon "chev-right" %}</button>
@@ -20,7 +20,7 @@
       <div class="order-2 grid grid-cols-4 gap-3 sm:order-none sm:grid-cols-1">
         {% for img in gallery %}
           <button type="button" data-gallery-thumb="{{ img.url }}" aria-label="تصویر {{ forloop.counter|fa }}"
-                  class="aspect-square overflow-hidden border border-line bg-[#0d0806] opacity-60 transition hover:border-copper hover:opacity-100 data-[active]:border-copper data-[active]:opacity-100" {% if forloop.first %}data-active{% endif %}>
+                  class="aspect-square overflow-hidden border border-line bg-media opacity-60 transition hover:border-copper hover:opacity-100 data-[active]:border-copper data-[active]:opacity-100" {% if forloop.first %}data-active{% endif %}>
             <img src="{{ img.url }}" alt="" class="h-full w-full object-cover">
           </button>
         {% endfor %}
@@ -36,7 +36,7 @@
 
       <form action="{% url 'cart:add' %}" method="post" hx-post="{% url 'cart:add' %}" hx-swap="none" data-variant-form>
         {% csrf_token %}
-        <div class="mb-3 text-[1.8rem] text-[#f3dcc4]"><span data-variant-price>{{ product.default_variant.price|toman }}</span></div>
+        <div class="mb-3 text-[1.8rem] text-price"><span data-variant-price>{{ product.default_variant.price|toman }}</span></div>
         <p>{{ product.short_description }}</p>
 
         <div class="my-6 grid grid-cols-3 gap-2 text-center sm:gap-2.5">{% with notes=product.notes_by_layer %}
@@ -61,9 +61,9 @@
           <div class="flex flex-wrap items-center gap-4">
             <label for="qty" class="min-w-[60px]">تعداد</label>
             <div class="inline-flex items-center overflow-hidden rounded border border-line" data-qty>
-              <button type="button" class="h-[34px] w-[34px] bg-black/30 text-lg text-muted hover:text-gold" data-qty-step="-1" aria-label="کاهش">−</button>
+              <button type="button" class="h-[34px] w-[34px] bg-input/30 text-lg text-muted hover:text-gold" data-qty-step="-1" aria-label="کاهش">−</button>
               <input id="qty" name="quantity" type="number" value="1" min="1" max="20" class="h-[34px] w-11 border-x border-line bg-transparent text-center [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none">
-              <button type="button" class="h-[34px] w-[34px] bg-black/30 text-lg text-muted hover:text-gold" data-qty-step="1" aria-label="افزایش">+</button>
+              <button type="button" class="h-[34px] w-[34px] bg-input/30 text-lg text-muted hover:text-gold" data-qty-step="1" aria-label="افزایش">+</button>
             </div>
           </div>
           {% if product.in_stock %}

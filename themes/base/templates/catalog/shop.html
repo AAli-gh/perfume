@@ -6,7 +6,7 @@
 <div class="container grid items-start gap-8 py-14 lg:grid-cols-[250px_1fr]">
   <div data-drawer-backdrop class="fixed inset-0 z-[110] hidden bg-black/60 data-[open]:block lg:hidden"></div>
   <aside data-drawer aria-label="فیلترها"
-         class="panel fixed inset-y-0 right-0 z-[120] w-[min(320px,88vw)] translate-x-full overflow-y-auto rounded-none bg-ink-3 transition-transform data-[open]:translate-x-0 lg:sticky lg:top-24 lg:z-auto lg:w-auto lg:translate-x-0 lg:overflow-visible lg:rounded lg:bg-[rgba(34,22,16,.72)]">
+         class="panel fixed inset-y-0 right-0 z-[120] w-[min(320px,88vw)] translate-x-full overflow-y-auto rounded-none bg-ink-3 transition-transform data-[open]:translate-x-0 lg:sticky lg:top-24 lg:z-auto lg:w-auto lg:translate-x-0 lg:overflow-visible lg:rounded lg:bg-panel/[.72]">
     <form id="filters" action="{% url 'catalog:shop' %}" method="get"
           hx-get="{% url 'catalog:shop' %}" hx-target="#results" hx-push-url="true"
           hx-trigger="change, input from:input[type=range] delay:350ms">
@@ -29,7 +29,7 @@
         <input class="w-full accent-copper" type="range" id="min_price" name="min_price" min="{{ price_lo }}" max="{{ price_hi }}" step="100000" value="{{ min_price }}">
         <label class="text-xs text-muted" for="max_price">حداکثر</label>
         <input class="w-full accent-copper" type="range" id="max_price" name="max_price" min="{{ price_lo }}" max="{{ price_hi }}" step="100000" value="{{ max_price }}">
-        <div class="mt-2 flex justify-between gap-2 rounded border border-line bg-black/25 px-2.5 py-1 text-xs text-gold">
+        <div class="mt-2 flex justify-between gap-2 rounded border border-line bg-input/25 px-2.5 py-1 text-xs text-gold">
           <span data-price-min>{{ min_price|toman }}</span><span>تا</span><span data-price-max>{{ max_price|toman }}</span>
         </div>
       </fieldset>
