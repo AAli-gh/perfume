@@ -14,6 +14,7 @@ class ShopFilterForm(forms.Form):
     brand = forms.MultipleChoiceField(required=False)
     scent = forms.MultipleChoiceField(required=False)
     collection = forms.CharField(required=False)
+    category = forms.CharField(required=False)
     min_price = forms.IntegerField(required=False, min_value=0)
     max_price = forms.IntegerField(required=False, min_value=0)
     sort = forms.ChoiceField(required=False, choices=SORTS)

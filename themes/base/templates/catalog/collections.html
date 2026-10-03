@@ -1,5 +1,6 @@
 {% extends "base.html" %}
-{% block title %}کالکشن‌ها | {{ SITE.name }}{% endblock %}
+{% load seo %}
+{% block seo %}{% seo_head title="کالکشن‌ها" %}{% endblock %}
 {% block content %}
 {% include "components/page_hero.html" with image="img/hero-collections.jpg" title="کالکشن‌ها" subtitle="کالکشن‌های اختصاصی عطر ما را کشف کنید." %}
 <section class="container py-14 lg:py-[70px]">

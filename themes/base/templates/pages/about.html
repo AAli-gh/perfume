@@ -1,6 +1,6 @@
 {% extends "base.html" %}
-{% load static %}
-{% block title %}درباره ما | {{ SITE.name }}{% endblock %}
+{% load seo static %}
+{% block seo %}{% seo_head title="درباره ما" %}{% endblock %}
 {% block content %}
 {% include "components/page_hero.html" with image="img/hero-about.jpg" title="درباره ما" subtitle="داستان خانه‌ای که رایحه را به هنر تبدیل کرد." %}
 

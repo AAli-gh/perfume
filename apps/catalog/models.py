@@ -5,7 +5,7 @@ from django.db import models
 from django.db.models import Avg, Count, Min, Q
 from django.urls import reverse
 
-from apps.core.models import StoreOwned, StoreQuerySet
+from apps.core.models import SeoFields, StoreOwned, StoreQuerySet
 
 
 class Brand(StoreOwned):
@@ -44,7 +44,7 @@ class ScentFamily(StoreOwned):
         return self.name
 
 
-class Collection(StoreOwned):
+class Collection(StoreOwned, SeoFields):
     name = models.CharField("نام", max_length=150)
     slug = models.SlugField("نامک", allow_unicode=True)
     tagline = models.CharField("شعار", max_length=250, blank=True)
@@ -66,10 +66,10 @@ class Collection(StoreOwned):
         return self.name
 
     def get_absolute_url(self):
-        return f"{reverse('catalog:shop')}?collection={self.slug}"
+        return reverse("catalog:collection", args=[self.slug])
 
 
-class Category(StoreOwned):
+class Category(StoreOwned, SeoFields):
     """دسته‌بندی درختی محصولات (مثلاً عطر ← عطر زنانه ← ادوپرفیوم)."""
 
     name = models.CharField("نام", max_length=120)
@@ -93,6 +93,9 @@ class Category(StoreOwned):
 
     def __str__(self):
         return " › ".join(c.name for c in self.ancestors(include_self=True))
+
+    def get_absolute_url(self):
+        return reverse("catalog:category", args=[self.slug])
 
     def ancestors(self, include_self=False):
         node, chain = (self if include_self else self.parent), []
@@ -211,7 +214,7 @@ class ProductQuerySet(StoreQuerySet):
         )
 
 
-class Product(StoreOwned):
+class Product(StoreOwned, SeoFields):
     name = models.CharField("نام", max_length=150)
     slug = models.SlugField("نامک", allow_unicode=True, max_length=160)
     brand = models.ForeignKey(Brand, verbose_name="برند", on_delete=models.PROTECT, related_name="products")
@@ -230,6 +233,7 @@ class Product(StoreOwned):
     is_active = models.BooleanField("فعال", default=True)
     is_featured = models.BooleanField("ویژه", default=False)
     created_at = models.DateTimeField("تاریخ ایجاد", auto_now_add=True)
+    updated_at = models.DateTimeField("آخرین تغییر", auto_now=True)
     # ستون‌های جستجو (به‌صورت خودکار توسط catalog.search به‌روز می‌شوند)
     search_document = models.TextField(blank=True, default="", editable=False)
     search_vector = SearchVectorField(null=True, editable=False)

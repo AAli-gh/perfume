@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django.contrib.humanize",
     "django.contrib.postgres",
+    "django.contrib.sitemaps",
     "django_htmx",
     "apps.accounts",
     "apps.core",
@@ -46,6 +47,7 @@ INSTALLED_APPS = [
     "apps.pages",
     "apps.themes",
     "apps.builder",
+    "apps.seo",
 ]
 
 MIDDLEWARE = [
@@ -163,6 +165,10 @@ CELERY_TIMEZONE = TIME_ZONE
 CELERY_BEAT_SCHEDULE = {
     "release-expired-reservations": {"task": "apps.orders.tasks.release_expired_reservations", "schedule": 300.0},
 }
+
+# ---------- سئو ----------
+# برای محیط‌های آزمایشی (staging): همه صفحه‌ها noindex و robots.txt همه چیز را Disallow می‌کند.
+SEO_NOINDEX = env.bool("SEO_NOINDEX", default=False)
 
 # ---------- لایه هوش مصنوعی (اختیاری؛ apps/ai) ----------
 AI_PROVIDER = env("AI_PROVIDER", default="")  # خالی = غیرفعال

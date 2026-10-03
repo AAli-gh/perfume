@@ -1,6 +1,6 @@
 {% extends "base.html" %}
-{% load static %}
-{% block title %}ورود / ثبت‌نام | {{ SITE.name }}{% endblock %}
+{% load seo static %}
+{% block seo %}{% seo_head title="ورود / ثبت‌نام" %}{% endblock %}
 {% block content %}
 <div class="relative grid min-h-[calc(100vh-72px)] place-items-center overflow-hidden py-12">
   <div class="absolute inset-0 bg-no-repeat opacity-30 blur-[2px]" style="background-image:url('{% static 'img/auth-bg.jpg' %}'),url('{% static 'img/hero-shop.jpg' %}');background-position:left center,right bottom;background-size:auto 100%,auto 70%"></div>

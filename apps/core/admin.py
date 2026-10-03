@@ -15,6 +15,10 @@ class StoreSettingsInline(admin.StackedInline):
         ("شبکه‌های اجتماعی", {"fields": ("instagram_url", "telegram_url", "whatsapp_url")}),
         ("فروش و ارسال", {"fields": ("currency_label", "shipping_cost", "free_shipping_over", "payment_timeout_minutes")}),
         ("پرداخت کارت به کارت", {"fields": ("bank_card_number", "bank_card_holder")}),
+        ("سئو و شبکه‌های اجتماعی", {"fields": (
+            "meta_description", "og_image", "twitter_handle", "google_site_verification", "bing_site_verification",
+            "currency_code", "currency_factor",
+        )}),
     )
 
 

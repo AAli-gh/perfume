@@ -1,7 +1,7 @@
 from django.db import models
 from django.db.models import Q
 
-from apps.core.models import StoreOwned, StoreQuerySet
+from apps.core.models import SeoFields, StoreOwned, StoreQuerySet
 from apps.core.stores import default_store_id
 
 
@@ -32,7 +32,7 @@ class ContactMessage(StoreOwned):
         return f"{self.name} — {self.get_subject_display()}"
 
 
-class Page(StoreOwned):
+class Page(StoreOwned, SeoFields):
     """صفحه‌ای که از بخش‌های قابل مدیریت ساخته می‌شود (فعلاً صفحه اصلی؛ صفحات دیگر در آینده)."""
 
     # چیدمان صفحه جزو تنظیمات فروشگاه است (نه داده تجاری) ← با حذف فروشگاه حذف می‌شود

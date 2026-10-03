@@ -1,7 +1,8 @@
 <div class="mb-5 flex flex-wrap items-center gap-x-4 gap-y-1">
   <span>{% if page.paginator.count %}نمایش {{ page.start_index|fa }}–{{ page.end_index|fa }} از {{ page.paginator.count|fa }} محصول{% else %}۰ محصول{% endif %}</span>
   {% if q %}<a class="text-sm text-muted" href="{% querystring q=None page=None %}">جستجو: «{{ q }}» <span class="text-copper">✕</span></a>{% endif %}
-  {% if collection %}<a class="text-sm text-muted" href="{% querystring collection=None page=None %}">{{ collection.name }} <span class="text-copper">✕</span></a>{% endif %}
+  {% if collection %}<a class="text-sm text-muted" href="{% if landing %}{% url 'catalog:shop' %}{% else %}{% querystring collection=None page=None %}{% endif %}">{{ collection.name }} <span class="text-copper">✕</span></a>{% endif %}
+  {% if category %}<a class="text-sm text-muted" href="{% if landing %}{% url 'catalog:shop' %}{% else %}{% querystring category=None page=None %}{% endif %}">{{ category.name }} <span class="text-copper">✕</span></a>{% endif %}
 </div>
 {% if page.object_list %}
   <div class="grid grid-cols-2 gap-3 sm:gap-[18px] md:grid-cols-3 xl:grid-cols-4" data-product-grid>

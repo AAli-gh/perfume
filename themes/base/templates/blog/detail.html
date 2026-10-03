@@ -1,6 +1,6 @@
 {% extends "base.html" %}
-{% block title %}{{ post.title }} | مجله {{ SITE.name }}{% endblock %}
-{% block description %}{{ post.excerpt }}{% endblock %}
+{% load seo %}
+{% block seo %}{% seo_head post %}{% endblock %}
 {% block content %}
 <nav class="container border-b border-line py-4 text-sm text-muted" aria-label="مسیر">
   <a class="text-muted" href="{% url 'pages:home' %}">خانه</a><span class="mx-2">‹</span><a class="text-muted" href="{% url 'blog:list' %}">مجله</a><span class="mx-2">‹</span><strong class="font-normal text-body">{{ post.title }}</strong>

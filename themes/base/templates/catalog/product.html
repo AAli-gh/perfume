@@ -1,7 +1,6 @@
 {% extends "base.html" %}
-{% load static reviews wishlist %}
-{% block title %}{{ product.name }} | {{ SITE.name }}{% endblock %}
-{% block description %}{{ product.short_description }}{% endblock %}
+{% load seo static reviews wishlist %}
+{% block seo %}{% seo_head product %}{% endblock %}
 {% block content %}
 <nav class="container border-b border-line py-4 text-sm text-muted" aria-label="مسیر">
   <a class="text-muted" href="{% url 'pages:home' %}">خانه</a><span class="mx-2">‹</span><a class="text-muted" href="{% url 'catalog:shop' %}">عطرها</a><span class="mx-2">‹</span><strong class="font-normal text-body">{{ product.name }}</strong>

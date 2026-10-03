@@ -1,6 +1,6 @@
 {% extends "base.html" %}
-{% load checkout %}
-{% block title %}سبد خرید | {{ SITE.name }}{% endblock %}
+{% load seo checkout %}
+{% block seo %}{% seo_head title="سبد خرید" %}{% endblock %}
 {% block content %}
 {% include "components/page_hero.html" with image="img/hero-collections.jpg" title="سبد خرید" subtitle="یک قدم تا داشتن رایحه دلخواهتان فاصله دارید." %}
 

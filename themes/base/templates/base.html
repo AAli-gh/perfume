@@ -1,10 +1,9 @@
-{% load static theme %}<!doctype html>
+{% load static theme seo %}<!doctype html>
 <html lang="fa" dir="rtl" {% theme_attrs %}>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}{{ SITE.name }} | {{ SITE.tagline }}{% endblock %}</title>
-  <meta name="description" content="{% block description %}عطر مجد؛ فروشگاه آنلاین عطرهای لوکس، عود و رایحه‌های شرقی.{% endblock %}">
+  {% block seo %}{% seo_head %}{% endblock %}
   {% theme_head %}
   <link rel="stylesheet" href="{% static 'css/app.css' %}">
   <script src="{% static 'vendor/htmx.min.js' %}" defer></script>

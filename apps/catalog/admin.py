@@ -72,6 +72,7 @@ class ProductAdmin(admin.ModelAdmin):
         (None, {"fields": ("store", "name", "slug", "brand", "scent", "collection", "image", "is_active", "is_featured")}),
         ("توضیحات", {"fields": ("short_description", "description")}),
         ("طبقه‌بندی", {"fields": ("categories", "tags", "attribute_values")}),
+        ("سئو", {"fields": ("meta_title", "meta_description", "noindex"), "classes": ("collapse",)}),
     )
 
     @admin.display(description="تصویر")

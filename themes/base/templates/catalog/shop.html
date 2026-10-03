@@ -1,7 +1,14 @@
 {% extends "base.html" %}
-{% block title %}فروشگاه | {{ SITE.name }}{% endblock %}
+{% load seo %}
+{% block seo %}{% if landing %}{% seo_head landing %}{% else %}{% seo_head title="فروشگاه" %}{% endif %}{% endblock %}
 {% block content %}
+{% if collection and landing %}
+{% include "components/page_hero.html" with image="img/hero-shop.jpg" image_url=collection.image.url title=collection.name subtitle=collection.tagline %}
+{% elif category and landing %}
+{% include "components/page_hero.html" with image="img/hero-shop.jpg" title=category.name subtitle=category.description|truncatechars:180 %}
+{% else %}
 {% include "components/page_hero.html" with image="img/hero-shop.jpg" title="کالکشن اختصاصی عطرهای ما" subtitle="دنیایی از رایحه‌های لوکس که برای مسحور کردن حواس شما ساخته شده‌اند." %}
+{% endif %}
 
 <div class="container grid items-start gap-8 py-14 lg:grid-cols-[250px_1fr]">
   <div data-drawer-backdrop class="fixed inset-0 z-[110] hidden bg-black/60 data-[open]:block lg:hidden"></div>
@@ -15,6 +22,7 @@
       </h2>
       {% if q %}<input type="hidden" name="q" value="{{ q }}">{% endif %}
       {% if collection %}<input type="hidden" name="collection" value="{{ collection.slug }}">{% endif %}
+      {% if category %}<input type="hidden" name="category" value="{{ category.slug }}">{% endif %}
 
       <fieldset class="border-b border-line px-5 py-4">
         <legend class="sr-only">برند</legend><h3 class="mb-2.5 text-base font-medium" aria-hidden="true">برند</h3>

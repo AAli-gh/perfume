@@ -139,7 +139,7 @@ def test_new_section_types_render(client, home, store):
     ]):
         PageSection.objects.create(page=home, type=key, order=100 + i, settings=sections.get(key).clean_settings(settings))
     body = html(client)
-    for text in ("محصولات ویژه", "عطر ویژه", "«بی‌نظیر بود»", "عطر زنانه", "?category=women", "ارسال چقدر طول می‌کشد؟"):
+    for text in ("محصولات ویژه", "عطر ویژه", "«بی‌نظیر بود»", "عطر زنانه", "/category/women/", "ارسال چقدر طول می‌کشد؟"):
         assert text in body
 
 

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
-{% load payments %}
-{% block title %}سفارش {{ order.number }} | {{ SITE.name }}{% endblock %}
+{% load seo payments %}
+{% block seo %}{% seo_head title="سفارش "|add:order.number %}{% endblock %}
 {% block content %}
 <div class="container max-w-3xl py-14">
   <div class="panel p-6 sm:p-9">

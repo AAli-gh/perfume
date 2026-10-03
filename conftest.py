@@ -8,6 +8,16 @@ def _media_root(settings, tmp_path):
     settings.MEDIA_ROOT = tmp_path / "media"
 
 
+@pytest.fixture(autouse=True)
+def _clear_cache():
+    """cache (sitemap، توکن‌های پوسته، …) بین تست‌ها مشترک نماند."""
+    from django.core.cache import cache
+
+    cache.clear()
+    yield
+    cache.clear()
+
+
 @pytest.fixture
 def store(db):
     """فروشگاه پیش‌فرض (توسط migration ساخته می‌شود)."""

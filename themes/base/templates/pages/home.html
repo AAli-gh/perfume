@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% load seo %}
+{% block seo %}{% seo_head page home=True %}{% endblock %}
 {% block content %}
 {% for block in blocks %}{% include block.template with section=block.context spacing=block.spacing %}
 {% endfor %}

@@ -1,5 +1,6 @@
 {% extends "base.html" %}
-{% block title %}مجله | {{ SITE.name }}{% endblock %}
+{% load seo %}
+{% block seo %}{% seo_head title="مجله" %}{% endblock %}
 {% block content %}
 {% include "components/page_hero.html" with image="img/hero-blog.jpg" title="مجله عطر مجد" subtitle="هنر عطرسازی و دانستنی‌های اختصاصی ما را کشف کنید." cta_url="#latest" cta_text="مطالعه مقالات" %}
 <div id="latest" class="container grid items-start gap-10 py-14 lg:grid-cols-[250px_1fr]">

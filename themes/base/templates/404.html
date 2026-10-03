@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load seo i18n %}
+{% block seo %}{% translate "صفحه پیدا نشد" as not_found %}{% seo_head title=not_found noindex=True %}{% endblock %}
+{% block content %}
+<section class="container grid place-items-center py-24 text-center">
+  <p class="font-display text-[5rem] leading-none text-gold">{{ 404|fa }}</p>
+  <h1 class="mb-3 mt-4 text-[1.8rem]">{% translate "صفحه‌ای که دنبالش بودید پیدا نشد" %}</h1>
+  <p class="mb-8 max-w-[520px] text-muted">{% translate "ممکن است آدرس اشتباه وارد شده باشد یا این صفحه دیگر وجود نداشته باشد." %}</p>
+  <form action="{% url 'catalog:shop' %}" role="search" class="mb-6 flex w-full max-w-[460px] gap-2">
+    <label class="sr-only" for="nf-search">{% translate "جستجوی عطر" %}</label>
+    <input id="nf-search" name="q" type="search" class="input" placeholder="{% translate "نام عطر، برند یا نت…" %}">
+    <button class="btn" type="submit">{% icon "search" %}</button>
+  </form>
+  <p class="flex flex-wrap justify-center gap-3">
+    <a class="btn" href="{% url 'pages:home' %}">{% translate "صفحه اصلی" %}</a>
+    <a class="btn btn-ghost" href="{% url 'catalog:shop' %}">{% translate "فروشگاه" %}</a>
+  </p>
+</section>
+{% endblock %}

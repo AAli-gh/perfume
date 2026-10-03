@@ -77,6 +77,36 @@ class StoreSettings(models.Model):
     )
     bank_card_number = models.CharField("شماره کارت (کارت به کارت)", max_length=30, blank=True)
     bank_card_holder = models.CharField("نام صاحب کارت", max_length=100, blank=True)
+    # ---------- سئو ----------
+    meta_description = models.CharField(
+        "توضیح پیش‌فرض سئو", max_length=170, blank=True,
+        help_text="برای صفحه‌هایی که توضیح اختصاصی ندارند (خالی = شعار فروشگاه).",
+    )
+    og_image = models.ImageField(
+        "تصویر پیش‌فرض اشتراک‌گذاری", upload_to="seo/", blank=True,
+        help_text="برای شبکه‌های اجتماعی (۱۲۰۰×۶۳۰)، وقتی صفحه تصویر خودش را ندارد.",
+    )
+    twitter_handle = models.CharField(
+        "حساب X (توییتر)", max_length=30, blank=True,
+        validators=[RegexValidator(r"^@?[A-Za-z0-9_]{1,15}$", "فقط حروف انگلیسی، رقم و _")],
+    )
+    google_site_verification = models.CharField(
+        "کد تأیید Google Search Console", max_length=100, blank=True,
+        validators=[RegexValidator(r"^[A-Za-z0-9_-]*$", "فقط مقدار content تگ متا را وارد کنید")],
+    )
+    bing_site_verification = models.CharField(
+        "کد تأیید Bing Webmaster", max_length=100, blank=True,
+        validators=[RegexValidator(r"^[A-Za-z0-9_-]*$", "فقط مقدار content تگ متا را وارد کنید")],
+    )
+    currency_code = models.CharField(
+        "کد ارز (ISO 4217)", max_length=3, default="IRR",
+        validators=[RegexValidator(r"^[A-Z]{3}$", "سه حرف بزرگ انگلیسی، مثلاً IRR")],
+        help_text="برای داده‌های ساختاریافته محصول (گوگل فقط کد استاندارد می‌پذیرد).",
+    )
+    currency_factor = models.PositiveIntegerField(
+        "ضریب تبدیل قیمت به کد ارز", default=10,
+        help_text="قیمت‌های فروشگاه × این عدد = قیمت به کد ارز. تومان ← ریال: ۱۰",
+    )
 
     class Meta:
         verbose_name = "تنظیمات فروشگاه"
@@ -116,6 +146,29 @@ class StoreOwned(models.Model):
     store = models.ForeignKey(
         "core.Store", on_delete=models.PROTECT, related_name="+", verbose_name="فروشگاه",
         default=default_store_id,
+    )
+
+    class Meta:
+        abstract = True
+
+
+class SeoFields(models.Model):
+    """فیلدهای سئو برای صفحه‌های قابل index (محصول، کالکشن، دسته، مقاله، صفحه).
+
+    خالی بودن یعنی «خودکار»: عنوان و توضیح از نام و متن خود آیتم ساخته می‌شوند (apps/seo).
+    """
+
+    meta_title = models.CharField(
+        "عنوان سئو", max_length=70, blank=True,
+        help_text="عنوان کامل صفحه در نتایج گوگل (حداکثر ۷۰ نویسه). خالی = خودکار.",
+    )
+    meta_description = models.CharField(
+        "توضیح سئو", max_length=170, blank=True,
+        help_text="خلاصه‌ای که زیر عنوان در نتایج جستجو دیده می‌شود (۱۲۰ تا ۱۶۰ نویسه). خالی = خودکار.",
+    )
+    noindex = models.BooleanField(
+        "عدم نمایش در موتورهای جستجو", default=False,
+        help_text="صفحه noindex می‌شود و در sitemap نمی‌آید.",
     )
 
     class Meta:

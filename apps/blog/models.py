@@ -2,7 +2,7 @@ from django.db import models
 from django.urls import reverse
 from django.utils import timezone
 
-from apps.core.models import StoreOwned, StoreQuerySet
+from apps.core.models import SeoFields, StoreOwned, StoreQuerySet
 
 
 class Category(StoreOwned):
@@ -28,7 +28,7 @@ class PostQuerySet(StoreQuerySet):
         return self.filter(is_published=True, published_at__lte=timezone.now())
 
 
-class Post(StoreOwned):
+class Post(StoreOwned, SeoFields):
     title = models.CharField("عنوان", max_length=200)
     slug = models.SlugField("نامک", allow_unicode=True, max_length=210)
     category = models.ForeignKey(Category, on_delete=models.PROTECT, related_name="posts", verbose_name="دسته‌بندی")
@@ -37,6 +37,7 @@ class Post(StoreOwned):
     body = models.TextField("متن", help_text="هر پاراگراف را با یک خط خالی جدا کنید. برای تیتر، خط را با ## شروع کنید.")
     is_published = models.BooleanField("منتشر شده", default=True)
     published_at = models.DateTimeField("تاریخ انتشار", default=timezone.now)
+    updated_at = models.DateTimeField("آخرین تغییر", auto_now=True)
 
     objects = PostQuerySet.as_manager()
 
