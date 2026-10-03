@@ -349,3 +349,20 @@ def test_admin_rejects_svg_product_image(client, store):
 def test_custom_admin_url_not_in_robots(client, store, settings):
     settings.ADMIN_URL = "manage-x7/"
     assert "manage-x7" not in client.get("/robots.txt").content.decode()
+
+
+def test_rate_limit_cannot_be_doubled_across_window_boundary(store):
+    """با پنجره ثابت، ۵ درخواست قبل و ۵ درخواست بعد از مرز پنجره همه مجاز می‌شدند."""
+    from unittest import mock
+
+    from apps.core import ratelimit
+
+    period = 600
+    boundary = (int(1_800_000_000 // period) + 1) * period
+    with mock.patch.object(ratelimit.time, "time", return_value=boundary - 1):
+        assert all(ratelimit.hit("t", "ip", 5, period)[0] for _ in range(5))
+    with mock.patch.object(ratelimit.time, "time", return_value=boundary + 1):
+        assert not ratelimit.hit("t", "ip", 5, period)[0]  # پنجره قبلی هنوز حساب می‌شود
+    # یک پنجره کامل بعد، دوباره آزاد است
+    with mock.patch.object(ratelimit.time, "time", return_value=boundary + period + 1):
+        assert ratelimit.hit("t", "ip", 5, period)[0]

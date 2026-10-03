@@ -3,7 +3,7 @@
     @ratelimit("login-ip", "20/10m")                          ← بر اساس IP
     @ratelimit("login-account", "5/15m", key=email_of)       ← بر اساس شناسه دلخواه (مثلاً ایمیل)
 
-- پنجره زمانی ثابت؛ پس از عبور از حد، پاسخ ۴۲۹ با هدر Retry-After (برای HTMX هم یک اعلان نمایش داده می‌شود).
+- پنجره لغزان تقریبی (دو پنجره وزن‌دار)؛ پس از عبور از حد، پاسخ ۴۲۹ با هدر Retry-After (برای HTMX هم یک اعلان نمایش داده می‌شود).
 - IP واقعی فقط وقتی از X-Forwarded-For خوانده می‌شود که TRUSTED_PROXY_COUNT تنظیم شده باشد؛ وگرنه
   هر کسی می‌توانست با جعل این هدر محدودیت را دور بزند.
 """
@@ -39,20 +39,27 @@ def client_ip(request):
 
 
 def hit(scope, ident, limit, period):
-    """یک درخواست ثبت می‌کند؛ خروجی (مجاز است؟، ثانیه تا پایان پنجره)."""
+    """یک درخواست ثبت می‌کند؛ خروجی (مجاز است؟، ثانیه تا آزاد شدن).
+
+    پنجره لغزان تقریبی: شمارش پنجره قبلی به نسبت زمان باقی‌مانده آن حساب می‌شود. با پنجره ثابت ساده،
+    درخواست‌هایی که دو طرف مرز پنجره بیفتند شمارنده را صفر می‌کنند و تا دو برابر حد مجاز عبور می‌کنند.
+    """
     now = time.time()
-    window = int(now // period)
+    window, elapsed = int(now // period), (now % period) / period
     digest = hashlib.sha256(f"{scope}:{ident}".encode()).hexdigest()[:32]
-    key = f"rl:{scope}:{digest}:{window}"
-    if cache.add(key, 1, period + 5):
+    key, previous_key = f"rl:{scope}:{digest}:{window}", f"rl:{scope}:{digest}:{window - 1}"
+    ttl = 2 * period + 5  # پنجره جاری باید در پنجره بعدی هم خوانده شود
+    if cache.add(key, 1, ttl):
         count = 1
     else:
         try:
             count = cache.incr(key)
         except ValueError:  # کلید همین الان منقضی شد
-            cache.add(key, 1, period + 5)
+            cache.add(key, 1, ttl)
             count = 1
-    return count <= limit, max(1, int(period - (now % period)))
+    previous = cache.get(previous_key) or 0
+    estimated = previous * (1 - elapsed) + count
+    return estimated <= limit, max(1, int(period - (now % period)))
 
 
 def _identity(request, key):

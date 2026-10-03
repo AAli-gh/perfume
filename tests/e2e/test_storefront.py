@@ -116,12 +116,16 @@ def test_rate_limited_htmx_request_shows_toast(site, probe):
     page.click("form[data-variant-form] button[type=submit]")
     expect(page.locator("#cart-badge")).to_have_text("۱")
     page.goto(f"{site}/cart/")
+    # هر درخواست تا رسیدن پاسخ صبر می‌کند؛ HTMX درخواست جدید فرم را تا پاسخ قبلی کنار می‌گذارد
     for _ in range(10):
         page.fill("#coupon", "WRONG")
-        page.click("#cart-area form button[type=submit]")
-        expect(page.locator("#cart-area .alert")).to_be_visible()
+        with page.expect_response("**/cart/coupon/") as response:
+            page.click("#cart-area form button[type=submit]")
+        assert response.value.status == 200
     page.fill("#coupon", "WRONG")
-    page.click("#cart-area form button[type=submit]")
+    with page.expect_response("**/cart/coupon/") as response:
+        page.click("#cart-area form button[type=submit]")
+    assert response.value.status == 429
     expect(page.locator("#toasts")).to_contain_text("تعداد درخواست‌ها زیاد است")
     # HTMX پاسخ ۴۲۹ را در console گزارش می‌کند؛ در این تست مورد انتظار است
     probe.errors[:] = [e for e in probe.errors if "Error Code 429" not in e]
