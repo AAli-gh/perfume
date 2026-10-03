@@ -1,5 +1,7 @@
 # پوسته‌ها (Themes)
 
+> مرور کلی Theme Engine در [docs/architecture.md](../docs/architecture.md#theme-engine) و گام‌های افزودن پوسته در [راهنمای توسعه‌دهنده](../docs/developer-guide.md#افزودن-پوسته) آمده است.
+
 ```
 themes/
   base/templates/     ← لایه مشترک: همه قالب‌ها و کامپوننت‌های فروشگاه (پوسته قابل انتخاب نیست)

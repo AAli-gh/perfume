@@ -1,5 +1,7 @@
 # راهنمای استقرار (production)
 
+> بخشی از [مستندات](docs/README.md). دلیل تصمیم‌های image و stack در [ADR-0013](docs/adr/0013-production-image.md) آمده است.
+
 این راهنما برای اجرای عطر مجد روی یک سرور لینوکس با Docker است. سرویس‌ها همه در `docker-compose.prod.yml` تعریف شده‌اند.
 
 ## معماری
@@ -149,7 +151,7 @@ sh deploy/restore.sh backups/db-20261003-020000.dump backups/media-20261003-0200
 | ۳۰ کاربر هم‌زمان | ۱۲۴ | ۱۹۹ms | ۵۶۲ms | ۷۱۶ms | ۰ |
 
 - اجرای دوباره روی سرور خودتان: `make loadtest USERS=20 DURATION=30`
-- تعداد worker با `WEB_CONCURRENCY` تنظیم می‌شود (پیش‌فرض: ۲×CPU+۱).
+- تعداد worker با `WEB_CONCURRENCY` تنظیم می‌شود (پیش‌فرض: ۲×CPU+۱، حداکثر ۹).
 - nginx از هر IP بیش از ۲۰ درخواست در ثانیه (با ظرفیت انفجاری ۴۰) را با 429 رد می‌کند. اگر پشت CDN یا load balancer هستید:
   - IP واقعی را در nginx تنظیم کنید (`set_real_ip_from`).
   - `TRUSTED_PROXY_COUNT` را یکی بیشتر کنید.
