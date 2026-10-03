@@ -11,7 +11,7 @@ from django.utils import timezone
 
 from apps.cart.pricing import calculate
 from apps.catalog import inventory
-from apps.catalog.models import ProductVariant, StockMovement
+from apps.catalog.models import StockMovement
 from apps.catalog.tests.factories import VariantFactory
 from apps.discounts.models import Coupon
 from apps.orders.models import Order
@@ -191,7 +191,9 @@ def test_expired_unpaid_orders_release_stock(client):
     Order.objects.filter(pk=order.pk).update(reserved_until=timezone.now() - timedelta(minutes=1))
     fresh = place_order(client, variant, qty=1, payment_method="online")
     assert release_expired_reservations.delay().get() == 1
-    order.refresh_from_db(); fresh.refresh_from_db(); variant.refresh_from_db()
+    order.refresh_from_db()
+    fresh.refresh_from_db()
+    variant.refresh_from_db()
     assert order.status == "cancelled" and fresh.status == "pending"
     assert variant.stock == 4 == ledger(variant)
     assert order.history.get().note == "انقضای مهلت پرداخت"
@@ -199,7 +201,7 @@ def test_expired_unpaid_orders_release_stock(client):
 
 # ---------- هم‌زمانی: سقف کد تخفیف ----------
 
-@pytest.mark.django_db(transaction=True)
+@pytest.mark.django_db(transaction=True, serialized_rollback=True)  # داده migrationها (پوسته، فروشگاه) برگردانده شود
 def test_coupon_usage_limit_holds_under_concurrency(store):
     """دو سفارش هم‌زمان با کدی که فقط یک بار قابل استفاده است: فقط یکی موفق می‌شود."""
     from django.test import Client

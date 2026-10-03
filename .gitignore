@@ -7,3 +7,8 @@ staticfiles/
 node_modules/
 .DS_Store
 static/css/app.css
+.coverage
+coverage.xml
+htmlcov/
+.pytest_cache/
+test-results/

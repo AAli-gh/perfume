@@ -41,7 +41,8 @@ def test_new_store_gets_home_page():
 
 
 def test_home_renders_all_default_sections(client, store):
-    ProductFactory(); VariantFactory()
+    ProductFactory()
+    VariantFactory()
     body = html(client)
     for text in ("دنیای رایحه‌های<br>ماندگار عطر مجد", "ارسال سریع", "هنر عطرسازی", "عضویت در خبرنامه"):
         assert text in body
@@ -53,7 +54,8 @@ def test_reorder_and_disable(client, home):
     banner = home.sections.get(type="banner")
     features = home.sections.get(type="features")
     banner.order, features.order = 5, 45
-    banner.save(); features.save()
+    banner.save()
+    features.save()
     body = html(client)
     assert body.index("هنر عطرسازی") < body.index("ارسال سریع")
     features.is_enabled = False
@@ -64,7 +66,8 @@ def test_reorder_and_disable(client, home):
 def test_edit_settings_reflected_and_escaped(client, home):
     hero = home.sections.get(type="hero")
     hero.settings = {**hero.settings, "title": "سطر یک\n<script>alert(1)</script>"}
-    hero.full_clean(); hero.save()
+    hero.full_clean()
+    hero.save()
     body = html(client)
     assert "سطر یک<br>&lt;script&gt;alert(1)&lt;/script&gt;" in body
     assert "<script>alert(1)</script>" not in body

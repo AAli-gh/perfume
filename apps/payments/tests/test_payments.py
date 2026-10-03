@@ -44,7 +44,8 @@ def test_full_flow_with_test_gateway(client, order):
     assert resp.status_code == 302 and resp.url == reverse("payments:test_gateway", args=[payment.authority])
     assert client.get(resp.url).status_code == 200
     resp = client.get(reverse("payments:callback", args=["test"]), cb(payment.authority))
-    order.refresh_from_db(); payment.refresh_from_db()
+    order.refresh_from_db()
+    payment.refresh_from_db()
     assert order.status == "paid" and payment.status == "succeeded" and payment.ref_id
     assert payment.amount == order.total
     detail = client.get(order.get_absolute_url()).content.decode()
@@ -77,7 +78,8 @@ def test_expired_order_is_not_verified(order, store):
     with mock.patch("apps.payments.gateways.test.TestGateway.verify") as verify:
         handle_callback("test", cb(payment.authority), store)
     verify.assert_not_called()  # تراکنش verify نمی‌شود ← درگاه مبلغ را برمی‌گرداند
-    payment.refresh_from_db(); order.refresh_from_db()
+    payment.refresh_from_db()
+    order.refresh_from_db()
     assert payment.status == "expired" and order.status == "cancelled"
 
 

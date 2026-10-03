@@ -50,7 +50,7 @@ def create_order(cart, form, user=None):
     if cart.coupon_code:
         # قفل ردیف کد تخفیف: دو سفارش هم‌زمان نمی‌توانند از سقف استفاده عبور کنند
         coupon = Coupon.objects.select_for_update().filter(store=cart.store, code=cart.coupon_code).first()
-        subtotal = sum(l.unit_price * l.quantity for l in lines)
+        subtotal = sum(line.unit_price * line.quantity for line in lines)
         error = "کد تخفیف دیگر معتبر نیست." if coupon is None else coupon.check_usable(subtotal)
         if error:
             raise CouponUnavailable(error)
@@ -66,10 +66,10 @@ def create_order(cart, form, user=None):
 
     OrderItem.objects.bulk_create([
         OrderItem(
-            order=order, variant=l.variant, product_name=l.variant.product.name,
-            size_ml=l.variant.size_ml, unit_price=l.unit_price, quantity=l.quantity,
+            order=order, variant=line.variant, product_name=line.variant.product.name,
+            size_ml=line.variant.size_ml, unit_price=line.unit_price, quantity=line.quantity,
         )
-        for l in lines
+        for line in lines
     ])
     if coupon:
         record_usage(coupon)

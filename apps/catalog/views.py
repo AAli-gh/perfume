@@ -87,7 +87,7 @@ def product_detail(request, slug):
     try:
         product = selectors.product_detail(request.store, slug)
     except Product.DoesNotExist:
-        raise Http404
+        raise Http404 from None
     return render(request, "catalog/product.html", {
         "product": product,
         "gallery": selectors.product_gallery(product),

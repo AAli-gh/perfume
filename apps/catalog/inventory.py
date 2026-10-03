@@ -36,9 +36,9 @@ def reserve(lines, reference, user=None):
     """کم کردن موجودی برای یک سفارش؛ اگر هر قلمی کافی نباشد هیچ تغییری اعمال نمی‌شود."""
     variants = lock_variants(line.variant_id for line in lines)
     short = [
-        f"{variants[l.variant_id].product.name} ({variants[l.variant_id].size_ml} میل)"
-        for l in lines
-        if l.variant_id not in variants or variants[l.variant_id].stock < l.quantity
+        f"{variants[line.variant_id].product.name} ({variants[line.variant_id].size_ml} میل)"
+        for line in lines
+        if line.variant_id not in variants or variants[line.variant_id].stock < line.quantity
     ]
     if short:
         raise OutOfStock(short)

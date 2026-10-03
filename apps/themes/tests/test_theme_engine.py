@@ -82,7 +82,8 @@ def test_admin_templates_still_load(admin_client):
 
 @pytest.mark.django_db
 def test_sync_registers_themes_and_presets_idempotently(themes_dir):
-    sync(); sync()
+    sync()
+    sync()
     assert Theme.objects.filter(code="alt").count() == 1
     preset = ThemePreset.objects.get(theme__code="alt", code="alt-one")
     assert preset.is_default and preset.tokens["colors"]["primary"] == "#000000"
