@@ -38,6 +38,8 @@ class VerifyResult:
 class PaymentGateway(ABC):
     code: str = ""
     label: str = ""
+    # دامنه‌هایی که کاربر برای پرداخت به آن‌ها منتقل می‌شود (برای CSP form-action)
+    redirect_origins: tuple = ()
 
     def __init__(self, account=None):
         self.account = account  # GatewayAccount یا None

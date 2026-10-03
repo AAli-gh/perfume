@@ -14,6 +14,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 COPY --from=assets /app/static/css/app.css ./static/css/app.css
-RUN SECRET_KEY=build-only python manage.py collectstatic --noinput
+# کلید موقت و تصادفی فقط برای collectstatic (تنظیمات production کلید ضعیف را نمی‌پذیرد)
+RUN SECRET_KEY="$(python -c 'import secrets; print(secrets.token_urlsafe(50))')" python manage.py collectstatic --noinput
 EXPOSE 8000
 CMD ["sh", "-c", "python manage.py migrate --noinput && gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3"]

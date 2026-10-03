@@ -24,10 +24,22 @@ class PageSectionForm(forms.ModelForm):
 
 
 class PageSectionInline(admin.StackedInline):
+    """فقط نمایش. بخش‌ها از استودیو (پیش‌نویس ← پیش‌نمایش ← انتشار) ویرایش می‌شوند."""
+
     model = PageSection
     form = PageSectionForm
     extra = 0
     ordering = ["status", "order", "id"]
+    verbose_name_plural = "بخش‌های صفحه (ویرایش از استودیو: /studio/)"
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(Page)

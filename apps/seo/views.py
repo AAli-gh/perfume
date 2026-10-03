@@ -6,7 +6,7 @@ from .meta import base_url
 
 # بخش‌های خصوصی؛ صفحه‌های فیلتر و جستجو با meta robots=noindex مدیریت می‌شوند (نه Disallow)، تا گوگل
 # بتواند noindex را ببیند.
-DISALLOW = ["/admin/", "/studio/", "/cart/", "/orders/", "/account/", "/payments/", "/wishlist/"]
+DISALLOW = ["/studio/", "/cart/", "/orders/", "/account/", "/payments/", "/wishlist/"]
 
 
 @cache_control(max_age=3600, public=True)
@@ -15,6 +15,8 @@ def robots_txt(request):
     if getattr(settings, "SEO_NOINDEX", False):
         lines.append("Disallow: /")  # محیط staging یا آزمایشی
     else:
-        lines += [f"Disallow: {path}" for path in DISALLOW]
+        # آدرس اختصاصی پنل مدیریت (ADMIN_URL) عمداً در robots.txt نمی‌آید تا فاش نشود
+        admin = ["/admin/"] if settings.ADMIN_URL == "admin/" else []
+        lines += [f"Disallow: {path}" for path in admin + DISALLOW]
         lines += ["", f"Sitemap: {base_url(request)}/sitemap.xml"]
     return HttpResponse("\n".join(lines) + "\n", content_type="text/plain; charset=utf-8")

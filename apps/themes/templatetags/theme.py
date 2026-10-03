@@ -47,6 +47,12 @@ def _favicon(context, tokens):
     return "data:image/svg+xml," + quote(svg, safe="/:='. ")
 
 
+def _nonce(context):
+    """nonce همین درخواست برای CSP (core.security.SecurityHeadersMiddleware)."""
+    request = context.get("request")
+    return getattr(request, "csp_nonce", "") if request is not None else ""
+
+
 @register.simple_tag(takes_context=True)
 def theme_head(context):
     t = page_tokens(context)
@@ -56,8 +62,8 @@ def theme_head(context):
         '  <link rel="preconnect" href="https://fonts.googleapis.com">\n'
         '  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n'
         '  <link href="{}" rel="stylesheet">\n'
-        '  <style id="theme-tokens">{}</style>',
-        t["colors"]["background"], _favicon(context, t), T.google_fonts_url(t), mark_safe(T.to_css(t)),
+        '  <style id="theme-tokens" nonce="{}">{}</style>',
+        t["colors"]["background"], _favicon(context, t), T.google_fonts_url(t), _nonce(context), mark_safe(T.to_css(t)),
     )
 
 

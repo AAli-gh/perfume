@@ -34,6 +34,19 @@
     });
   }
 
+  // پاسخ ۴۲۹ (محدودیت تعداد درخواست) برای درخواست‌های HTMX: HTMX پاسخ خطا را جایگزین نمی‌کند، پس اعلان می‌دهیم
+  document.addEventListener("htmx:responseError", (e) => {
+    if (e.detail.xhr.status !== 429) return;
+    const box = document.getElementById("toasts");
+    if (!box) return;
+    const toast = document.createElement("div");
+    toast.className = "toast";
+    toast.setAttribute("data-autohide", "");
+    toast.textContent = "تعداد درخواست‌ها زیاد است؛ لطفاً کمی بعد دوباره تلاش کنید.";
+    box.appendChild(toast);
+    init(box);
+  });
+
   function safeGet(k) { try { return localStorage.getItem(k); } catch { return null; } }
   function safeSet(k, v) { try { localStorage.setItem(k, v); } catch { /* ignore */ } }
 

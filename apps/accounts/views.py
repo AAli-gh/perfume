@@ -7,6 +7,8 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
 from .forms import LoginForm, RegisterForm
+from apps.core.audit import record
+from apps.core.ratelimit import ratelimit
 
 
 def _next_url(request, default="accounts:profile"):
@@ -35,6 +37,7 @@ class AuthPageView(LoginView):
         return super().form_valid(form)
 
 
+@ratelimit("register", "5/1h")
 @require_POST
 def register(request):
     if request.user.is_authenticated:
@@ -42,6 +45,7 @@ def register(request):
     form = RegisterForm(request.POST)
     if form.is_valid():
         user = form.save()
+        record("auth.register", request, user=user, target=user.get_username())
         login(request, user, backend="django.contrib.auth.backends.ModelBackend")
         messages.success(request, "حساب کاربری شما ساخته شد. به خانواده عطر مجد خوش آمدید!")
         return redirect(_next_url(request))
@@ -54,3 +58,13 @@ def register(request):
 def profile(request):
     orders = request.user.orders.prefetch_related("items")
     return render(request, "accounts/profile.html", {"orders": orders})
+
+
+def _login_account(request):
+    """شناسه حساب برای محدودیت تلاش ورود (جلوگیری از حدس رمز یک حساب از IPهای مختلف)."""
+    return (request.POST.get("username") or "").strip().lower()[:254] or None
+
+
+login_view = ratelimit("login-ip", "20/10m")(ratelimit("login-account", "5/15m", key=_login_account)(
+    AuthPageView.as_view()
+))

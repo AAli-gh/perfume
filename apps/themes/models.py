@@ -10,6 +10,7 @@ from django.db import models
 
 from apps.core.models import StoreOwned, StoreQuerySet
 from apps.core.stores import default_store_id
+from apps.core.validators import favicon_upload, image_upload
 
 theme_code_validator = RegexValidator(r"^[a-z][a-z0-9_-]{1,39}$", "کد پوسته فقط حروف کوچک انگلیسی، رقم، - و _")
 
@@ -75,8 +76,8 @@ class ThemeSettings(StoreOwned):
     overrides = models.JSONField(
         "شخصی‌سازی توکن‌ها", default=dict, blank=True, help_text="روی توکن‌های پیش‌تنظیم اعمال می‌شود"
     )
-    logo = models.ImageField("لوگو", upload_to="themes/logos/", blank=True)
-    favicon = models.ImageField("فاوآیکون", upload_to="themes/favicons/", blank=True)
+    logo = models.ImageField("لوگو", upload_to="themes/logos/", blank=True, validators=[image_upload])
+    favicon = models.ImageField("فاوآیکون", upload_to="themes/favicons/", blank=True, validators=[favicon_upload])
     header = models.JSONField("تنظیمات هدر", default=dict, blank=True)
     footer = models.JSONField("تنظیمات فوتر", default=dict, blank=True)
     updated_at = models.DateTimeField("آخرین تغییر", auto_now=True)

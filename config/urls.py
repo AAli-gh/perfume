@@ -3,8 +3,12 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 
+from apps.core.ratelimit import ratelimit
+
 urlpatterns = [
-    path("admin/", admin.site.urls),
+    # ورود پنل مدیریت هم مثل ورود فروشگاه محدودیت تلاش دارد
+    path(f"{settings.ADMIN_URL}login/", ratelimit("admin-login", "10/10m")(admin.site.login)),
+    path(settings.ADMIN_URL, admin.site.urls),
     path("studio/", include("apps.builder.urls")),
     path("", include("apps.seo.urls")),
     path("", include("apps.pages.urls")),

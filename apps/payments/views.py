@@ -9,8 +9,10 @@ from apps.orders.selectors import get_owned_order
 from .gateways import PaymentError
 from .models import Payment
 from .services import TEST_GATEWAY, handle_callback, start_payment
+from apps.core.ratelimit import ratelimit
 
 
+@ratelimit("payment-start", "10/10m", methods=("GET", "POST"))
 def start(request, number):
     order = get_owned_order(request, number)
     try:

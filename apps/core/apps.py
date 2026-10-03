@@ -6,3 +6,6 @@ class CoreConfig(AppConfig):
     name = "apps.core"
     label = "core"
     verbose_name = "هسته"
+
+    def ready(self):
+        from . import signals  # noqa: F401 — ثبت رویدادهای ورود/خروج در AuditLog

@@ -26,6 +26,8 @@ from .access import (
     PUBLISH_PERM, SECTION_ADD_PERM, SECTION_CHANGE_PERM, SECTION_DELETE_PERM, THEME_PERM, studio_required,
 )
 from .models import Revision
+from apps.core.audit import record
+from apps.core.ratelimit import ratelimit
 
 SAVED = "در پیش‌نویس ذخیره شد. برای دیدن نتیجه «پیش‌نمایش» را باز کنید و سپس منتشر کنید."
 
@@ -342,6 +344,7 @@ def preview_exit(request):
     return redirect("pages:home")
 
 
+@ratelimit("preview-link", "30/10m", methods=("GET",))
 def preview_share(request, token):
     """لینک عمومی و موقت پیش‌نمایش؛ نیازی به ورود ندارد ولی فقط دیدن پیش‌نویس را ممکن می‌کند."""
     if not builder.check_preview_token(token, request.store):
@@ -355,6 +358,7 @@ def preview_share(request, token):
 def preview_link(request):
     token = builder.preview_link_token(request.store)
     request.session["builder_share_link"] = request.build_absolute_uri(reverse("builder:preview_share", args=[token]))
+    record("studio.preview_link", request)
     return redirect("builder:preview")
 
 
@@ -366,6 +370,7 @@ def publish(request):
     except builder.NothingToPublish:
         messages.info(request, "تغییری برای انتشار وجود ندارد.")
     else:
+        record("studio.publish", request, target=f"revision {revision.number}", changes="، ".join(revision.changes))
         messages.success(request, f"نسخه {fa(revision.number)} منتشر شد: {'، '.join(revision.changes)}.")
     return _back(request)
 
@@ -374,6 +379,7 @@ def publish(request):
 @studio_required(PUBLISH_PERM)
 def discard(request):
     builder.discard(request.store)
+    record("studio.discard", request)
     messages.success(request, "تغییرات منتشرنشده کنار گذاشته شد؛ پیش‌نویس برابر نسخه فعلی فروشگاه است.")
     return _back(request)
 
@@ -389,6 +395,7 @@ def history(request):
 def restore(request, number):
     revision = get_object_or_404(Revision.objects.for_store(request.store), number=number)
     builder.restore(request.store, revision, request.user)
+    record("studio.restore", request, target=f"revision {revision.number}")
     messages.success(request, f"نسخه {fa(revision.number)} در پیش‌نویس بارگذاری شد. پیش‌نمایش را ببینید و در صورت "
                               f"رضایت منتشر کنید.")
     return redirect("builder:preview")

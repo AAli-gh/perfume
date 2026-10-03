@@ -3,8 +3,10 @@ from django.shortcuts import redirect, render
 from django.views.decorators.http import require_POST
 
 from .forms import NewsletterForm
+from apps.core.ratelimit import ratelimit
 
 
+@ratelimit("newsletter", "10/10m")
 @require_POST
 def newsletter(request):
     form = NewsletterForm(request.POST)

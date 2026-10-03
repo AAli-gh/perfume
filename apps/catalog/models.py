@@ -5,6 +5,7 @@ from django.db import models
 from django.db.models import Avg, Count, Min, Q
 from django.urls import reverse
 
+from apps.core.validators import image_upload
 from apps.core.models import SeoFields, StoreOwned, StoreQuerySet
 
 
@@ -48,7 +49,7 @@ class Collection(StoreOwned, SeoFields):
     name = models.CharField("نام", max_length=150)
     slug = models.SlugField("نامک", allow_unicode=True)
     tagline = models.CharField("شعار", max_length=250, blank=True)
-    image = models.ImageField("تصویر", upload_to="collections/")
+    image = models.ImageField("تصویر", upload_to="collections/", validators=[image_upload])
     is_wide = models.BooleanField("نمایش عریض", default=False)
     order = models.PositiveSmallIntegerField("ترتیب", default=0)
 
@@ -229,7 +230,7 @@ class Product(StoreOwned, SeoFields):
     )
     short_description = models.CharField("توضیح کوتاه", max_length=400)
     description = models.TextField("توضیحات کامل")
-    image = models.ImageField("تصویر اصلی", upload_to="products/")
+    image = models.ImageField("تصویر اصلی", upload_to="products/", validators=[image_upload])
     is_active = models.BooleanField("فعال", default=True)
     is_featured = models.BooleanField("ویژه", default=False)
     created_at = models.DateTimeField("تاریخ ایجاد", auto_now_add=True)
@@ -349,7 +350,7 @@ class StockMovement(models.Model):
 
 class ProductImage(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="images", verbose_name="محصول")
-    image = models.ImageField("تصویر", upload_to="products/gallery/")
+    image = models.ImageField("تصویر", upload_to="products/gallery/", validators=[image_upload])
     order = models.PositiveSmallIntegerField("ترتیب", default=0)
 
     class Meta:

@@ -7,6 +7,7 @@
   <title>{% block title %}استودیو{% endblock %} | {{ SITE.name }}</title>
   {% studio_head %}
   <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  <meta name="htmx-config" content='{"includeIndicatorStyles":false,"allowEval":false,"allowScriptTags":false}'>
   <script src="{% static 'vendor/htmx.min.js' %}" defer></script>
   <script src="{% static 'js/studio.js' %}" defer></script>
 </head>

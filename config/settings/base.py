@@ -52,6 +52,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "apps.core.security.SecurityHeadersMiddleware",  # CSP با nonce و Permissions-Policy
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.locale.LocaleMiddleware",
@@ -164,7 +165,25 @@ CELERY_TASK_TIME_LIMIT = 300
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_BEAT_SCHEDULE = {
     "release-expired-reservations": {"task": "apps.orders.tasks.release_expired_reservations", "schedule": 300.0},
+    "prune-audit-log": {"task": "apps.core.tasks.prune_audit_log", "schedule": 86400.0},
 }
+
+# ---------- امنیت ----------
+CSP_ENABLED = env.bool("CSP_ENABLED", default=True)
+CSP_REPORT_ONLY = env.bool("CSP_REPORT_ONLY", default=False)
+CSP_UPGRADE_INSECURE = False
+# منابع اضافه CSP، مثلاً CDN تصاویر:  {"img-src": ["https://cdn.example.com"]}
+CSP_EXTRA_SOURCES = {}
+# آدرس پنل مدیریت Django (تغییر آن از حملات خودکار به /admin/ جلوگیری می‌کند)
+ADMIN_URL = env("ADMIN_URL", default="admin/")
+# نشست کارکنان کوتاه‌تر از مشتریان (سبد خرید مشتری ۳۰ روز می‌ماند)
+STAFF_SESSION_AGE = env.int("STAFF_SESSION_AGE", default=60 * 60 * 12)
+# تعداد پراکسی‌های مطمئن جلوی برنامه (nginx) برای تشخیص IP واقعی از X-Forwarded-For
+TRUSTED_PROXY_COUNT = env.int("TRUSTED_PROXY_COUNT", default=0)
+AUDIT_LOG_RETENTION_DAYS = env.int("AUDIT_LOG_RETENTION_DAYS", default=180)
+CSRF_COOKIE_HTTPONLY = True  # توکن CSRF از قالب خوانده می‌شود، نه از کوکی
+SESSION_COOKIE_SAMESITE = "Lax"
+CSRF_COOKIE_SAMESITE = "Lax"
 
 # ---------- سئو ----------
 # برای محیط‌های آزمایشی (staging): همه صفحه‌ها noindex و robots.txt همه چیز را Disallow می‌کند.
@@ -178,4 +197,6 @@ LOGGING = {
     "disable_existing_loggers": False,
     "handlers": {"console": {"class": "logging.StreamHandler"}},
     "root": {"handlers": ["console"], "level": "INFO"},
+    # رویدادهای امنیتی جداگانه هم در لاگ نوشته می‌شوند (برای ارسال به سامانه مانیتورینگ)
+    "loggers": {"apps.audit": {"handlers": ["console"], "level": "INFO", "propagate": False}},
 }

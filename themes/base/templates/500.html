@@ -5,18 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex">
   <title>خطای موقت</title>
-  {# بدون context، پایگاه داده یا فایل استاتیک: این صفحه باید حتی هنگام خرابی بقیه سیستم نمایش داده شود #}
-  <style>
-    body{margin:0;min-height:100vh;display:grid;place-items:center;background:#110b08;color:#dccab8;font-family:Tahoma,sans-serif;text-align:center;padding:1rem}
-    h1{color:#e7b98c;font-weight:normal;margin:.5rem 0}
-    a{color:#d8a77a}
-  </style>
+  {# بدون context، پایگاه داده یا فایل استاتیک؛ استایل‌ها فقط به‌صورت ویژگی style چون CSP تگ استایل بدون nonce را مسدود می‌کند #}
 </head>
-<body>
+<body style="margin:0;min-height:100vh;display:grid;place-items:center;background:#110b08;color:#dccab8;font-family:Tahoma,sans-serif;text-align:center;padding:1rem">
   <main>
-    <h1>متأسفیم، مشکلی پیش آمد</h1>
+    <h1 style="color:#e7b98c;font-weight:normal;margin:.5rem 0">متأسفیم، مشکلی پیش آمد</h1>
     <p>لطفاً چند دقیقه دیگر دوباره تلاش کنید.</p>
-    <p><a href="/">بازگشت به صفحه اصلی</a></p>
+    <p><a href="/" style="color:#d8a77a">بازگشت به صفحه اصلی</a></p>
   </main>
 </body>
 </html>

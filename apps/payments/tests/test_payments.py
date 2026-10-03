@@ -124,7 +124,7 @@ def test_online_availability_depends_on_active_account(store):
 
 
 def test_test_gateway_cannot_be_enabled_in_production():
-    env = {**os.environ, "DJANGO_SETTINGS_MODULE": "config.settings.prod", "SECRET_KEY": "x" * 60,
+    env = {**os.environ, "DJANGO_SETTINGS_MODULE": "config.settings.prod", "SECRET_KEY": "k3Y-q9Z_" * 8,
            "PAYMENT_TEST_GATEWAY_ENABLED": "True"}
     out = subprocess.run(
         [sys.executable, "-c", "import django;django.setup();from django.conf import settings;print(settings.PAYMENT_TEST_GATEWAY_ENABLED)"],

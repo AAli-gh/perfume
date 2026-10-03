@@ -1,8 +1,10 @@
+from django.conf import settings
 from django.core.validators import RegexValidator
 from django.db import models
 from django.db.models import Q
 
 from .stores import default_store_id
+from .validators import image_upload
 
 
 class Store(models.Model):
@@ -83,7 +85,7 @@ class StoreSettings(models.Model):
         help_text="برای صفحه‌هایی که توضیح اختصاصی ندارند (خالی = شعار فروشگاه).",
     )
     og_image = models.ImageField(
-        "تصویر پیش‌فرض اشتراک‌گذاری", upload_to="seo/", blank=True,
+        "تصویر پیش‌فرض اشتراک‌گذاری", upload_to="seo/", blank=True, validators=[image_upload],
         help_text="برای شبکه‌های اجتماعی (۱۲۰۰×۶۳۰)، وقتی صفحه تصویر خودش را ندارد.",
     )
     twitter_handle = models.CharField(
@@ -173,3 +175,29 @@ class SeoFields(models.Model):
 
     class Meta:
         abstract = True
+
+
+class AuditLog(models.Model):
+    """ثبت رویدادهای حساس امنیتی (ورود، ورود ناموفق، انتشار، محدودیت درخواست، …).
+
+    تغییرات مدل‌ها در پنل مدیریت را Django خودش در LogEntry ثبت می‌کند؛ اینجا رویدادهای خارج از پنل است.
+    """
+
+    store = models.ForeignKey(Store, on_delete=models.SET_NULL, null=True, blank=True, related_name="+",
+                              verbose_name="فروشگاه")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="+",
+                             verbose_name="کاربر")
+    action = models.CharField("رویداد", max_length=60, db_index=True)
+    target = models.CharField("موضوع", max_length=200, blank=True)
+    ip = models.GenericIPAddressField("IP", null=True, blank=True)
+    user_agent = models.CharField("مرورگر", max_length=200, blank=True)
+    data = models.JSONField("جزئیات", default=dict, blank=True)
+    created_at = models.DateTimeField("زمان", auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "رویداد امنیتی"
+        verbose_name_plural = "گزارش رویدادهای امنیتی"
+
+    def __str__(self):
+        return f"{self.action} — {self.created_at:%Y-%m-%d %H:%M}"

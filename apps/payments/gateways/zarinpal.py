@@ -14,6 +14,7 @@ log = logging.getLogger(__name__)
 class ZarinpalGateway(PaymentGateway):
     code = "zarinpal"
     label = "زرین‌پال"
+    redirect_origins = ("https://payment.zarinpal.com", "https://sandbox.zarinpal.com")
     TIMEOUT = 15
 
     @property

@@ -7,6 +7,7 @@ from apps.core.forms import en_digits
 
 from .cart import Cart
 from .services import apply_coupon_code
+from apps.core.ratelimit import ratelimit
 
 
 def _qty(value, default=1):
@@ -25,6 +26,7 @@ def detail(request):
     return render(request, "cart/detail.html", {"cart": Cart(request)})
 
 
+@ratelimit("cart-add", "60/1m")
 @require_POST
 def add(request):
     cart = Cart(request)
@@ -71,6 +73,7 @@ def remove(request, variant_id):
     return redirect("cart:detail")
 
 
+@ratelimit("coupon", "10/10m")
 @require_POST
 def apply_coupon(request):
     cart = Cart(request)

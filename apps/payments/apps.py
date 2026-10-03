@@ -14,3 +14,11 @@ class PaymentsConfig(AppConfig):
         from .services import online_payment_available
 
         register_online_payment_provider(online_payment_available)
+
+        # انتقال به درگاه پس از ارسال فرم تسویه حساب ← دامنه درگاه باید در CSP form-action مجاز باشد
+        from apps.core.security import add_source
+
+        from .gateways import get_gateway_class, registered_codes
+
+        for code in registered_codes():
+            add_source("form-action", *get_gateway_class(code).redirect_origins)

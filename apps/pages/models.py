@@ -1,6 +1,7 @@
 from django.db import models
 from django.db.models import Q
 
+from apps.core.validators import image_upload
 from apps.core.models import SeoFields, StoreOwned, StoreQuerySet
 from apps.core.stores import default_store_id
 
@@ -71,7 +72,7 @@ class PageSection(models.Model):
     order = models.PositiveSmallIntegerField("ترتیب", default=0)
     is_enabled = models.BooleanField("فعال", default=True)
     settings = models.JSONField("تنظیمات", default=dict, blank=True)
-    image = models.ImageField("تصویر", upload_to="pages/sections/", blank=True)
+    image = models.ImageField("تصویر", upload_to="pages/sections/", blank=True, validators=[image_upload])
     updated_at = models.DateTimeField("آخرین تغییر", auto_now=True)
 
     class Meta:

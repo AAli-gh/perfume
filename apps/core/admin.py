@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Store, StoreDomain, StoreSettings
+from .models import AuditLog, Store, StoreDomain, StoreSettings
 
 admin.site.site_header = "مدیریت عطر مجد"
 admin.site.site_title = "عطر مجد"
@@ -34,3 +34,23 @@ class StoreAdmin(admin.ModelAdmin):
     search_fields = ["name", "code", "domains__domain"]
     prepopulated_fields = {"code": ["name"]}
     inlines = [StoreSettingsInline, StoreDomainInline]
+
+
+@admin.register(AuditLog)
+class AuditLogAdmin(admin.ModelAdmin):
+    """گزارش رویدادهای امنیتی: فقط‌خواندنی و غیرقابل حذف از پنل (پاک‌سازی دوره‌ای خودکار است)."""
+
+    list_display = ["created_at", "action", "user", "target", "ip", "store"]
+    list_filter = ["action", "store"]
+    search_fields = ["target", "ip", "user__email"]
+    date_hierarchy = "created_at"
+    readonly_fields = [f.name for f in AuditLog._meta.fields]
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False

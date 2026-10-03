@@ -8,8 +8,10 @@ from .forms import CheckoutForm
 from .models import Order
 from .selectors import get_owned_order, remember_order
 from .services import CouponUnavailable, OutOfStock, create_order
+from apps.core.ratelimit import ratelimit
 
 
+@ratelimit("checkout", "10/10m")
 @require_POST
 def checkout(request):
     cart = Cart(request)

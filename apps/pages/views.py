@@ -3,6 +3,7 @@ from django.shortcuts import redirect, render
 
 from .forms import ContactForm
 from .services import build_blocks, ensure_home_page, rendered_status
+from apps.core.ratelimit import ratelimit
 
 
 def home(request):
@@ -15,6 +16,7 @@ def about(request):
     return render(request, "pages/about.html")
 
 
+@ratelimit("contact", "5/10m")
 def contact(request):
     form = ContactForm(request.POST or None)
     sent = False

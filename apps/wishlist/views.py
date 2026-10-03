@@ -8,8 +8,10 @@ from django.views.decorators.http import require_POST
 from apps.catalog.models import Product
 
 from .services import toggle, wishlist_products
+from apps.core.ratelimit import ratelimit
 
 
+@ratelimit("wishlist", "60/1m")
 @require_POST
 def toggle_view(request, product_id):
     product = get_object_or_404(Product.objects.for_store(request.store).active(), pk=product_id)

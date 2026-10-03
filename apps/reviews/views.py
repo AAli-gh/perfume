@@ -6,8 +6,10 @@ from apps.catalog.models import Product
 
 from .forms import ReviewForm
 from .services import submit_review
+from apps.core.ratelimit import ratelimit
 
 
+@ratelimit("review", "5/10m")
 @require_POST
 def create(request, slug):
     product = get_object_or_404(Product.objects.for_store(request.store).active(), slug=slug)

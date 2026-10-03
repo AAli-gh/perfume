@@ -143,6 +143,29 @@ seed/images/    تصاویر داده‌های نمایشی
   - کد ارز ISO برای داده ساختاریافته (پیش‌فرض `IRR`) و ضریب تبدیل (تومان ← ریال: ۱۰)
 - **محیط آزمایشی:** با `SEO_NOINDEX=true` همه صفحه‌ها noindex می‌شوند و `robots.txt` همه چیز را Disallow می‌کند.
 
+### امنیت
+
+| لایه | پیاده‌سازی |
+|---|---|
+| CSP | `apps/core/security.py`، **اعمال‌شده** (نه فقط گزارش):<br>- اسکریپت فقط از همین دامنه؛ بدون inline یا eval.<br>- `<style>` توکن‌های پوسته فقط با nonce هر درخواست.<br>- `frame-ancestors 'none'` (پیش‌نمایش استودیو: `'self'`).<br>- `form-action` شامل دامنه درگاه‌های پرداخت است که خود اپ پرداخت ثبت می‌کند.<br>- HTMX با `allowEval:false` و `allowScriptTags:false` اجرا می‌شود. |
+| هدرها | `Permissions-Policy` (دوربین، میکروفون، موقعیت و … خاموش)، `nosniff`، `Referrer-Policy`، `Cross-Origin-Opener-Policy` و `X-Frame-Options: DENY` |
+| production | HTTPS اجباری، HSTS یک‌ساله، کوکی‌های `Secure`/`HttpOnly`/`SameSite=Lax`، `upgrade-insecure-requests`. `SECRET_KEY` ضعیف یا پیش‌فرض پذیرفته نمی‌شود. `check --deploy` بدون هشدار است. |
+| محدودیت درخواست | `apps/core/ratelimit.py` (cache یا Redis). جزئیات در فهرست زیر جدول. |
+| نشست | نشست کارکنان حداکثر ۱۲ ساعت است (`STAFF_SESSION_AGE`). سبد خرید مشتری ۳۰ روز می‌ماند. |
+| گزارش امنیتی | `AuditLog` این رویدادها را ثبت می‌کند: ورود، ورود ناموفق، خروج، ثبت‌نام، انتشار، کنار گذاشتن، بازگردانی، لینک پیش‌نمایش و درخواست‌های مسدودشده. IP و مرورگر هم ثبت می‌شوند؛ رمز عبور هرگز. پنل مدیریت آن را فقط‌خواندنی نشان می‌دهد. Celery هر روز رویدادهای قدیمی‌تر از ۱۸۰ روز را پاک می‌کند (`prune_audit_log`). |
+| پنل مدیریت | آدرس قابل تغییر (`ADMIN_URL`) که در `robots.txt` فاش نمی‌شود. نسخه منتشرشده ظاهر و بخش‌های صفحه فقط‌خواندنی‌اند، چون تغییرشان فقط از راه انتشار در استودیو است. تاریخچه انتشار هم فقط‌خواندنی است. |
+| آپلود | همه فیلدهای تصویر فقط JPG، PNG، WebP و GIF تا ۵ مگابایت می‌پذیرند (فاوآیکون PNG، WebP و ICO). محتوا با Pillow بررسی می‌شود و **SVG هیچ‌جا مجاز نیست**. nginx برای `/media/` هدر CSP با sandbox و nosniff می‌فرستد و پسوندهای اجرایی را رد می‌کند. |
+| وابستگی‌ها | `pip-audit` و `bandit` در این فاز اجرا شدند و آسیب‌پذیری‌ای پیدا نکردند. نتیجه `npm audit` در بخش «مشکلات باقی‌مانده» گزارش فاز آمده است. |
+
+محدودیت‌های درخواست:
+- ورود: هر IP ۲۰ بار در ۱۰ دقیقه و هر حساب ۵ بار در ۱۵ دقیقه (از هر IP).
+- ورود پنل مدیریت: ۱۰ بار در ۱۰ دقیقه.
+- ثبت‌نام: ۵ بار در ساعت.
+- تماس: ۵ بار و کد تخفیف ۱۰ بار در ۱۰ دقیقه.
+- خبرنامه، تسویه حساب، شروع پرداخت، ثبت نظر، افزودن به سبد، علاقه‌مندی‌ها و لینک پیش‌نمایش هم محدودیت دارند.
+- پاسخ ۴۲۹ همراه با `Retry-After` برمی‌گردد. برای درخواست‌های HTMX یک اعلان نمایش داده می‌شود.
+- IP واقعی فقط وقتی از `X-Forwarded-For` خوانده می‌شود که `TRUSTED_PROXY_COUNT` تنظیم شده باشد (در production برابر ۱ برای nginx). در غیر این صورت جعل این هدر محدودیت را دور نمی‌زند.
+
 ### HTMX کجا استفاده شده است
 
 | بخش | رفتار |
@@ -236,8 +259,14 @@ pytest --cov              # همراه با گزارش پوشش کد
 |---|---|
 | `DJANGO_SETTINGS_MODULE` | پیش‌فرض: `config.settings.dev` (manage.py) و `config.settings.prod` (wsgi و Docker) |
 | `DEBUG` | حالت توسعه (در prod همیشه False است) |
+| `ADMIN_URL` | آدرس پنل مدیریت (پیش‌فرض `admin/`؛ در production آن را تغییر دهید) |
+| `CSP_ENABLED` / `CSP_REPORT_ONLY` | فعال بودن CSP (در production همیشه روشن) و حالت فقط‌گزارش برای آزمایش |
+| `SECURE_HSTS_SECONDS` / `SECURE_HSTS_INCLUDE_SUBDOMAINS` / `SECURE_HSTS_PRELOAD` | پیش‌فرض یک سال؛ includeSubDomains و preload فقط اگر همه زیردامنه‌ها HTTPS هستند |
+| `TRUSTED_PROXY_COUNT` | تعداد پراکسی‌های مطمئن جلوی برنامه (پیش‌فرض production: ۱) |
+| `STAFF_SESSION_AGE` | حداکثر عمر نشست کارکنان به ثانیه (پیش‌فرض ۱۲ ساعت) |
+| `AUDIT_LOG_RETENTION_DAYS` | مدت نگهداری گزارش امنیتی (پیش‌فرض ۱۸۰ روز) |
 | `SEO_NOINDEX` | `true` در staging: جلوگیری از index شدن کل سایت |
-| `SECRET_KEY` | در production الزامی است |
+| `SECRET_KEY` | در production الزامی است: حداقل ۵۰ نویسه تصادفی (`python -c "import secrets; print(secrets.token_urlsafe(50))"`) |
 | `ALLOWED_HOSTS` | دامنه‌های مجاز، جدا شده با کاما |
 | `CSRF_TRUSTED_ORIGINS` | آدرس‌های مجاز برای CSRF، جدا شده با کاما |
 | `DATABASE_URL` | مثلاً `postgres://user:pass@host:5432/db` |

@@ -107,7 +107,7 @@ def test_preset_text_contrast_meets_wcag_aa(preset):
 @pytest.mark.django_db
 def test_page_renders_tokens_from_selected_preset(client, store):
     html = client.get("/").content.decode()
-    assert '<style id="theme-tokens">:root{--color-background:17 11 8' in html
+    assert re.search(r'<style id="theme-tokens" nonce="[\w-]{16,}">:root\{--color-background:17 11 8', html)
     assert 'data-button="gradient"' in html
     s = ThemeSettings.objects.get(store=store, status="published")
     s.preset = ThemePreset.objects.get(code="minimal-light")
