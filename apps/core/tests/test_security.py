@@ -98,7 +98,7 @@ def test_500_page_works_under_csp():
 def test_production_deploy_check_passes():
     """manage.py check --deploy با تنظیمات production هیچ هشداری نمی‌دهد."""
     env = {**os.environ, "DJANGO_SETTINGS_MODULE": "config.settings.prod", "SECRET_KEY": "k3Y-q9Z_" * 8,
-           "ALLOWED_HOSTS": "shop.example.com"}
+           "ALLOWED_HOSTS": "shop.example.com", "REDIS_URL": "redis://localhost:6379/0"}
     result = subprocess.run([sys.executable, "manage.py", "check", "--deploy", "--fail-level", "WARNING"],
                             cwd=ROOT, env=env, capture_output=True, text=True)
     assert result.returncode == 0, result.stdout + result.stderr

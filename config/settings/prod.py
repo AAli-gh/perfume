@@ -40,4 +40,19 @@ SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
 SESSION_COOKIE_HTTPONLY = True
 SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin"
 
-EMAIL_BACKEND = env("EMAIL_BACKEND", default="django.core.mail.backends.smtp.EmailBackend")
+# ایمیل: EMAIL_URL=smtp+tls://user:pass@smtp.example.com:587
+vars().update(env.email_url("EMAIL_URL", default="smtp://localhost:25"))
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="no-reply@localhost")
+SERVER_EMAIL = env("SERVER_EMAIL", default=DEFAULT_FROM_EMAIL)
+# خطاهای ۵۰۰ برای این آدرس‌ها ایمیل می‌شوند: ADMINS=علی:ali@example.com,ops:ops@example.com
+ADMINS = [tuple(item.split(":", 1)) for item in env.list("ADMINS", default=[]) if ":" in item]
+
+LOG_FORMAT = env("LOG_FORMAT", default="json")
+LOGGING["handlers"]["console"]["formatter"] = LOG_FORMAT  # noqa: F405
+
+# Celery: پیام تا اتمام کار تأیید نمی‌شود (ری‌استارت worker = اجرای دوباره، نه گم شدن)
+CELERY_TASK_ACKS_LATE = True
+CELERY_TASK_REJECT_ON_WORKER_LOST = True
+CELERY_WORKER_PREFETCH_MULTIPLIER = 1
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+CELERY_WORKER_HIJACK_ROOT_LOGGER = False  # لاگ worker هم با همان قالب JSON و Request ID

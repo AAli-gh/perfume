@@ -9,3 +9,4 @@ whitenoise>=6.6
 gunicorn>=22.0
 celery>=5.4
 redis>=5.0
+brotli>=1.1  # فشرده‌سازی brotli فایل‌های استاتیک توسط whitenoise

@@ -213,15 +213,25 @@ celery -A config worker -l info
 
 ## اجرا با Docker
 
+**استقرار production:** راهنمای کامل در [DEPLOY.md](DEPLOY.md). خلاصه:
+
 ```bash
-cp .env.example .env
-docker compose up --build
-docker compose exec web python manage.py seed_demo
-docker compose exec web python manage.py createsuperuser
+cp .env.example .env          # SECRET_KEY، رمزها، دامنه‌ها
+# گواهی TLS در deploy/certs/  (Let's Encrypt؛ یا برای آزمایش: sh deploy/selfsigned-cert.sh)
+make build && make up         # docker-compose.prod.yml
+make smoke URL=https://shop.example.com
 ```
 
-سایت روی http://localhost:8080 بالا می‌آید. سرویس‌ها: `db`، `redis`، `web` (gunicorn)، `worker` و `beat` (Celery)، `nginx` (فایل‌های static و media).
-کانتینرها با `config.settings.prod` اجرا می‌شوند. در `docker-compose.yml`، کوکی امن و ریدایرکت HTTPS برای اجرای محلی روی http خاموش شده‌اند. پشت TLS واقعی آن‌ها را فعال کنید.
+**اجرای محلی یا نمایشی** (همان image، بدون TLS، روی http://localhost:8080):
+
+```bash
+cp .env.example .env          # SECRET_KEY قوی لازم است (تنظیمات production)
+docker compose up -d --build
+docker compose run --rm web manage seed_demo
+docker compose run --rm web manage createsuperuser
+```
+
+`make help` فهرست همه دستورها (تست، lint، ساخت، پشتیبان‌گیری، تست بار و …) را نشان می‌دهد.
 
 ## تست‌ها
 

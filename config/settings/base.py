@@ -51,6 +51,8 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "apps.core.health.HealthCheckMiddleware",  # /healthz و /readyz — پیش از ریدایرکت HTTPS و ALLOWED_HOSTS
+    "apps.core.logging.RequestIdMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "apps.core.security.SecurityHeadersMiddleware",  # CSP با nonce و Permissions-Policy
     "whitenoise.middleware.WhiteNoiseMiddleware",
@@ -105,6 +107,7 @@ DATABASES = {
     "default": env.db("DATABASE_URL", default="postgres://majd:majd@localhost:5432/majd"),
 }
 DATABASES["default"]["CONN_MAX_AGE"] = env.int("CONN_MAX_AGE", default=60)
+DATABASES["default"]["CONN_HEALTH_CHECKS"] = True  # اتصال قطع‌شده (مثلاً ری‌استارت PostgreSQL) خودکار جایگزین می‌شود
 
 AUTH_USER_MODEL = "accounts.User"
 AUTH_PASSWORD_VALIDATORS = [
@@ -192,11 +195,21 @@ SEO_NOINDEX = env.bool("SEO_NOINDEX", default=False)
 # ---------- لایه هوش مصنوعی (اختیاری؛ apps/ai) ----------
 AI_PROVIDER = env("AI_PROVIDER", default="")  # خالی = غیرفعال
 
+LOG_FORMAT = env("LOG_FORMAT", default="text")  # text | json
+LOG_LEVEL = env("LOG_LEVEL", default="INFO")
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
-    "handlers": {"console": {"class": "logging.StreamHandler"}},
-    "root": {"handlers": ["console"], "level": "INFO"},
+    "filters": {"request_id": {"()": "apps.core.logging.RequestIdFilter"}},
+    "formatters": {
+        "text": {"format": "%(asctime)s %(levelname)s [%(name)s] [%(request_id)s] %(message)s"},
+        "json": {"()": "apps.core.logging.JsonFormatter"},
+    },
+    "handlers": {"console": {"class": "logging.StreamHandler", "formatter": LOG_FORMAT, "filters": ["request_id"]}},
+    "root": {"handlers": ["console"], "level": LOG_LEVEL},
     # رویدادهای امنیتی جداگانه هم در لاگ نوشته می‌شوند (برای ارسال به سامانه مانیتورینگ)
-    "loggers": {"apps.audit": {"handlers": ["console"], "level": "INFO", "propagate": False}},
+    "loggers": {
+        "apps.audit": {"handlers": ["console"], "level": "INFO", "propagate": False},
+        "django.db.backends": {"level": "WARNING"},
+    },
 }

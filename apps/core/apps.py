@@ -8,4 +8,4 @@ class CoreConfig(AppConfig):
     verbose_name = "هسته"
 
     def ready(self):
-        from . import signals  # noqa: F401 — ثبت رویدادهای ورود/خروج در AuditLog
+        from . import checks, signals  # noqa: F401 — بررسی‌های deploy و ثبت رویدادهای ورود/خروج در AuditLog
