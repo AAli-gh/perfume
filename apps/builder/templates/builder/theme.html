@@ -1,0 +1,26 @@
+{% extends "builder/base.html" %}
+{% load studio %}
+{% block title %}ظاهر و پوسته{% endblock %}
+{% block content %}
+<div class="mb-4 flex flex-wrap items-baseline justify-between gap-2">
+  <h1 class="text-[1.7rem]">ظاهر و پوسته</h1>
+  <p class="text-sm text-muted">پوسته «{{ theme_settings.theme.name }}»{% if theme_settings.preset %} · «{{ theme_settings.preset.name }}»{% endif %}</p>
+</div>
+
+<nav class="studio-tabs mb-5" aria-label="بخش‌های ظاهر">
+  {% for key, label, icon in panels %}
+  <a href="{% url 'builder:theme_panel' key %}" {% if key == panel %}aria-current="page"{% endif %}>{% icon icon "!w-4 !h-4" %}{{ label }}</a>
+  {% endfor %}
+</nav>
+
+<div class="grid grid-cols-[minmax(0,1fr)] gap-6 xl:grid-cols-[minmax(0,1fr)_400px]">
+  <div class="panel">
+    <div class="panel-body">
+      {% include "builder/theme/"|add:panel|add:".html" %}
+    </div>
+  </div>
+  <aside class="xl:sticky xl:top-4 xl:self-start">
+    {% include "builder/_live_preview.html" with path="/" %}
+  </aside>
+</div>
+{% endblock %}

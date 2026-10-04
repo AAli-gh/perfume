@@ -1,0 +1,26 @@
+<form method="post" class="mb-8">{% csrf_token %}
+  <h2 class="mb-1 text-xl">پیش‌تنظیم رنگ و سبک</h2>
+  <p class="mb-4 text-sm text-muted">یک پالت آماده انتخاب کنید.{% if has_overrides %} <span class="text-danger">با انتخاب پیش‌تنظیم، شخصی‌سازی‌های فعلی (رنگ، فونت، …) پاک می‌شوند.</span>{% endif %}</p>
+  <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    {% for item in presets %}
+    <label class="studio-choice">
+      <input type="radio" name="preset" value="{{ item.preset.pk }}" class="sr-only" {% if item.preset.pk == theme_settings.preset_id %}checked{% endif %}>
+      <span class="flex gap-1" aria-hidden="true">{% for color in item.swatches %}<span class="h-7 flex-1 rounded-sm border border-line" style="background:{{ color }}"></span>{% endfor %}</span>
+      <span class="mt-2 block text-cream">{{ item.preset.name }}{% if item.preset.pk == theme_settings.preset_id %} <span class="text-xs text-success">· فعلی</span>{% endif %}</span>
+    </label>
+    {% endfor %}
+  </div>
+  {% for error in preset_form.preset.errors %}<p class="field-error mt-2">{{ error }}</p>{% endfor %}
+  <div class="mt-5"><button class="btn" type="submit" name="action" value="preset"
+       {% if has_overrides %}data-confirm="شخصی‌سازی‌های فعلی پاک شوند و پیش‌تنظیم انتخابی اعمال شود؟"{% endif %}>اعمال پیش‌تنظیم</button></div>
+</form>
+
+{% if theme_form.fields.theme.queryset.count > 1 %}
+<form method="post" class="border-t border-line pt-6">{% csrf_token %}
+  <h2 class="mb-3 text-xl">پوسته</h2>
+  <div class="flex flex-wrap items-end gap-3">
+    <div class="field min-w-[220px]">{{ theme_form.theme }}</div>
+    <button class="btn btn-ghost" type="submit" name="action" value="theme" data-confirm="با تغییر پوسته، شخصی‌سازی‌ها پاک می‌شوند. ادامه می‌دهید؟">تغییر پوسته</button>
+  </div>
+</form>
+{% endif %}

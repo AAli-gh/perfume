@@ -1,0 +1,28 @@
+{% extends "builder/base.html" %}
+{% block title %}{{ page.title }}{% endblock %}
+{% block content %}
+<div class="mb-4 flex flex-wrap items-baseline justify-between gap-2">
+  <h1 class="text-[1.7rem]">{{ page.title }}</h1>
+  <a href="{% if page.is_home %}{% url 'pages:home' %}{% else %}#{% endif %}" target="_blank" rel="noopener" class="text-sm">مشاهده صفحه ←</a>
+</div>
+<p class="mb-5 text-sm text-muted">بخش‌ها را بکشید و رها کنید، یا با دکمه‌های بالا/پایین جابه‌جا کنید. تغییرات در پیش‌نویس ذخیره می‌شوند و تا «انتشار» به مشتریان نشان داده نمی‌شوند.</p>
+
+<div class="grid grid-cols-[minmax(0,1fr)] gap-6 2xl:grid-cols-[minmax(0,1fr)_400px]">
+<div class="min-w-0">
+{% include "builder/_sections.html" %}
+
+{% if can_add %}
+<form method="post" action="{% url 'builder:section_add' page.pk %}" class="panel mt-6">{% csrf_token %}
+  <div class="panel-body flex flex-wrap items-end gap-3">
+    <div class="field min-w-[240px] flex-1">
+      <label for="{{ add_form.type.id_for_label }}">افزودن بخش جدید</label>
+      {{ add_form.type }}
+    </div>
+    <button class="btn" type="submit">افزودن به انتهای صفحه</button>
+  </div>
+</form>
+{% endif %}
+</div>
+<aside class="hidden 2xl:block">{% include "builder/_live_preview.html" with path="/" %}</aside>
+</div>
+{% endblock %}

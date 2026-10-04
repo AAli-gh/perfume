@@ -1,0 +1,30 @@
+{% load static theme seo %}<!doctype html>
+<html lang="fa" dir="rtl" {% theme_attrs %}>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  {% block seo %}{% seo_head %}{% endblock %}
+  {% theme_head %}
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  <meta name="htmx-config" content='{"includeIndicatorStyles":false,"allowEval":false,"allowScriptTags":false}'>
+  <script src="{% static 'vendor/htmx.min.js' %}" defer></script>
+  <script src="{% static 'js/app.js' %}" defer></script>
+  {% if request.is_preview %}<script src="{% static 'js/preview.js' %}" defer></script>{% endif %}
+</head>
+<body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+  {% if request.is_preview %}{% include "components/preview_banner.html" %}{% endif %}
+  {% include "components/header.html" %}
+
+  <main class="flex-1">
+    {% block content %}{% endblock %}
+  </main>
+
+  {% include "components/footer.html" %}
+
+  <div id="toasts" class="fixed bottom-3 left-3 right-3 z-[200] grid gap-2.5 sm:bottom-6 sm:left-6 sm:right-auto" aria-live="polite">
+    {% for message in messages %}
+      {% include "components/toast.html" with level=message.level_tag text=message.message %}
+    {% endfor %}
+  </div>
+</body>
+</html>

@@ -1,0 +1,9 @@
+<article class="group">
+  <a class="mb-4 block aspect-video overflow-hidden border border-line" href="{{ post.get_absolute_url }}">
+    <img src="{{ post.cover.url }}" alt="" loading="lazy" class="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105">
+  </a>
+  <h3 class="mb-1 text-xl"><a class="text-inherit" href="{{ post.get_absolute_url }}">{{ post.title }}</a></h3>
+  <p class="mb-2 text-xs text-muted">{{ post.published_at|jdate }} <span class="ms-2 rounded-full border border-line px-2 text-copper">{{ post.category.name }}</span></p>
+  <p class="text-[.92rem]">{{ post.excerpt }}</p>
+  <a class="btn btn-sm" href="{{ post.get_absolute_url }}">ادامه مطلب</a>
+</article>

@@ -1,0 +1,33 @@
+{% extends "builder/base.html" %}
+{% block title %}پیش‌نمایش{% endblock %}
+{% block content %}
+<div class="mb-3 flex flex-wrap items-center justify-between gap-3">
+  <h1 class="text-[1.7rem]">پیش‌نمایش پیش‌نویس</h1>
+  <div class="flex flex-wrap items-center gap-2" role="group" aria-label="اندازه نمایش">
+    <button type="button" class="btn btn-ghost btn-sm" data-device="100%" aria-pressed="true">دسکتاپ</button>
+    <button type="button" class="btn btn-ghost btn-sm" data-device="768px" aria-pressed="false">تبلت</button>
+    <button type="button" class="btn btn-ghost btn-sm" data-device="390px" aria-pressed="false">موبایل</button>
+    <button type="button" class="icon-btn" data-preview-reload title="بارگذاری دوباره" aria-label="بارگذاری دوباره">↻</button>
+    <a class="icon-btn" href="{% url 'pages:home' %}" target="_blank" rel="noopener" title="باز کردن در زبانه جدید" aria-label="باز کردن در زبانه جدید">↗</a>
+  </div>
+</div>
+<p class="mb-3 text-sm text-muted">فروشگاه با تغییرات منتشرنشده. می‌توانید داخل پیش‌نمایش بین صفحه‌ها جابه‌جا شوید؛ مشتریان تا انتشار، نسخه فعلی را می‌بینند.</p>
+
+{% if perms.builder.publish_site %}
+<div class="panel mb-4"><div class="panel-body flex flex-wrap items-center gap-3">
+  {% if share_link %}
+    <label class="sr-only" for="share-link">لینک پیش‌نمایش</label>
+    <input id="share-link" class="input min-w-0 flex-1 text-sm" dir="ltr" readonly value="{{ share_link }}" data-select-on-focus>
+    <button type="button" class="btn btn-ghost btn-sm" data-copy="#share-link">کپی</button>
+    <p class="w-full text-xs text-muted">این لینک بدون ورود، فقط پیش‌نویس را نشان می‌دهد. {{ link_hours|fa }} ساعت اعتبار دارد و با انتشار یا کنار گذاشتن تغییرات باطل می‌شود.</p>
+  {% else %}
+    <p class="flex-1 text-sm text-muted">برای نشان دادن پیش‌نویس به دیگران (بدون نیاز به حساب کاربری) یک لینک موقت بسازید.</p>
+    <form method="post" action="{% url 'builder:preview_link' %}">{% csrf_token %}<button class="btn btn-ghost btn-sm" type="submit">ساخت لینک پیش‌نمایش</button></form>
+  {% endif %}
+</div></div>
+{% endif %}
+
+<div class="studio-frame-wrap">
+  <iframe src="{{ path }}" title="پیش‌نمایش فروشگاه" class="studio-frame" data-preview-frame style="width:100%"></iframe>
+</div>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load seo %}
+{% block seo %}{% seo_head post %}{% endblock %}
+{% block content %}
+<nav class="container border-b border-line py-4 text-sm text-muted" aria-label="مسیر">
+  <a class="text-muted" href="{% url 'pages:home' %}">خانه</a><span class="mx-2">‹</span><a class="text-muted" href="{% url 'blog:list' %}">مجله</a><span class="mx-2">‹</span><strong class="font-normal text-body">{{ post.title }}</strong>
+</nav>
+<article class="container max-w-[852px] py-14">
+  <img class="mb-7 aspect-[2/1] w-full border border-line object-cover" src="{{ post.cover.url }}" alt="">
+  <p class="mb-2 text-xs text-muted">{{ post.published_at|jdate }} <a href="{% url 'blog:list' %}?cat={{ post.category.slug }}" class="ms-2 rounded-full border border-line px-2 text-copper">{{ post.category.name }}</a></p>
+  <h1 class="text-[1.8rem] lg:text-[2.6rem]">{{ post.title }}</h1>
+  <div class="prose-fa"><p><strong class="font-medium">{{ post.excerpt }}</strong></p>{{ post.body|article }}</div>
+  <p class="mt-8 flex flex-wrap gap-2.5"><a class="btn btn-ghost" href="{% url 'blog:list' %}">بازگشت به مجله</a><a class="btn" href="{% url 'catalog:shop' %}">مشاهده فروشگاه</a></p>
+</article>
+{% if more %}
+<section class="container">
+  <h2 class="mb-8 text-[1.6rem] lg:text-[2.1rem]">مطالب دیگر</h2>
+  <div class="grid gap-8 md:grid-cols-2">{% for post in more %}{% include "components/post_card.html" %}{% endfor %}</div>
+</section>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends "builder/base.html" %}
+{% block title %}{{ section_type.label }}{% endblock %}
+{% block content %}
+<nav class="mb-2 text-sm text-muted"><a href="{% url 'builder:page' page.pk %}">{{ page.title }}</a> ← {{ section_type.label }}</nav>
+<h1 class="mb-5 text-[1.7rem]">ویرایش «{{ section_type.label }}»</h1>
+<form method="post" enctype="multipart/form-data" class="panel" novalidate>{% csrf_token %}
+  <div class="panel-body grid gap-4">
+    {% for error in form.non_field_errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+    {% for field in form %}{% include "builder/theme/_field.html" %}{% endfor %}
+    {% if image_form %}
+    <fieldset class="grid gap-3 border-t border-line pt-4">
+      <legend class="text-gold-soft">تصویر</legend>
+      {% if section.image %}<img src="{{ section.image.url }}" alt="" class="max-h-40 w-auto rounded border border-line">{% endif %}
+      {% include "builder/theme/_field.html" with field=image_form.image %}
+      {% if section.image %}{% include "builder/theme/_field.html" with field=image_form.clear_image %}{% endif %}
+    </fieldset>
+    {% endif %}
+    <div class="flex flex-wrap gap-3 border-t border-line pt-5">
+      <button class="btn" type="submit">ذخیره در پیش‌نویس</button>
+      <a class="btn btn-ghost" href="{% url 'builder:page' page.pk %}">انصراف</a>
+    </div>
+  </div>
+</form>
+{% endblock %}

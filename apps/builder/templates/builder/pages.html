@@ -1,0 +1,13 @@
+{% extends "builder/base.html" %}
+{% block title %}صفحه‌ها{% endblock %}
+{% block content %}
+<h1 class="mb-4 text-[1.7rem]">صفحه‌ها</h1>
+<div class="grid gap-3">
+  {% for page in pages %}
+  <a href="{% url 'builder:page' page.pk %}" class="studio-card">
+    <span class="studio-card-icon">{% icon "list" %}</span>
+    <span><strong class="block text-gold">{{ page.title }}</strong><span class="text-sm text-muted">{% if page.is_home %}صفحه اصلی فروشگاه · {% endif %}آخرین تغییر {{ page.updated_at|jdate }}</span></span>
+  </a>
+  {% endfor %}
+</div>
+{% endblock %}

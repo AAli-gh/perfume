@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load seo %}
+{% block seo %}{% seo_head title="تماس با ما" %}{% endblock %}
+{% block content %}
+{% include "components/page_hero.html" with image="img/hero-contact.jpg" title="تماس با ما" subtitle="برای هر پرسش یا راهنمایی در کنار شما هستیم." %}
+<div class="container grid items-start gap-7 py-14 lg:grid-cols-[1.3fr_1fr]">
+  <section class="panel min-w-0">
+    <h2 class="panel-title">فرم تماس</h2>
+    {% include "pages/partials/contact_form.html" %}
+  </section>
+  <section class="panel min-w-0">
+    <h2 class="panel-title">راه‌های ارتباطی</h2>
+    <div class="panel-body">
+      <ul class="mb-5 grid gap-3.5 text-[1.02rem]">
+        <li class="flex items-center gap-3.5">{% icon "phone" "text-copper" %}<a class="text-body" href="tel:{{ SITE.phone_link }}" dir="ltr">{{ SITE.phone }}</a></li>
+        <li class="flex items-center gap-3.5">{% icon "mail" "text-copper" %}<a class="text-body" href="mailto:{{ SITE.email }}">{{ SITE.email }}</a></li>
+        <li class="flex items-center gap-3.5">{% icon "pin" "text-copper" %}{{ SITE.address }}</li>
+      </ul>
+      <iframe class="map-sepia aspect-[4/3] w-full border border-line" title="نقشه موقعیت عطر مجد" loading="lazy"
+              src="https://www.openstreetmap.org/export/embed.html?bbox=51.395%2C35.72%2C51.43%2C35.745&amp;layer=mapnik&amp;marker=35.7325%2C51.4125"></iframe>
+      <dl class="mt-4 text-[.92rem]">
+        <div class="flex justify-between border-b border-dashed border-line py-1.5"><dt>شنبه تا چهارشنبه</dt><dd>۱۰:۰۰ تا ۲۱:۰۰</dd></div>
+        <div class="flex justify-between border-b border-dashed border-line py-1.5"><dt>پنجشنبه</dt><dd>۱۰:۰۰ تا ۱۸:۰۰</dd></div>
+        <div class="flex justify-between py-1.5"><dt>جمعه</dt><dd>تعطیل</dd></div>
+      </dl>
+    </div>
+  </section>
+</div>
+{% endblock %}

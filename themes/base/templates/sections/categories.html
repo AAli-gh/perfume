@@ -1,0 +1,10 @@
+<section class="container {{ spacing }}">
+  {% include "sections/_heading.html" %}
+  <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+    {% for cat in section.categories %}
+      <a href="{{ cat.get_absolute_url }}" class="panel reveal grid place-items-center px-4 py-8 text-center text-cream transition hover:border-copper">
+        <span class="text-lg">{{ cat.name }}</span>
+      </a>
+    {% endfor %}
+  </div>
+</section>

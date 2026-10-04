@@ -1,0 +1,79 @@
+<div id="cart-area" class="htmx-dim">
+{% if cart.is_empty %}
+  <div class="rounded border border-dashed border-line px-5 py-16 text-center text-muted">
+    {% icon "bag" "mx-auto mb-3 !h-11 !w-11 text-copper" %}
+    <p>سبد خرید شما خالی است.</p>
+    <a class="btn" href="{% url 'catalog:shop' %}">رفتن به فروشگاه</a>
+  </div>
+{% else %}
+  <div class="grid items-start gap-7 lg:grid-cols-[1.6fr_1fr]">
+    <div class="min-w-0">
+      <table class="w-full border-collapse max-sm:block">
+        <thead class="max-sm:hidden">
+          <tr class="border-b border-line text-start text-[.95rem] text-cream">
+            <th class="p-2.5 text-start font-normal">محصول</th><th class="p-2.5 text-start font-normal">قیمت</th>
+            <th class="p-2.5 text-start font-normal">تعداد</th><th class="p-2.5 text-start font-normal">جمع</th><th><span class="sr-only">حذف</span></th>
+          </tr>
+        </thead>
+        <tbody class="max-sm:block">
+          {% for line in cart %}
+          <tr class="border-b border-line max-sm:grid max-sm:grid-cols-[1fr_auto] max-sm:gap-x-2.5 max-sm:py-3">
+            <td class="p-2.5 max-sm:col-span-2 max-sm:p-0">
+              <div class="flex items-center gap-3.5">
+                <img src="{{ line.product.image.url }}" alt="" class="h-[60px] w-[60px] border border-line object-cover">
+                <div><a class="text-cream" href="{{ line.product.get_absolute_url }}">{{ line.product.name }}</a>
+                  <small class="block text-xs text-muted">{{ line.product.brand.name }}، {{ line.variant.size_ml|fa }} میل</small></div>
+              </div>
+            </td>
+            <td class="p-2.5 text-sm max-sm:hidden">{{ line.unit_price|toman }}</td>
+            <td class="p-2.5 max-sm:p-0 max-sm:pt-2">
+              <div class="inline-flex items-center overflow-hidden rounded border border-line">
+                <button class="h-[34px] w-[34px] bg-input/30 text-muted hover:text-gold" aria-label="کاهش"
+                        hx-post="{% url 'cart:update' line.variant.pk %}" hx-vals='{"delta": "-1"}' hx-target="#cart-area" hx-swap="outerHTML">−</button>
+                <input type="number" name="quantity" value="{{ line.quantity }}" min="1" max="20" aria-label="تعداد"
+                       class="h-[34px] w-11 border-x border-line bg-transparent text-center [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none"
+                       hx-post="{% url 'cart:update' line.variant.pk %}" hx-trigger="change" hx-target="#cart-area" hx-swap="outerHTML">
+                <button class="h-[34px] w-[34px] bg-input/30 text-muted hover:text-gold disabled:opacity-40" aria-label="افزایش"
+                        {% if line.quantity >= line.variant.stock %}disabled title="حداکثر موجودی"{% endif %}
+                        hx-post="{% url 'cart:update' line.variant.pk %}" hx-vals='{"delta": "1"}' hx-target="#cart-area" hx-swap="outerHTML">+</button>
+              </div>
+            </td>
+            <td class="p-2.5 text-sm max-sm:self-end max-sm:p-0">{{ line.line_total|toman }}</td>
+            <td class="p-2.5 max-sm:col-span-2 max-sm:p-0 max-sm:text-start">
+              <button class="p-1 text-muted hover:text-danger" aria-label="حذف {{ line.product.name }}"
+                      hx-post="{% url 'cart:remove' line.variant.pk %}" hx-target="#cart-area" hx-swap="outerHTML">{% icon "trash" %}</button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <div class="flex flex-wrap justify-between gap-3 py-[18px]">
+        <a class="btn btn-ghost" href="{% url 'catalog:shop' %}">ادامه خرید</a>
+      </div>
+      <form class="panel px-6 py-5" hx-post="{% url 'cart:coupon' %}" hx-target="#cart-area" hx-swap="outerHTML" method="post" action="{% url 'cart:coupon' %}">
+        {% csrf_token %}
+        <h3 class="mb-3 text-[1.15rem]">حراج ویژه یلدا! <em class="not-italic text-copper">تا ۵۰٪ تخفیف</em></h3>
+        <div class="flex flex-col gap-2.5 sm:flex-row">
+          <label class="sr-only" for="coupon">کد تخفیف</label>
+          <input class="input flex-1" id="coupon" name="code" placeholder="کد تخفیف را وارد کنید" dir="ltr" value="{{ cart.coupon.code|default:'' }}">
+          <button class="btn" type="submit">اعمال کد</button>
+        </div>
+        {% if coupon_msg %}<p class="alert {% if coupon_ok %}alert-ok{% else %}alert-err{% endif %} mb-0 mt-3">{{ coupon_msg }}</p>{% endif %}
+      </form>
+    </div>
+    <aside class="panel">
+      <h2 class="panel-title">خلاصه سبد</h2>
+      <div class="panel-body">{% include "cart/partials/summary.html" with removable=True summary_id="" oob=False %}</div>
+      <div class="panel-body pt-0"><a class="btn w-full" href="#order-section">تکمیل سفارش</a></div>
+    </aside>
+  </div>
+{% endif %}
+</div>
+{% if request.htmx %}
+  {% include "components/cart_badge.html" with oob=True %}
+  {% if cart.is_empty %}
+    <section id="order-section" hx-swap-oob="true" hidden></section>
+  {% else %}
+    {% include "cart/partials/summary.html" with summary_id="checkout-summary" oob=True removable=False %}
+  {% endif %}
+{% endif %}

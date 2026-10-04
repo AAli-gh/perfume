@@ -1,0 +1,4 @@
+{% load i18n %}<div data-preview-banner class="relative z-[60] flex flex-wrap items-center justify-center gap-x-4 gap-y-1 border-b border-line-strong bg-surface px-4 py-1.5 text-center text-[.85rem] text-cream">
+  <span>{% icon "alert" "!w-4 !h-4 inline" %} {% translate "حالت پیش‌نمایش — این نسخه هنوز منتشر نشده و فقط برای شما قابل مشاهده است." %}</span>
+  <a href="{% url 'builder:preview_exit' %}" class="underline">{% translate "خروج از پیش‌نمایش" %}</a>
+</div>

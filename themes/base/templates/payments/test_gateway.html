@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load seo %}
+{% block seo %}{% seo_head title="درگاه آزمایشی" raw_title=True %}{% endblock %}
+{% block content %}
+<div class="container max-w-md py-20">
+  <div class="panel p-8 text-center">
+    <p class="alert alert-err mb-5">این درگاه فقط برای محیط توسعه است. برای پرداخت واقعی، درگاه را در پنل مدیریت ← حساب‌های درگاه پرداخت فعال کنید.</p>
+    <h1 class="text-2xl">درگاه پرداخت آزمایشی</h1>
+    <p>سفارش <strong dir="ltr">{{ order.number }}</strong> — مبلغ {{ order.total|toman }}</p>
+    <div class="mt-6 flex justify-center gap-3">
+      <a class="btn" href="{{ callback }}?Authority={{ authority }}&Status=OK">پرداخت موفق</a>
+      <a class="btn btn-ghost" href="{{ callback }}?Authority={{ authority }}&Status=NOK">انصراف</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

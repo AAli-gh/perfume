@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% load seo payments %}
+{% block seo %}{% seo_head title="سفارش "|add:order.number %}{% endblock %}
+{% block content %}
+<div class="container max-w-3xl py-14">
+  <div class="panel p-6 sm:p-9">
+    <div class="mb-6 text-center">
+      {% if order.is_paid %}{% icon "check" "mx-auto mb-3 !h-14 !w-14 text-copper" %}{% else %}{% icon "bag" "mx-auto mb-3 !h-14 !w-14 text-copper" %}{% endif %}
+      <h1 class="text-[1.8rem]">{% if order.is_paid %}پرداخت با موفقیت انجام شد{% else %}سفارش شما ثبت شد{% endif %}</h1>
+      <p class="text-muted">شماره سفارش: <strong class="text-cream" dir="ltr">{{ order.number }}</strong> · {{ order.created_at|jdate:"%d %B %Y، %H:%M" }}</p>
+      <p class="inline-block rounded-full border border-line px-4 py-1 text-sm text-gold">{{ order.get_status_display }}</p>
+      {% order_payment order as payment %}{% if payment %}<p class="mt-2 text-sm">کد پیگیری پرداخت: <strong dir="ltr">{{ payment.ref_id|fa }}</strong></p>{% endif %}
+    </div>
+
+    <table class="w-full text-sm">
+      <thead><tr class="border-b border-line text-cream"><th class="p-2 text-start font-normal">محصول</th><th class="p-2 text-start font-normal">تعداد</th><th class="p-2 text-start font-normal">جمع</th></tr></thead>
+      <tbody>
+        {% for item in order.items.all %}
+          <tr class="border-b border-line"><td class="p-2">{{ item.product_name }} <small class="text-muted">({{ item.size_ml|fa }} میل)</small></td><td class="p-2">{{ item.quantity|fa }}</td><td class="p-2">{{ item.line_total|toman }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <dl class="mt-4 grid gap-1 text-[.95rem]">
+      <div class="flex justify-between"><dt>جمع جزء</dt><dd>{{ order.subtotal|toman }}</dd></div>
+      {% if order.discount %}<div class="flex justify-between text-success"><dt>تخفیف ({{ order.coupon_code }})</dt><dd>− {{ order.discount|toman }}</dd></div>{% endif %}
+      <div class="flex justify-between"><dt>هزینه ارسال</dt><dd>{% if order.shipping %}{{ order.shipping|toman }}{% else %}رایگان{% endif %}</dd></div>
+      <div class="mt-2 flex justify-between border-t border-line pt-3 text-lg text-gold"><dt>مبلغ نهایی</dt><dd>{{ order.total|toman }}</dd></div>
+    </dl>
+
+    <div class="mt-6 rounded border border-line p-4 text-sm leading-7">
+      <strong class="text-cream">ارسال به:</strong> {{ order.full_name }} — <span dir="ltr">{{ order.phone|fa }}</span><br>
+      {{ order.province }}، {{ order.city }}، {{ order.address }} — کد پستی {{ order.postal_code|fa }}
+    </div>
+
+    {% if order.status == "pending" %}
+      <div class="mt-6 text-center">
+        {% if order.payment_method == "online" %}
+          <p class="text-muted">پرداخت این سفارش هنوز انجام نشده است.</p>
+          <a class="btn btn-lg" href="{% url 'payments:start' order.number %}">پرداخت آنلاین</a>
+        {% elif order.payment_method == "card" %}
+          <p>لطفاً مبلغ {{ order.total|toman }} را به کارت <strong dir="ltr">{{ SITE.bank_card_number }}</strong> به نام «{{ SITE.bank_card_holder }}» واریز کرده و رسید را همراه شماره سفارش برای پشتیبانی ارسال کنید.</p>
+        {% else %}
+          <p>مبلغ سفارش هنگام تحویل از شما دریافت می‌شود.</p>
+        {% endif %}
+      </div>
+    {% endif %}
+    <div class="mt-6 flex flex-wrap justify-center gap-2.5">
+      <a class="btn btn-ghost" href="{% url 'catalog:shop' %}">بازگشت به فروشگاه</a>
+      {% if user.is_authenticated %}<a class="btn btn-ghost" href="{% url 'accounts:profile' %}">سفارش‌های من</a>{% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

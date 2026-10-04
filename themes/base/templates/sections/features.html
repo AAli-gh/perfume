@@ -1,0 +1,6 @@
+<section class="container {{ spacing }}">
+  <div class="reveal grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    {% for item in section.items %}<div class="panel flex items-center gap-3.5 p-5">{% icon item.icon "!h-8 !w-8 text-copper" %}<div><strong class="block font-medium text-cream">{{ item.title }}</strong><span class="text-sm text-muted">{{ item.text }}</span></div></div>
+    {% endfor %}
+  </div>
+</section>

@@ -1,0 +1,12 @@
+<section class="container {{ spacing }}">
+  {% include "sections/_heading.html" %}
+  <div class="grid gap-5 md:grid-cols-3">
+    {% for r in section.reviews %}
+      <figure class="panel reveal m-0 flex flex-col gap-3 p-6">
+        {% stars r.rating %}
+        <blockquote class="m-0 flex-1 text-[.95rem]">«{{ r.text }}»</blockquote>
+        <figcaption class="text-sm text-muted">{{ r.name }} — <a href="{{ r.product.get_absolute_url }}">{{ r.product.name }}</a></figcaption>
+      </figure>
+    {% endfor %}
+  </div>
+</section>

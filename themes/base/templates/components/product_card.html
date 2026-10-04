@@ -1,0 +1,23 @@
+<article class="product-card">
+  <a class="thumb block aspect-[5/6] overflow-hidden bg-media" href="{{ p.get_absolute_url }}">
+    <img src="{{ p.image.url }}" alt="عطر {{ p.name }}" loading="lazy" class="h-full w-full object-cover">
+  </a>
+  <div class="body flex flex-1 flex-col gap-1 px-3 pb-[18px] pt-3.5">
+    <h3 class="m-0 text-[1.05rem] font-medium text-cream"><a class="text-inherit" href="{{ p.get_absolute_url }}">{{ p.name }}</a></h3>
+    <span class="text-xs text-muted">{{ p.brand.name }}</span>
+    {% stars p.rating_avg p.review_count %}
+    <span class="mt-0.5 font-medium text-gold">{% if p.variants.all|length > 1 %}از {% endif %}{{ p.min_price|toman }}</span>
+    <p class="card-desc m-0 mt-1.5 hidden text-sm text-muted">{{ p.short_description }}</p>
+    {% with v=p.default_variant %}
+      {% if v and p.in_stock %}
+        <form hx-post="{% url 'cart:add' %}" hx-swap="none" action="{% url 'cart:add' %}" method="post" class="mx-auto mt-2.5">
+          {% csrf_token %}
+          <input type="hidden" name="variant" value="{{ v.pk }}">
+          <button class="btn btn-sm htmx-dim" type="submit">افزودن به سبد</button>
+        </form>
+      {% else %}
+        <span class="mx-auto mt-2.5 text-sm text-muted">ناموجود</span>
+      {% endif %}
+    {% endwith %}
+  </div>
+</article>

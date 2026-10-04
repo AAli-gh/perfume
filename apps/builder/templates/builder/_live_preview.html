@@ -1,0 +1,11 @@
+{# پیش‌نمایش زنده پیش‌نویس (عرض موبایل). رنگ‌ها پیش از ذخیره با postMessage اعمال می‌شوند؛ پس از ذخیره بارگذاری دوباره #}
+<div class="studio-preview">
+  <div class="mb-2 flex items-center justify-between gap-2">
+    <p class="text-xs text-muted">پیش‌نمایش زنده (پیش‌نویس)</p>
+    <span class="flex items-center gap-1">
+      <button type="button" class="icon-btn !h-7 !w-7" data-preview-reload title="بارگذاری دوباره" aria-label="بارگذاری دوباره پیش‌نمایش">↻</button>
+      <a class="icon-btn !h-7 !w-7" href="{% url 'builder:preview' %}" title="پیش‌نمایش بزرگ" aria-label="پیش‌نمایش بزرگ">↗</a>
+    </span>
+  </div>
+  <iframe src="{{ path }}" title="پیش‌نمایش زنده فروشگاه" class="studio-frame !h-[640px]" data-preview-frame loading="lazy" style="width:100%"></iframe>
+</div>

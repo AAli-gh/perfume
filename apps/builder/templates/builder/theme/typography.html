@@ -1,0 +1,6 @@
+<form method="post" novalidate>{% csrf_token %}
+  <div class="grid gap-4 sm:grid-cols-2">
+    {% for field in form %}{% include "builder/theme/_field.html" %}{% endfor %}
+  </div>
+  {% include "builder/theme/_actions.html" with reset="بازگشت به پیش‌تنظیم" %}
+</form>

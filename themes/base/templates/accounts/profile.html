@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% load seo %}
+{% block seo %}{% seo_head title="حساب کاربری" %}{% endblock %}
+{% block content %}
+<div class="container py-14">
+  <div class="mb-8 flex flex-wrap items-center justify-between gap-4">
+    <div>
+      <h1 class="mb-0 text-[2rem]">سلام، {{ user.display_name }}</h1>
+      <p class="m-0 text-muted" dir="ltr">{{ user.email }}</p>
+    </div>
+    <div class="flex flex-wrap gap-2.5">
+      <a class="btn btn-ghost" href="{% url 'wishlist:list' %}">علاقه‌مندی‌ها</a>
+      <form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}<button class="btn btn-ghost">{% icon "logout" "!h-4 !w-4" %} خروج</button></form>
+    </div>
+  </div>
+
+  {% if user.addresses.all %}
+  <section class="panel mb-7">
+    <h2 class="panel-title">آدرس‌های من</h2>
+    <div class="panel-body grid gap-3 sm:grid-cols-2">
+      {% for a in user.addresses.all %}
+        <div class="rounded border {% if a.is_default %}border-copper{% else %}border-line{% endif %} p-4 text-sm leading-7">
+          {% if a.is_default %}<span class="mb-1 inline-block rounded-full border border-line px-2 text-xs text-gold">پیش‌فرض</span><br>{% endif %}
+          <strong class="text-cream">{{ a.first_name }} {{ a.last_name }}</strong> — <span dir="ltr">{{ a.phone|fa }}</span><br>
+          {{ a.province }}، {{ a.city }}، {{ a.address }} — کد پستی {{ a.postal_code|fa }}
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  <section class="panel">
+    <h2 class="panel-title">سفارش‌های من</h2>
+    <div class="panel-body overflow-x-auto">
+      {% if orders %}
+      <table class="w-full min-w-[560px] text-sm">
+        <thead><tr class="border-b border-line text-cream">
+          <th class="p-2.5 text-start font-normal">شماره</th><th class="p-2.5 text-start font-normal">تاریخ</th>
+          <th class="p-2.5 text-start font-normal">اقلام</th><th class="p-2.5 text-start font-normal">مبلغ</th><th class="p-2.5 text-start font-normal">وضعیت</th><th></th>
+        </tr></thead>
+        <tbody>
+          {% for o in orders %}
+          <tr class="border-b border-line last:border-0">
+            <td class="p-2.5" dir="ltr">{{ o.number }}</td>
+            <td class="p-2.5">{{ o.created_at|jdate }}</td>
+            <td class="p-2.5">{{ o.items.all|length|fa }} قلم</td>
+            <td class="p-2.5">{{ o.total|toman }}</td>
+            <td class="p-2.5"><span class="rounded-full border border-line px-3 py-0.5 text-xs text-gold">{{ o.get_status_display }}</span></td>
+            <td class="p-2.5 text-end"><a href="{{ o.get_absolute_url }}">جزئیات</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+        <p class="text-muted">هنوز سفارشی ثبت نکرده‌اید.</p>
+        <a class="btn" href="{% url 'catalog:shop' %}">رفتن به فروشگاه</a>
+      {% endif %}
+    </div>
+  </section>
+</div>
+{% endblock %}

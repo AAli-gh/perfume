@@ -1,0 +1,31 @@
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings.test"
+python_files = ["test_*.py", "tests.py"]
+testpaths = ["apps", "tests"]
+addopts = "-q --strict-markers -m 'not e2e'"
+markers = ["e2e: تست سرتاسری با مرورگر (اجرا: pytest -m e2e)"]
+filterwarnings = ["ignore::DeprecationWarning:celery.*", "ignore:No directory at:UserWarning"]
+
+[tool.coverage.run]
+source = ["apps"]
+omit = ["*/migrations/*", "*/tests/*"]
+
+[tool.coverage.report]
+fail_under = 95
+skip_covered = true
+show_missing = true
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+extend-exclude = ["*/migrations/*", "node_modules", "staticfiles", "media"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "B"]
+ignore = [
+    "E501",   # طول خط را formatter/بازبینی کنترل می‌کند (متن‌های فارسی طولانی)
+    "B008",   # فراخوانی تابع در مقدار پیش‌فرض (الگوی رایج Django)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"config/settings/*.py" = ["F403", "F405"]  # from .base import *

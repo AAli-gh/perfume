@@ -1,0 +1,23 @@
+# فقط آنچه برای اجرای برنامه لازم است وارد image می‌شود
+.venv
+node_modules
+media
+staticfiles
+.env
+.env.*
+!.env.example
+.git
+.github
+**/__pycache__
+**/*.pyc
+.pytest_cache
+.coverage
+coverage.xml
+htmlcov
+test-results
+tests
+apps/*/tests
+backups
+deploy/certs
+*.dump
+*.sql.gz

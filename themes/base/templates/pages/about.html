@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load seo static %}
+{% block seo %}{% seo_head title="درباره ما" %}{% endblock %}
+{% block content %}
+{% include "components/page_hero.html" with image="img/hero-about.jpg" title="درباره ما" subtitle="داستان خانه‌ای که رایحه را به هنر تبدیل کرد." %}
+
+<section class="container py-14 lg:py-[70px]">
+  <div class="reveal grid items-center gap-12 lg:grid-cols-2">
+    <div>
+      <h2 class="text-[1.8rem] lg:text-[2.4rem]">داستان ما</h2>
+      <p>عطر مجد یک برند عطر لوکس است که هدفش خلق رایحه‌هایی منحصربه‌فرد و فاخر است؛ رایحه‌هایی که اثری ماندگار بر جای می‌گذارند.</p>
+      <p>بیش از یک دهه است که با الهام از سنت کهن عطرسازی ایرانی و با بهره‌گیری از دانش روز، مجموعه‌ای از عطرهای باکیفیت را گردآوری و خلق کرده‌ایم. هر بطری عطر مجد حاصل ماه‌ها تحقیق، آزمون و عشق به جزئیات است.</p>
+    </div>
+    <img src="{% static 'img/about-story.jpg' %}" alt="بطری عطر در کنار شمع" loading="lazy" class="w-full border border-line shadow-luxe">
+  </div>
+</section>
+
+<section class="border-y border-line">
+  <div class="reveal grid items-center lg:grid-cols-2">
+    <img src="{% static 'img/about-art.jpg' %}" alt="عطرساز در کارگاه" loading="lazy" class="w-full lg:[mask-image:linear-gradient(to_right,#000_70%,transparent)]">
+    <div class="container py-10 lg:w-auto lg:ps-12">
+      <h2 class="text-[1.8rem] lg:text-[2.4rem]">هنر عطرسازی</h2>
+      <p>عطر مجد بر پایه کیفیت و مهارت بنا شده است. هر رایحه در کارگاه ما با دقت و وسواس، از ترکیب مواد اولیه‌ای که از بهترین منابع جهان تهیه شده‌اند، ساخته می‌شود.</p>
+      <p>ما روغن‌های اسانسی کمیاب و عصاره‌های طبیعی را از گوشه‌وکنار دنیا تهیه می‌کنیم تا عطرهایی بسازیم که الهام‌گرفته از تجربه‌های ما در سفر به سراسر جهان هستند.</p>
+    </div>
+  </div>
+</section>
+
+<section class="container py-14 lg:py-[70px]">
+  <h2 class="mb-10 text-center text-[1.7rem] lg:text-[2.3rem]">ارزش‌های ما</h2>
+  <div class="reveal grid grid-cols-2 gap-y-8 lg:grid-cols-4 [&>div+div]:lg:border-s [&>div:nth-child(even)]:border-s [&>div]:border-line">
+    <div class="px-6 text-center">{% icon "diamond" "mx-auto mb-3.5 !h-11 !w-11 text-copper [stroke-width:1.2]" %}<h3 class="mb-1 text-[1.3rem]">تعالی</h3><p class="m-0 text-sm text-muted">در هر قطره از عطر، به دنبال کمال و بی‌نقصی هستیم.</p></div>
+    <div class="px-6 text-center">{% icon "crown" "mx-auto mb-3.5 !h-11 !w-11 text-copper [stroke-width:1.2]" %}<h3 class="mb-1 text-[1.3rem]">ظرافت</h3><p class="m-0 text-sm text-muted">زیبایی را در جزئیات بطری، بسته‌بندی و رایحه می‌بینیم.</p></div>
+    <div class="px-6 text-center">{% icon "flame" "mx-auto mb-3.5 !h-11 !w-11 text-copper [stroke-width:1.2]" %}<h3 class="mb-1 text-[1.3rem]">اشتیاق</h3><p class="m-0 text-sm text-muted">عشق به عطر، نیروی محرک هر خلق تازه ماست.</p></div>
+    <div class="px-6 text-center">{% icon "shield" "mx-auto mb-3.5 !h-11 !w-11 text-copper [stroke-width:1.2]" %}<h3 class="mb-1 text-[1.3rem]">صداقت</h3><p class="m-0 text-sm text-muted">اصالت کالا و شفافیت با مشتری، اصل خدشه‌ناپذیر ماست.</p></div>
+  </div>
+</section>
+
+<section class="container">
+  <div class="panel reveal grid grid-cols-2 gap-4 text-center lg:grid-cols-4">
+    <div class="px-2.5 py-6"><strong class="block text-[2.2rem] font-normal leading-snug text-gold">+۱۰</strong><span class="text-sm text-muted">سال تجربه</span></div>
+    <div class="px-2.5 py-6"><strong class="block text-[2.2rem] font-normal leading-snug text-gold">+۶۰</strong><span class="text-sm text-muted">رایحه اختصاصی</span></div>
+    <div class="px-2.5 py-6"><strong class="block text-[2.2rem] font-normal leading-snug text-gold">+۲۵٬۰۰۰</strong><span class="text-sm text-muted">مشتری راضی</span></div>
+    <div class="px-2.5 py-6"><strong class="block text-[2.2rem] font-normal leading-snug text-gold">۳۱</strong><span class="text-sm text-muted">استان تحت پوشش ارسال</span></div>
+  </div>
+</section>
+{% endblock %}

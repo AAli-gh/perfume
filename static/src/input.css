@@ -1,0 +1,189 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { scroll-behavior: smooth; }
+  body {
+    @apply bg-ink font-sans font-light leading-[1.9] text-body min-h-screen flex flex-col;
+    background-image: var(--bg-glow-1), var(--bg-glow-2), var(--bg-glow-3), var(--bg-texture);
+    background-attachment: fixed;
+  }
+  /* جلوه‌های پس‌زمینه (توکن components.background / components.texture) */
+  :root {
+    --bg-glow-1: radial-gradient(ellipse at 15% 0%, rgb(var(--color-glow-1) / 0.18), transparent 55%);
+    --bg-glow-2: radial-gradient(ellipse at 90% 40%, rgb(var(--color-glow-2) / 0.12), transparent 50%);
+    --bg-glow-3: radial-gradient(ellipse at 30% 90%, rgb(var(--color-glow-3) / 0.12), transparent 50%);
+    --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3CfeColorMatrix values='0 0 0 0 .55 0 0 0 0 .35 0 0 0 0 .2 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  html { font-size: var(--font-size-base, 16px); }
+  [data-background="plain"] { --bg-glow-1: none; --bg-glow-2: none; --bg-glow-3: none; }
+  [data-texture="none"] { --bg-texture: none; }
+  [data-shadow="soft"] { --shadow-alpha: .08; }
+  [data-shadow="none"] { --shadow-alpha: 0; }
+  [data-header="solid"] body > header:first-of-type { @apply backdrop-blur-none; background: rgb(var(--color-background)); }
+  h1, h2, h3, h4 { @apply text-gold font-normal leading-normal; }
+  a { @apply text-gold-soft transition-colors hover:text-gold; }
+  select option { @apply bg-ink-3; }
+  [x-cloak], [hidden] { display: none !important; }
+}
+
+@layer components {
+  .icon { @apply w-5 h-5 shrink-0; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* دکمه‌ها */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 whitespace-nowrap rounded border px-6 py-2 text-[.95rem] font-normal transition hover:brightness-110 active:translate-y-px disabled:opacity-50 disabled:cursor-not-allowed;
+    border-color: rgb(var(--color-button-border));
+    color: rgb(var(--color-button-text));
+    background: linear-gradient(180deg, rgb(var(--color-button-from)) 0%, rgb(var(--color-button-to)) 100%);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, .35), inset 0 1px 0 rgb(var(--color-button-highlight) / .25);
+  }
+  .btn:hover { color: rgb(var(--color-button-text-hover)); }
+  [data-button="solid"] .btn:not(.btn-ghost) { background: rgb(var(--color-primary)); border-color: rgb(var(--color-primary)); box-shadow: none; }
+  [data-button="outline"] .btn:not(.btn-ghost) { background: transparent; border-color: rgb(var(--color-primary)); color: rgb(var(--color-primary)); box-shadow: none; }
+  .btn-sm { @apply px-4 py-1 text-sm; }
+  .btn-lg { @apply px-10 py-3 text-lg; }
+  .btn-ghost { @apply border-line-strong text-gold-soft hover:bg-copper/10; background: transparent; box-shadow: none; }
+
+  .icon-btn { @apply relative inline-grid h-10 w-10 place-items-center rounded-full text-body transition hover:bg-copper/10 hover:text-gold; }
+
+  .nav-link { @apply relative block border-b border-line px-1 py-3.5 text-[1.05rem] text-body hover:text-gold lg:border-0 lg:px-0 lg:py-1.5 lg:text-[.95rem]; }
+  .nav-link.is-active { @apply text-gold; }
+  @media (min-width: 1024px) {
+    .nav-link::after { content: ""; @apply absolute inset-x-0 bottom-0 h-px origin-center scale-x-0 bg-copper transition-transform; }
+    .nav-link:hover::after, .nav-link.is-active::after { @apply scale-x-100; }
+  }
+
+  .footer-list { @apply grid gap-1.5 text-[.9rem]; }
+  .footer-list a { @apply text-body hover:text-gold; }
+  .footer-list li::before { content: "◂"; @apply me-2 text-[.7rem] text-copper; }
+  .footer-social { @apply grid h-[34px] w-[34px] place-items-center rounded border border-line text-gold-soft hover:border-copper hover:bg-copper-dark hover:text-white; }
+
+  .share-link { @apply grid h-8 w-8 place-items-center rounded border border-line text-body hover:border-copper hover:text-gold; }
+  .tab-btn { @apply -mb-px border border-b-0 border-transparent px-4 py-3 text-base text-muted sm:px-7 sm:text-[1.05rem]; }
+  .tab-btn[aria-selected="true"] { @apply border-line bg-ink-2 text-gold; }
+
+  .cat-item { @apply flex w-full cursor-pointer justify-between border-b border-line py-2 text-[.92rem] text-body hover:text-gold; }
+  li:last-child > .cat-item { @apply border-0; }
+  .cat-item:has(:checked) { @apply text-gold; }
+  .cat-item:has(:focus-visible) { @apply outline outline-1 outline-copper; }
+
+  /* پنل‌ها */
+  .panel { @apply rounded border border-line bg-panel/[.72] shadow-luxe; }
+  .panel-title { @apply m-0 border-b border-line px-6 pb-3.5 pt-5 text-[1.4rem]; }
+  .panel-body { @apply px-6 py-5; }
+
+  /* فرم‌ها */
+  .input {
+    @apply w-full rounded border border-line bg-input/30 px-3.5 py-2.5 text-cream outline-none transition placeholder:text-placeholder focus:border-copper focus:ring-4 focus:ring-copper/15;
+  }
+  .field { @apply grid gap-1.5; }
+  .field > label { @apply text-[.92rem]; }
+  .field.has-error .input { @apply border-danger; }
+  .field-error { @apply text-xs text-danger; }
+  .req { @apply text-copper; }
+  .check { @apply flex cursor-pointer items-center gap-2.5 py-0.5 text-[.9rem]; }
+  .check input[type="checkbox"] {
+    @apply grid h-[15px] w-[15px] shrink-0 cursor-pointer appearance-none place-items-center rounded-sm border border-line-strong bg-input/25 checked:border-copper checked:bg-copper;
+  }
+  .check input[type="checkbox"]:checked::after { content: "✓"; @apply text-[11px] leading-none text-ink; }
+  .alert { @apply rounded border px-3.5 py-2.5 text-[.92rem]; }
+  .alert-ok { @apply border-success/35 bg-success/10 text-success; }
+  .alert-err { @apply border-danger/35 bg-danger/10 text-danger; }
+
+  /* هیرو صفحات */
+  .page-hero { @apply relative flex min-h-[280px] items-center overflow-hidden border-b border-line bg-hero md:min-h-[360px]; }
+  .page-hero .hero-bg { @apply absolute inset-0 bg-no-repeat; background-size: auto 100%; background-position: left center; }
+  .page-hero::after {
+    content: ""; @apply absolute inset-0;
+    background:
+      linear-gradient(to left, rgb(var(--color-hero)) 0%, rgb(var(--color-hero) / .92) 38%, rgb(var(--color-hero) / .15) 70%, rgb(var(--color-hero) / 0) 100%),
+      linear-gradient(to top, rgb(var(--color-background) / .6), transparent 40%);
+  }
+  @media (max-width: 640px) {
+    .page-hero::after { background: linear-gradient(to left, rgb(var(--color-hero) / .95) 20%, rgb(var(--color-hero) / .55)); }
+  }
+
+  /* کارت محصول */
+  .product-card {
+    @apply flex flex-col overflow-hidden rounded border border-line text-center transition duration-300 hover:-translate-y-1 hover:border-line-strong hover:shadow-luxe;
+    background: linear-gradient(180deg, rgb(var(--color-card-from) / .75), rgb(var(--color-card-to) / .85));
+  }
+  [data-card="flat"] .product-card { background: rgb(var(--color-surface)); }
+  [data-card="outline"] .product-card { background: transparent; }
+  .product-card .thumb img { @apply transition-transform duration-700; }
+  .product-card:hover .thumb img { @apply scale-105; }
+  .list-view { @apply grid-cols-1 sm:grid-cols-1 lg:grid-cols-1; }
+  .list-view .product-card { @apply flex-row text-start; }
+  .list-view .product-card .thumb { @apply w-32 shrink-0 sm:w-44; }
+  .list-view .product-card .body { @apply justify-center px-4 sm:px-6; }
+  .list-view .product-card .stars { @apply justify-start; }
+  .list-view .product-card .card-desc { @apply block; }
+  .list-view .product-card form { @apply self-start; }
+
+  .stars { @apply inline-flex items-center justify-center gap-0.5 text-sm leading-none text-copper; }
+
+  /* اسلایدر */
+  .carousel-track { @apply grid auto-cols-[calc((100%-12px)/2)] grid-flow-col gap-3 overflow-x-auto scroll-smooth md:auto-cols-[calc((100%-36px)/3)] md:gap-[18px] lg:auto-cols-[calc((100%-54px)/4)]; scroll-snap-type: x mandatory; scrollbar-width: none; }
+  .carousel-track::-webkit-scrollbar { display: none; }
+  .carousel-track > * { scroll-snap-align: start; }
+  .carousel-btn { @apply absolute top-[40%] z-10 grid h-[38px] w-[38px] place-items-center rounded-full border border-line-strong bg-ink/85 text-gold hover:bg-copper-dark; }
+
+  /* صفحه‌بندی */
+  .pager a, .pager span { @apply grid h-9 min-w-[38px] place-items-center rounded border border-line bg-input/30 px-2.5 text-body; }
+  .pager a:hover { @apply border-copper text-gold; }
+  .pager .current { @apply text-white; border-color: rgb(var(--color-button-border)); background: linear-gradient(180deg, rgb(var(--color-button-from)), rgb(var(--color-button-to))); }
+  [data-button="solid"] .pager .current, [data-button="outline"] .pager .current { background: rgb(var(--color-primary)); border-color: rgb(var(--color-primary)); }
+  .pager .disabled { @apply opacity-40; }
+
+  /* مقاله */
+  .prose-fa { @apply text-[1.05rem] leading-[2.1]; }
+  .prose-fa p { @apply mb-4; }
+  .prose-fa h2 { @apply mb-2 mt-7 text-[1.4rem]; }
+
+  /* نقشه */
+  .map-sepia { filter: sepia(.75) hue-rotate(-12deg) saturate(1.3) brightness(.62) contrast(1.1); }
+
+  /* اعلان */
+  .toast { @apply flex items-center gap-3 rounded border border-line-strong border-s-[3px] border-s-copper bg-ink-3 px-4 py-3 text-[.92rem] text-cream shadow-luxe; animation: toast-in .3s ease; }
+  @keyframes toast-in { from { opacity: 0; transform: translateY(10px); } }
+
+  /* ظاهر شدن هنگام اسکرول */
+  .reveal { @apply translate-y-6 opacity-0 transition duration-700; }
+  .reveal.visible { @apply translate-y-0 opacity-100; }
+  @media (prefers-reduced-motion: reduce) { .reveal { @apply translate-y-0 opacity-100 transition-none; } }
+
+  /* ---------- استودیو (سازنده فروشگاه) ---------- */
+  .studio-top-link { @apply inline-flex items-center gap-1.5 rounded px-2.5 py-1.5 text-body hover:bg-copper/10 hover:text-gold; }
+  .studio-nav { @apply flex gap-1 overflow-x-auto lg:flex-col; }
+  .studio-nav a { @apply flex items-center gap-2 whitespace-nowrap rounded border border-transparent px-3 py-2 text-[.95rem] text-body hover:bg-copper/10 hover:text-gold; }
+  .studio-nav a[aria-current="page"] { @apply border-line bg-panel text-gold; }
+  .studio-tabs { @apply flex gap-1 overflow-x-auto border-b border-line; }
+  .studio-tabs a { @apply -mb-px flex items-center gap-1.5 whitespace-nowrap border border-b-0 border-transparent px-3 py-2 text-sm text-muted hover:text-gold; }
+  .studio-tabs a[aria-current="page"] { @apply border-line bg-panel text-gold; }
+  .studio-card { @apply flex items-center gap-4 rounded border border-line bg-panel/[.72] p-4 text-body transition hover:border-line-strong hover:text-body; }
+  .studio-card-icon { @apply grid h-11 w-11 shrink-0 place-items-center rounded-full border border-line text-gold; }
+  .studio-choice { @apply block cursor-pointer rounded border border-line bg-input/20 p-3 transition hover:border-line-strong; }
+  .studio-choice:has(:checked) { @apply border-copper ring-2 ring-copper/30; }
+  .studio-choice:has(:focus-visible) { @apply outline outline-2 outline-copper; }
+  .studio-color { @apply flex flex-wrap items-center gap-3 rounded border border-line bg-input/20 p-2; }
+  .studio-color.has-error { @apply border-danger; }
+  .color-input { @apply h-10 w-12 shrink-0 cursor-pointer rounded-sm border border-line bg-transparent p-0.5; }
+  .studio-media { @apply flex min-h-[88px] flex-col items-center justify-center gap-1 rounded border border-dashed border-line p-3; }
+  .studio-preview { @apply rounded border border-line bg-panel/[.72] p-4; }
+  .studio-preview-surface { @apply rounded border border-line p-4; background: rgb(var(--color-background)); }
+  .studio-row { @apply flex flex-wrap items-center gap-3 rounded border border-line bg-panel/[.72] p-2.5 sm:flex-nowrap; }
+  .studio-row.is-disabled { @apply opacity-60; }
+  .studio-row.is-dragging { @apply border-copper opacity-50; }
+  .studio-drag { @apply hidden cursor-grab select-none px-1 text-muted sm:block; }
+  .studio-repeater-row { @apply flex items-start gap-2 rounded border border-line bg-input/10 p-2; }
+  .studio-repeater-num { @apply mt-6 w-5 shrink-0 text-center text-xs text-muted; }
+
+  .studio-publish { @apply flex flex-wrap items-center gap-3 rounded border border-line bg-panel/[.5] px-4 py-2.5; }
+  .studio-publish.has-changes { @apply border-copper/60 bg-copper/10; }
+  .studio-frame-wrap { @apply flex justify-center overflow-x-auto rounded border border-line bg-media p-2; }
+  .studio-frame { @apply h-[75vh] min-h-[480px] max-w-full rounded-sm border border-line bg-ink transition-[width]; }
+  /* نشانگر بارگذاری htmx */
+  .htmx-request .htmx-dim, .htmx-request.htmx-dim { @apply opacity-50 transition-opacity; }
+}

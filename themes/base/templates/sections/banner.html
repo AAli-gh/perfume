@@ -1,0 +1,10 @@
+<section class="container {{ spacing }}">
+  <div class="reveal grid items-center overflow-hidden border border-line bg-gradient-to-l from-ink-3/95 to-ink-3/60 lg:grid-cols-2">
+    <div class="px-6 py-8 lg:px-12 lg:py-10">
+      <h2 class="text-[1.7rem] lg:text-[2.3rem]">{{ section.title }}</h2>
+      {% if section.text %}<p>{{ section.text }}</p>{% endif %}
+      {% if section.cta_url and section.cta_text %}<a class="btn mt-2" href="{{ section.cta_url }}">{{ section.cta_text }}</a>{% endif %}
+    </div>
+    {% if section.image_url %}<img src="{{ section.image_url }}" alt="{{ section.image_alt }}" loading="lazy" class="h-full min-h-[320px] w-full object-cover">{% endif %}
+  </div>
+</section>

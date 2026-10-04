@@ -1,0 +1,12 @@
+<form id="review-form" class="panel panel-body mt-6 grid gap-3" method="post" action="{% url 'reviews:create' product.slug %}"
+      hx-post="{% url 'reviews:create' product.slug %}" hx-target="this" hx-swap="outerHTML">
+  {% csrf_token %}
+  <h3 class="m-0 text-[1.15rem]">نظر خود را بنویسید</h3>
+  {% if submitted %}<p class="alert alert-ok m-0">نظر شما ثبت شد و پس از تأیید مدیر نمایش داده می‌شود. سپاس!</p>{% endif %}
+  <div class="grid gap-4 sm:grid-cols-2">
+    {% include "components/field.html" with field=review_form.name %}
+    {% include "components/field.html" with field=review_form.rating %}
+    {% include "components/field.html" with field=review_form.text class="sm:col-span-2" %}
+  </div>
+  <div><button class="btn htmx-dim" type="submit">ثبت نظر</button></div>
+</form>

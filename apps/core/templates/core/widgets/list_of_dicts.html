@@ -1,0 +1,27 @@
+<div class="studio-repeater" data-repeater>
+  <input type="hidden" name="{{ widget.name }}-rows" value="{{ widget.rows|length }}">
+  <ol class="grid gap-2">
+    {% for row in widget.rows %}
+    <li class="studio-repeater-row">
+      <span class="studio-repeater-num" aria-hidden="true">{{ forloop.counter }}</span>
+      <div class="grid flex-1 gap-2 sm:grid-flow-col sm:auto-cols-fr">
+        {% for cell in row.cells %}
+        <label class="grid gap-1 text-xs text-muted">
+          <span>{{ cell.label }}</span>
+          {% if cell.choices %}
+            <select name="{{ cell.name }}" class="input !py-1.5">
+              {% for choice in cell.choices %}<option value="{{ choice }}" {% if choice == cell.value %}selected{% endif %}>{{ choice }}</option>{% endfor %}
+            </select>
+          {% elif cell.textarea %}
+            <textarea name="{{ cell.name }}" rows="2" class="input !py-1.5">{{ cell.value }}</textarea>
+          {% else %}
+            <input type="text" name="{{ cell.name }}" value="{{ cell.value }}" class="input !py-1.5" {% if cell.key == 'url' %}dir="ltr" placeholder="/shop/"{% endif %}>
+          {% endif %}
+        </label>
+        {% endfor %}
+      </div>
+    </li>
+    {% endfor %}
+  </ol>
+  <p class="mt-1 text-xs text-muted">برای حذف یک ردیف، متن‌های آن را پاک کنید. حداکثر {{ widget.max_items }} ردیف؛ پس از ذخیره ردیف خالی جدید اضافه می‌شود.</p>
+</div>

@@ -1,0 +1,36 @@
+{% load i18n %}{% url 'pages:home' as home_url %}
+<header class="{% if THEME_HEADER.sticky %}sticky top-0{% else %}relative{% endif %} z-50 border-b border-line bg-ink/90 backdrop-blur">
+  <div class="container flex h-[72px] items-center gap-6 lg:gap-10">
+    <button class="icon-btn lg:hidden" data-menu-toggle aria-label="{% translate "منو" %}" aria-expanded="false" aria-controls="main-nav">{% icon "menu" %}</button>
+    <a href="{{ home_url }}" class="whitespace-nowrap font-display text-[1.7rem] leading-none text-gold sm:text-[1.9rem]">{% if THEME_SETTINGS.logo %}<img src="{{ THEME_SETTINGS.logo.url }}" alt="{{ SITE.name }}" class="w-auto max-w-[180px] object-contain" style="height:{{ THEME_HEADER.logo_height }}px">{% else %}{{ SITE.name }}{% endif %}</a>
+
+    <nav id="main-nav" aria-label="{% translate "منوی اصلی" %}"
+         class="fixed inset-x-0 top-[72px] h-[calc(100dvh-72px)] translate-x-full overflow-y-auto bg-overlay/[.98] p-5 transition-transform data-[open]:translate-x-0 lg:static lg:h-auto lg:flex-1 lg:translate-x-0 lg:overflow-visible lg:bg-transparent lg:p-0">
+      <ul class="flex flex-col lg:flex-row lg:gap-7 xl:gap-9">
+        {% for item in THEME_HEADER.menu %}
+        <li><a href="{{ item.url }}" class="nav-link {% if item.active %}is-active{% endif %}">{{ item.label }}</a></li>
+        {% endfor %}
+      </ul>
+    </nav>
+
+    <div class="ms-auto flex items-center gap-1 lg:ms-0">
+      {% if THEME_HEADER.show_search %}<button class="icon-btn" data-search-open aria-label="{% translate "جستجو" %}">{% icon "search" %}</button>{% endif %}
+      {% if not THEME_HEADER.show_account %}{% elif user.is_authenticated %}
+        <a class="icon-btn" href="{% url 'accounts:profile' %}" title="{{ user.display_name }}" aria-label="{% translate "حساب کاربری" %}">{% icon "user" %}</a>
+      {% else %}
+        <a class="icon-btn" href="{% url 'accounts:login' %}" title="{% translate "ورود / ثبت‌نام" %}" aria-label="{% translate "ورود / ثبت‌نام" %}">{% icon "user" %}</a>
+      {% endif %}
+      <a class="icon-btn" href="{% url 'cart:detail' %}" aria-label="{% translate "سبد خرید" %}">{% icon "cart" %}{% include "components/cart_badge.html" %}</a>
+    </div>
+  </div>
+</header>
+
+<div data-search-panel class="invisible fixed inset-0 z-[100] grid place-items-start justify-center bg-overlay/[.93] pt-[18vh] opacity-0 transition data-[open]:visible data-[open]:opacity-100">
+  <button class="icon-btn absolute left-5 top-5" data-search-close aria-label="{% translate "بستن" %}">{% icon "close" %}</button>
+  <form action="{% url 'catalog:shop' %}" role="search" class="flex w-[min(92vw,640px)] gap-2.5">
+    <label class="sr-only" for="site-search">{% translate "جستجوی عطر" %}</label>
+    <input id="site-search" name="q" type="search" placeholder="{% translate "نام عطر، برند یا نت مورد نظر…" %}" autocomplete="off"
+           class="flex-1 border-0 border-b border-line-strong bg-transparent px-4 py-3.5 text-xl text-gold outline-none">
+    <button class="btn" type="submit">{% icon "search" %} {% translate "جستجو" %}</button>
+  </form>
+</div>
