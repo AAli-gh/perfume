@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load seo majd %}
+{% block seo %}{% seo_head title="عطرهای پیشنهادی برای شما" noindex=True %}{% endblock %}
+{% block content %}
+<div class="container py-12">
+  <div class="mb-8 flex flex-wrap items-end justify-between gap-4">
+    <div>
+      <h1 class="mb-1 text-[2rem] lg:text-[2.6rem]">عطرهای پیشنهادی برای شما</h1>
+      <p class="m-0 text-muted">بر اساس پاسخ‌های شما؛ عدد کنار هر عطر میزان تطابق آن با سلیقه شماست.</p>
+    </div>
+    <div class="flex flex-wrap gap-2">
+      <a class="btn btn-ghost btn-sm" href="{% url 'discovery:finder' %}?step=0">ویرایش پاسخ‌ها</a>
+      <form method="post" action="{% url 'discovery:finder_reset' %}">{% csrf_token %}<button class="btn btn-ghost btn-sm" type="submit">شروع دوباره</button></form>
+    </div>
+  </div>
+  {% if products %}
+  <ol class="grid gap-4 md:grid-cols-2">
+    {% for p in products %}
+    <li class="panel flex gap-4 p-4">
+      <a href="{{ p.get_absolute_url }}" class="shrink-0"><img src="{{ p.image.url }}" alt="عطر {{ p.name }}" class="h-36 w-28 border border-line object-cover"></a>
+      <div class="min-w-0 flex-1">
+        <div class="flex items-start justify-between gap-3">
+          <div class="min-w-0">
+            <a href="{{ p.get_absolute_url }}" class="block text-[1.15rem] text-cream">{% if forloop.first %}<span class="ms-1 rounded-sm bg-copper/20 px-1.5 text-xs text-gold">بهترین انتخاب</span> {% endif %}{{ p.name }}</a>
+            <span class="text-xs text-muted">{{ p.brand.name }} · {{ p.scent.name }} · {% if p.variants.all|length > 1 %}از {% endif %}{{ p.min_price|toman }}</span>
+          </div>
+          <span class="match-ring" aria-label="تطابق {{ p.match|fa }} درصد">{{ p.match|fa }}٪</span>
+        </div>
+        <ul class="mt-2 grid gap-1 text-sm">
+          {% for reason in p.reasons %}<li class="flex gap-1.5">{% icon "check" "!h-4 !w-4 shrink-0 text-success" %} {{ reason }}</li>{% empty %}<li class="text-muted">نزدیک‌ترین گزینه به پاسخ‌های شما</li>{% endfor %}
+        </ul>
+        {% with notes=p.notes_by_layer %}<p class="mt-2 text-xs text-muted">نت‌ها: {{ notes.top|join:"، " }} · {{ notes.heart|join:"، " }} · {{ notes.base|join:"، " }}</p>{% endwith %}
+      </div>
+    </li>
+    {% endfor %}
+  </ol>
+  {% if products|length > 1 %}
+  <form method="post" action="{% url 'discovery:compare_set' %}" class="mt-6 text-center">{% csrf_token %}
+    {% for p in products|slice:":4" %}<input type="hidden" name="product" value="{{ p.pk }}">{% endfor %}
+    <button class="btn" type="submit">{% icon "compare" "!h-4 !w-4" %} مقایسه {{ products|slice:":4"|length|fa }} عطر اول</button>
+  </form>
+  {% endif %}
+  {% else %}
+  <div class="rounded border border-dashed border-line p-10 text-center">
+    <p class="mb-4 text-muted">عطری با همه این شرایط پیدا نشد. بودجه یا نت‌هایی که دوست ندارید را تغییر دهید.</p>
+    <a class="btn" href="{% url 'discovery:finder' %}?step=5">ویرایش پاسخ‌ها</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

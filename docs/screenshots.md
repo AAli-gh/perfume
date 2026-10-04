@@ -42,6 +42,21 @@
 <tr><td align="center" valign="top"><img src="screenshots/preset-minimal.jpg" alt="مینیمال روشن"><br><sub>مینیمال روشن</sub></td></tr>
 </table>
 
+## مقایسه، پیشنهاد و عطریاب
+
+مقایسه حرفه‌ای تا ۴ عطر، پیشنهاد بر اساس نت‌ها و «عطر مناسب من را پیدا کن» ([discovery.md](discovery.md)).
+
+<table>
+<tr><td align="center" valign="top"><img src="screenshots/compare.jpg" alt="مقایسه: بهترین هر ردیف، نت‌های مشترک و درصد شباهت"><br><sub>مقایسه: بهترین هر ردیف، نت‌های مشترک و درصد شباهت</sub></td><td align="center" valign="top"><img src="screenshots/compare-diff.jpg" alt="«فقط تفاوت‌ها»"><br><sub>«فقط تفاوت‌ها»</sub></td></tr>
+<tr><td align="center" valign="top"><img src="screenshots/finder-step.jpg" alt="عطریاب: سؤال‌ها مرحله‌به‌مرحله"><br><sub>عطریاب: سؤال‌ها مرحله‌به‌مرحله</sub></td><td align="center" valign="top"><img src="screenshots/finder-notes.jpg" alt="انتخاب نت‌های محبوب"><br><sub>انتخاب نت‌های محبوب</sub></td></tr>
+<tr><td align="center" valign="top"><img src="screenshots/finder-results.jpg" alt="نتیجه: درصد تطابق و دلیل هر پیشنهاد"><br><sub>نتیجه: درصد تطابق و دلیل هر پیشنهاد</sub></td><td align="center" valign="top"><img src="screenshots/product-compare.jpg" alt="صفحه محصول: افزودن به مقایسه"><br><sub>صفحه محصول: افزودن به مقایسه</sub></td></tr>
+<tr><td align="center" valign="top"><img src="screenshots/similar-products.jpg" alt="عطرهای مشابه بر اساس نت‌ها"><br><sub>عطرهای مشابه بر اساس نت‌ها</sub></td><td align="center" valign="top"><img src="screenshots/home-for-you.jpg" alt="صفحه اصلی: پیشنهاد ویژه برای شما"><br><sub>صفحه اصلی: پیشنهاد ویژه برای شما</sub></td></tr>
+</table>
+
+<table>
+<tr><td align="center" valign="top"><img src="screenshots/m-compare.jpg" alt="مقایسه در موبایل"><br><sub>مقایسه در موبایل</sub></td><td align="center" valign="top"><img src="screenshots/m-finder.jpg" alt="عطریاب در موبایل"><br><sub>عطریاب در موبایل</sub></td></tr>
+</table>
+
 ## استودیو (`/studio/`)
 
 ویرایش ظاهر و صفحه اصلی برای مدیر فروشگاه، با پیش‌نویس، پیش‌نمایش زنده و انتشار.

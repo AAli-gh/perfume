@@ -1,0 +1,15 @@
+<form id="compare-{{ variant }}-{{ product.pk }}" method="post" action="{% url 'discovery:compare_toggle' product.pk %}"
+      hx-post="{% url 'discovery:compare_toggle' product.pk %}" hx-target="this" hx-swap="outerHTML"{% if variant == "icon" %} class="absolute left-2 top-2 z-10"{% endif %}>
+  {% csrf_token %}
+  <input type="hidden" name="variant" value="{{ variant }}">
+  <input type="hidden" name="next" value="{{ request.get_full_path }}">
+  {% if variant == "icon" %}
+  <button type="submit" class="grid h-9 w-9 place-items-center rounded-full border border-line bg-overlay/80 backdrop-blur transition hover:border-copper {% if active %}!border-copper text-gold{% else %}text-body{% endif %}"
+          aria-pressed="{{ active|yesno:'true,false' }}" title="{% if active %}حذف از مقایسه{% else %}افزودن به مقایسه{% endif %}"
+          aria-label="{% if active %}حذف «{{ product.name }}» از مقایسه{% else %}افزودن «{{ product.name }}» به مقایسه{% endif %}">{% icon "compare" "!h-4 !w-4" %}</button>
+  {% else %}
+  <button type="submit" class="btn btn-ghost htmx-dim w-full" aria-pressed="{{ active|yesno:'true,false' }}">
+    {% if active %}{% icon "compare" "!h-4 !w-4 text-copper" %} در فهرست مقایسه{% else %}{% icon "compare" "!h-4 !w-4" %} افزودن به مقایسه{% endif %}
+  </button>
+  {% endif %}
+</form>

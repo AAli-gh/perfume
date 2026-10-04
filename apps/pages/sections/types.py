@@ -240,3 +240,40 @@ class FaqSection(SectionType):
 
     def is_visible(self, context):
         return bool(context["items"])
+
+
+# ---------- عطریاب و پیشنهاد شخصی ----------
+
+class FinderCtaForm(SectionForm):
+    title = _text("عنوان", "عطر مناسب خودتان را پیدا کنید", required=True)
+    text = _text("متن", "به ۸ سؤال کوتاه درباره سلیقه، موقعیت و فصل پاسخ دهید تا عطرهایی که با شما جور است را پیشنهاد کنیم.",
+                 textarea=True, max_length=600)
+    cta_text = _text("متن دکمه", "شروع کنید", max_length=60)
+    cta_url = LinkField(label="پیوند دکمه", initial="/finder/")
+    compare_text = _text("متن پیوند مقایسه", "یا عطرها را کنار هم مقایسه کنید", max_length=80)
+
+
+@register
+class FinderCtaSection(SectionType):
+    key, label, icon, form_class = "finder_cta", "عطر مناسب من (عطریاب)", "diamond", FinderCtaForm
+
+
+class ForYouForm(SectionForm):
+    title = _text("عنوان", "پیشنهاد ویژه برای شما", required=True)
+    limit = _limit(8)
+
+
+@register
+class ForYouSection(SectionType):
+    """بر اساس خریدها، علاقه‌مندی‌ها و عطرهای دیده‌شده هر بازدیدکننده؛ برای بازدیدکننده جدید پنهان است."""
+
+    key, label, icon, form_class = "for_you", "پیشنهاد برای شما (شخصی)", "crown", ForYouForm
+
+    def get_context(self, settings, *, request, section=None):
+        from apps.discovery.taste import recommendations_for
+
+        products, taste, _ = recommendations_for(request, limit=settings["limit"])
+        return {**settings, "products": products, "favorite_notes": taste.favorite_notes(4)}
+
+    def is_visible(self, context):
+        return bool(context["products"])

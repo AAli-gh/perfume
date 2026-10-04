@@ -1,3 +1,4 @@
+from django import forms
 from django.contrib import admin
 from django.utils.html import format_html
 
@@ -6,6 +7,7 @@ from .models import (
     ProductVariant, ScentFamily, StockMovement, Tag,
 )
 from . import inventory
+from .profile import Occasion, Season
 
 
 @admin.register(Brand, ScentFamily)
@@ -39,8 +41,20 @@ class ImageInline(admin.TabularInline):
     extra = 1
 
 
+class ProductAdminForm(forms.ModelForm):
+    seasons = forms.MultipleChoiceField(label="فصل مناسب", choices=Season.choices, required=False,
+                                        widget=forms.CheckboxSelectMultiple)
+    occasions = forms.MultipleChoiceField(label="موقعیت مناسب", choices=Occasion.choices, required=False,
+                                          widget=forms.CheckboxSelectMultiple)
+
+    class Meta:
+        model = Product
+        fields = "__all__"
+
+
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
+    form = ProductAdminForm
     list_display = ["thumb", "name", "brand", "scent", "collection", "is_active", "is_featured"]
     list_display_links = ["thumb", "name"]
     list_filter = ["store", "is_active", "is_featured", "brand", "scent", "collection"]

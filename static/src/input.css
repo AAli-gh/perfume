@@ -110,6 +110,20 @@
     @apply flex flex-col overflow-hidden rounded border border-line text-center transition duration-300 hover:-translate-y-1 hover:border-line-strong hover:shadow-luxe;
     background: linear-gradient(180deg, rgb(var(--color-card-from) / .75), rgb(var(--color-card-to) / .85));
   }
+  /* مقایسه، عطریاب و پیشنهادها */
+  .chip { @apply m-0.5 inline-block rounded-full border border-line px-2.5 py-0.5 text-xs text-body; }
+  .chip-shared { @apply border-copper/60 text-gold; }
+  .chip-strong { @apply border-copper bg-copper/15 text-gold; }
+  .compare-table th, .compare-table td { @apply border-b border-line; }
+  .compare-label { @apply sticky right-0 z-[1] w-40 min-w-[9rem] bg-panel p-3 text-start align-top text-sm font-normal text-muted; }
+  .compare-cell { @apply min-w-[11rem] p-3 text-center align-top; }
+  .compare-group { @apply bg-surface/60 p-2.5 text-start text-[.95rem] font-medium text-gold; }
+  .compare-table tr.is-same td { @apply text-muted; }
+  .compare-cell.is-best { @apply bg-copper/[.08]; }
+  .best-badge { @apply mt-1 block text-[.7rem] font-medium text-success; }
+  .finder-option { @apply flex cursor-pointer items-center gap-3 rounded border border-line bg-input/20 px-4 py-3 transition hover:border-line-strong has-[:checked]:border-copper has-[:checked]:bg-copper/10; }
+  .finder-option:has(:focus-visible) { @apply outline outline-2 outline-copper; }
+  .match-ring { @apply grid h-14 w-14 shrink-0 place-items-center rounded-full border-2 border-copper text-sm font-bold text-gold; }
   [data-card="flat"] .product-card { background: rgb(var(--color-surface)); }
   [data-card="outline"] .product-card { background: transparent; }
   .product-card .thumb img { @apply transition-transform duration-700; }

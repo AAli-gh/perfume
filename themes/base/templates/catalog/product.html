@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load seo static reviews wishlist %}
+{% load seo static reviews wishlist discovery %}
 {% block seo %}{% seo_head product %}{% endblock %}
 {% block content %}
 <nav class="container border-b border-line py-4 text-sm text-muted" aria-label="مسیر">
@@ -80,7 +80,7 @@
           </div>
         </div>
       </form>
-      <div class="mt-3">{% wishlist_button product %}</div>
+      <div class="mt-3 grid gap-2 sm:grid-cols-2">{% wishlist_button product %}{% compare_button product %}</div>
     </div>
   </section>
 
@@ -108,7 +108,8 @@
 
   {% if related %}
   <section class="border-t border-line py-14">
-    <h2 class="mb-8 text-[1.6rem] lg:text-[2.1rem]">شاید این‌ها را هم بپسندید</h2>
+    <h2 class="mb-2 text-[1.6rem] lg:text-[2.1rem]">شاید این‌ها را هم بپسندید</h2>
+    <p class="mb-8 text-muted">عطرهایی با بیشترین نت مشترک با «{{ product.name }}» · <a class="text-gold underline" href="{% url 'discovery:finder' %}">عطر مناسب خودتان را پیدا کنید</a></p>
     {% include "components/carousel.html" with products=related %}
   </section>
   {% endif %}

@@ -1,0 +1,31 @@
+{% load majd %}
+<section id="finder" class="panel" aria-live="polite">
+  <div class="panel-body">
+    <div class="mb-5">
+      <div class="mb-2 flex items-center justify-between text-sm text-muted"><span>سؤال {{ number|fa }} از {{ total|fa }}</span>
+        {% if index %}<a class="underline hover:text-gold" href="?step={{ index|add:-1 }}" hx-get="?step={{ index|add:-1 }}" hx-target="#finder" hx-swap="outerHTML">→ سؤال قبل</a>{% endif %}</div>
+      <div class="h-1.5 overflow-hidden rounded-full bg-line" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ progress }}" aria-label="پیشرفت">
+        <div class="h-full bg-copper" style="width:{{ progress }}%"></div>
+      </div>
+    </div>
+    <form method="post" action="{% url 'discovery:finder' %}" hx-post="{% url 'discovery:finder' %}" hx-target="#finder" hx-swap="outerHTML" novalidate>
+      {% csrf_token %}
+      <input type="hidden" name="step" value="{{ index }}">
+      {% for field in form %}
+      <fieldset>
+        <legend class="mb-1 text-[1.4rem] text-cream">{{ step.title }}</legend>
+        {% if step.hint %}<p class="mb-4 text-sm text-muted">{{ step.hint }}</p>{% else %}<div class="mb-4"></div>{% endif %}
+        {% for e in field.errors %}<p class="field-error mb-3">{{ e }}</p>{% endfor %}
+        <div class="grid gap-2.5 {% if multi %}sm:grid-cols-2 lg:grid-cols-3{% else %}sm:grid-cols-2{% endif %}">
+          {% for option in field %}<label class="finder-option">{{ option.tag }} <span>{{ option.choice_label }}</span></label>
+          {% empty %}<p class="text-muted">گزینه‌ای برای این سؤال وجود ندارد؛ ادامه دهید.</p>{% endfor %}
+        </div>
+      </fieldset>
+      {% endfor %}
+      <div class="mt-6 flex flex-wrap items-center justify-between gap-3">
+        <button class="btn btn-lg htmx-dim" type="submit">{% if is_last %}نمایش عطرهای پیشنهادی{% elif multi %}ادامه{% else %}بعدی{% endif %}</button>
+        {% if multi %}<span class="text-sm text-muted">می‌توانید چیزی انتخاب نکنید و ادامه دهید.</span>{% endif %}
+      </div>
+    </form>
+  </div>
+</section>

@@ -10,7 +10,7 @@ APPS_DIR = Path(__file__).resolve().parent.parent / "apps"
 # هسته فروشگاه — نباید به لایه نمایش یا افزونه‌ها وابسته باشد
 DOMAIN_APPS = ["accounts", "catalog", "reviews", "discounts", "shipping", "cart", "wishlist", "orders", "payments", "blog",
                "marketing"]
-PRESENTATION_AND_EXTENSIONS = ["themes", "pages", "builder", "seo", "ai", "notifications"]
+PRESENTATION_AND_EXTENSIONS = ["themes", "pages", "builder", "seo", "ai", "notifications", "discovery"]
 
 # وابستگی‌های مجاز هر اپ هسته (به‌جز core که هسته مشترک است)
 ALLOWED_DEPENDENCIES = {

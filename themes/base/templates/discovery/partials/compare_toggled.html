@@ -1,0 +1,10 @@
+{% include "discovery/partials/compare_button.html" %}
+{% include "discovery/partials/compare_badge.html" with oob=True %}
+<div hx-swap-oob="beforeend:#toasts">
+  {% url 'discovery:compare' as compare_url %}
+  {% if error %}
+    {% include "components/toast.html" with level="error" text=error link=compare_url link_text="مشاهده مقایسه" %}
+  {% elif active %}
+    {% include "components/toast.html" with text="«"|add:product.name|add:"» به مقایسه اضافه شد." link=compare_url link_text="مقایسه کنید" %}
+  {% endif %}
+</div>

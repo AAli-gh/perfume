@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     "apps.builder",
     "apps.seo",
     "apps.notifications",
+    "apps.discovery",
 ]
 
 MIDDLEWARE = [

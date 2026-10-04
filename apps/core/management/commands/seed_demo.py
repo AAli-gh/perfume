@@ -75,6 +75,21 @@ PRODUCTS = [
      ("زعفران، تمشک", "رز، عود", "مشک، چوب کشمیر"),
      "عود مخملی نسخه‌ای نرم و مدرن از عود است؛ تمشک و رز، تندی عود را لطیف کرده‌اند تا رایحه‌ای مخملی و دلنشین به دست آید."),
 ]
+# مشخصات رایحه: (مناسب برای، غلظت، ماندگاری، پخش بو، فصل‌ها، موقعیت‌ها)
+PROFILES = {
+    "arabesque": ("unisex", "edp", 4, 4, ["autumn", "winter"], ["evening", "formal"]),
+    "golden-royale": ("women", "edp", 4, 4, ["autumn", "winter"], ["evening", "romantic"]),
+    "mystic-oud": ("unisex", "extrait", 5, 5, ["autumn", "winter"], ["evening", "formal"]),
+    "eclipse-noir": ("men", "edp", 5, 4, ["autumn", "winter"], ["evening", "formal"]),
+    "radiant-amber": ("women", "edp", 4, 3, ["autumn", "winter"], ["daily", "romantic"]),
+    "serenity-blossom": ("women", "edt", 3, 2, ["spring", "summer"], ["daily", "office"]),
+    "royal-black": ("men", "extrait", 5, 5, ["winter"], ["evening", "formal"]),
+    "aqua-inferno": ("men", "edt", 3, 3, ["spring", "summer"], ["daily", "office"]),
+    "royal-saffron": ("unisex", "extrait", 5, 4, ["autumn", "winter"], ["formal", "evening"]),
+    "amber-night": ("women", "edp", 4, 4, ["winter"], ["evening", "romantic"]),
+    "cobalt-flame": ("men", "edt", 3, 3, ["spring", "summer", "autumn"], ["daily", "office"]),
+    "velvet-oud": ("unisex", "edp", 4, 3, ["autumn", "winter", "spring"], ["daily", "romantic"]),
+}
 PRODUCT_IMAGES = {
     "arabesque": "p-arabesque.jpg", "golden-royale": "p-golden.jpg", "mystic-oud": "p-mystic.jpg",
     "eclipse-noir": "p-eclipse.jpg", "radiant-amber": "p-radiant.jpg", "serenity-blossom": "p-serenity.jpg",
@@ -214,11 +229,17 @@ class Command(BaseCommand):
         created = 0
         now = timezone.now()
         for i, (slug, name, brand, scent, col, price, featured, notes, desc) in enumerate(PRODUCTS):
-            if Product.objects.for_store(store).filter(slug=slug).exists():
+            gender, concentration, longevity, sillage, seasons, occasions = PROFILES[slug]
+            profile = {"gender": gender, "concentration": concentration, "longevity": longevity, "sillage": sillage,
+                       "seasons": seasons, "occasions": occasions}
+            existing = Product.objects.for_store(store).filter(slug=slug).first()
+            if existing is not None:
+                if not existing.has_profile:  # داده نمایشی قدیمی‌تر: فقط مشخصات رایحه اضافه می‌شود
+                    Product.objects.filter(pk=existing.pk).update(**profile)
                 continue
             p = Product(
                 slug=slug, name=name, brand=brands[brand], scent=scents[scent], collection=collections[col],
-                is_featured=featured, short_description=desc.split("؛")[0] + ".", description=desc,
+                is_featured=featured, short_description=desc.split("؛")[0] + ".", description=desc, **profile,
             )
             attach(p.image, PRODUCT_IMAGES[slug])
             p.save()

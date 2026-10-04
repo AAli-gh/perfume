@@ -1,0 +1,14 @@
+{% load majd %}
+<section class="container {{ spacing }}">
+  <div class="reveal flex flex-col items-start justify-between gap-6 border border-line bg-gradient-to-l from-ink-3/95 to-ink-3/60 px-6 py-8 md:flex-row md:items-center lg:px-12 lg:py-10">
+    <div class="max-w-[640px]">
+      <p class="mb-2 inline-flex items-center gap-1.5 text-sm text-gold">{% icon "sparkle" "!h-4 !w-4" %} عطریاب</p>
+      <h2 class="text-[1.7rem] lg:text-[2.3rem]">{{ section.title }}</h2>
+      {% if section.text %}<p class="m-0">{{ section.text }}</p>{% endif %}
+    </div>
+    <div class="flex shrink-0 flex-col items-start gap-3 md:items-end">
+      {% if section.cta_url and section.cta_text %}<a class="btn btn-lg" href="{{ section.cta_url }}">{{ section.cta_text }}</a>{% endif %}
+      {% if section.compare_text %}<a class="text-sm text-muted underline hover:text-gold" href="{% url 'discovery:compare' %}">{{ section.compare_text }}</a>{% endif %}
+    </div>
+  </div>
+</section>

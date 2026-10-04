@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load seo %}
+{% load seo discovery %}
 {% block seo %}{% seo_head title="حساب کاربری" %}{% endblock %}
 {% block content %}
 <div class="container py-14">
@@ -13,6 +13,20 @@
       <form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}<button class="btn btn-ghost">{% icon "logout" "!h-4 !w-4" %} خروج</button></form>
     </div>
   </div>
+
+  {% recommendations_for_user as recs %}
+  <section class="panel mb-7">
+    <h2 class="panel-title">پیشنهاد برای شما</h2>
+    <div class="panel-body">
+      {% if recs.products %}
+        <p class="mb-1 text-sm text-muted">بر اساس {% if recs.sources.purchases %}خریدها{% endif %}{% if recs.sources.purchases and recs.sources.wishlist %}، {% endif %}{% if recs.sources.wishlist %}علاقه‌مندی‌ها{% endif %}{% if recs.sources.views and not recs.sources.purchases and not recs.sources.wishlist %}عطرهایی که دیده‌اید{% elif recs.sources.views %} و عطرهایی که دیده‌اید{% endif %}.</p>
+        {% if recs.favorite_notes %}<p class="mb-5 text-sm">نت‌های محبوب شما: {% for n in recs.favorite_notes %}<span class="chip chip-shared">{{ n }}</span>{% endfor %}</p>{% endif %}
+        {% include "components/carousel.html" with products=recs.products %}
+      {% else %}
+        <p class="m-0 text-muted">هنوز سلیقه شما را نمی‌شناسیم. بعد از اولین خرید یا افزودن چند عطر به علاقه‌مندی‌ها، عطرهای هم‌سلیقه شما اینجا می‌آید. <a class="text-gold underline" href="{% url 'discovery:finder' %}">یا همین حالا عطریاب را امتحان کنید.</a></p>
+      {% endif %}
+    </div>
+  </section>
 
   {% if user.addresses.all %}
   <section class="panel mb-7">

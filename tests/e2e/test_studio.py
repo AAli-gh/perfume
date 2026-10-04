@@ -1,5 +1,6 @@
 """استودیو در مرورگر واقعی: پیش‌نمایش زنده، پیش‌نویس، انتشار، لینک پیش‌نمایش و بازگردانی."""
 
+from apps.pages.defaults import DEFAULT_HOME_SECTIONS
 import re
 
 from playwright.sync_api import expect
@@ -41,8 +42,9 @@ def test_draft_preview_publish_and_restore(site, page, new_probe, staff_credenti
     page.goto(f"{site}/studio/pages/")
     page.locator("a.studio-card").first.click()
     rows = page.locator("[data-sortable] > [data-id]")
-    expect(rows).to_have_count(7)
-    rows.nth(6).drag_to(rows.nth(0), target_position={"x": 40, "y": 5})
+    last = len(DEFAULT_HOME_SECTIONS) - 1  # آخرین بخش پیش‌فرض: خبرنامه
+    expect(rows).to_have_count(last + 1)
+    rows.nth(last).drag_to(rows.nth(0), target_position={"x": 40, "y": 5})
     expect(rows.nth(0)).to_contain_text("خبرنامه")
     page.reload()
     expect(rows.nth(0)).to_contain_text("خبرنامه")  # ذخیره شده

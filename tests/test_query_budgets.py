@@ -68,3 +68,18 @@ def test_no_n_plus_one_when_catalog_grows(seeded, store, url):
         Post.objects.create(title=f"مقاله {i}", slug=f"extra-{i}", category=post.category, excerpt="x", body="x",
                             cover=post.cover.name)
     assert count(seeded, url) == before, f"{url}: تعداد کوئری با تعداد محصولات رشد کرد"
+
+
+def test_discovery_pages_budget_and_no_n_plus_one(seeded, store):
+    from apps.catalog.models import Product
+
+    for slug in ("mystic-oud", "royal-saffron", "velvet-oud", "amber-night"):
+        seeded.post(f"/compare/{Product.objects.get(store=store, slug=slug).pk}/toggle/")
+    seeded.get("/product/mystic-oud/")  # سابقه بازدید ← بخش «پیشنهاد برای شما» فعال
+    budgets = {"/compare/": 11, "/finder/": 9, "/": 18}
+    used = {url: count(seeded, url) for url in budgets}
+    assert all(used[u] <= b for u, b in budgets.items()), used
+    for _ in range(12):
+        product = ProductFactory()
+        VariantFactory(product=product)
+    assert {url: count(seeded, url) for url in budgets} == used, "کوئری با تعداد محصولات رشد کرد"

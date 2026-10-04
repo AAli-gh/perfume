@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% load seo majd discovery %}
+{% block seo %}{% seo_head title="مقایسه عطرها" noindex=True %}{% endblock %}
+{% block content %}
+<div class="container py-12">
+  <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
+    <div>
+      <h1 class="mb-1 text-[2rem] lg:text-[2.6rem]">مقایسه عطرها</h1>
+      <p class="m-0 text-muted">{% if products %}{{ products|length|fa }} عطر از حداکثر {{ max_items|fa }}{% if shared_notes %} · نت‌های مشترک همه: <span class="text-cream">{{ shared_notes|join:"، " }}</span>{% endif %}{% else %}هنوز عطری برای مقایسه انتخاب نکرده‌اید.{% endif %}</p>
+    </div>
+    {% if products|length > 1 %}
+    <div class="flex flex-wrap items-center gap-2">
+      <a class="btn btn-ghost btn-sm" href="?{% if is_shared %}p={{ request.GET.p|urlencode }}&{% endif %}{% if not only_diff %}diff=1{% endif %}">{% if only_diff %}نمایش همه ردیف‌ها{% else %}فقط تفاوت‌ها{% endif %}</a>
+      <a class="btn btn-ghost btn-sm" href="{{ share_url }}" title="این پیوند را برای دیگران بفرستید">پیوند اشتراک‌گذاری</a>
+      {% if not is_shared %}
+      <form method="post" action="{% url 'discovery:compare_clear' %}">{% csrf_token %}<button class="btn btn-ghost btn-sm" type="submit">پاک کردن فهرست</button></form>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+
+  {% if not products %}
+    <div class="rounded border border-dashed border-line p-10 text-center">
+      <p class="mb-4 text-muted">روی دکمه {% icon "compare" "!h-4 !w-4 inline" %} کارت محصولات یا «افزودن به مقایسه» در صفحه هر عطر بزنید تا اینجا کنار هم مقایسه شوند.</p>
+      <div class="flex flex-wrap justify-center gap-3"><a class="btn" href="{% url 'catalog:shop' %}">رفتن به فروشگاه</a><a class="btn btn-ghost" href="{% url 'discovery:finder' %}">عطر مناسب من را پیدا کن</a></div>
+    </div>
+  {% else %}
+  <div class="overflow-x-auto rounded border border-line">
+    <table class="compare-table w-full min-w-[640px] border-collapse text-[.95rem]">
+      <thead>
+        <tr>
+          <th class="compare-label" scope="col"><span class="sr-only">ویژگی</span></th>
+          {% for p in products %}
+          <th scope="col" class="compare-cell align-top">
+            <a href="{{ p.get_absolute_url }}" class="block"><img src="{{ p.image.url }}" alt="عطر {{ p.name }}" class="mx-auto mb-3 aspect-[5/6] w-full max-w-[150px] border border-line object-cover"></a>
+            <a href="{{ p.get_absolute_url }}" class="block text-[1.05rem] font-medium text-cream">{{ p.name }}</a>
+            <span class="block text-xs font-normal text-muted">{{ p.brand.name }}</span>
+            <div class="mt-3 grid gap-1.5">
+              {% with v=p.default_variant %}{% if v and p.in_stock %}
+              <form hx-post="{% url 'cart:add' %}" hx-swap="none" action="{% url 'cart:add' %}" method="post">{% csrf_token %}
+                <input type="hidden" name="variant" value="{{ v.pk }}"><button class="btn btn-sm htmx-dim w-full" type="submit">افزودن به سبد</button>
+              </form>
+              {% endif %}{% endwith %}
+              {% if not is_shared %}
+              <form method="post" action="{% url 'discovery:compare_remove' p.pk %}">{% csrf_token %}<button class="text-xs text-muted underline hover:text-danger" type="submit">حذف از مقایسه</button></form>
+              {% endif %}
+            </div>
+          </th>
+          {% endfor %}
+        </tr>
+      </thead>
+      {% for group in groups %}
+      <tbody>
+        <tr><th colspan="{{ products|length|add:1 }}" scope="colgroup" class="compare-group">{{ group.title }}</th></tr>
+        {% for row in group.rows %}
+        <tr class="{% if row.is_same and products|length > 1 %}is-same{% endif %}">
+          <th scope="row" class="compare-label">{{ row.label }}</th>
+          {% for cell in row.cells %}
+          <td class="compare-cell {% if forloop.counter0 in row.best %}is-best{% endif %}">
+            {% if row.kind == "price" %}{% if cell.low %}{{ cell.low|toman }}{% if cell.high != cell.low %}<small class="block text-xs text-muted">تا {{ cell.high|toman }}</small>{% endif %}{% else %}—{% endif %}
+            {% elif row.kind == "money" %}{% if cell.money %}{{ cell.money|toman }}{% else %}—{% endif %}
+            {% elif row.kind == "sizes" %}{% for s in cell.value %}{{ s|fa }}{% if not forloop.last %}، {% endif %}{% endfor %} میل
+            {% elif row.kind == "rating" %}{% if cell.rating %}{% stars cell.rating cell.count %}{% else %}<span class="text-muted">بدون نظر</span>{% endif %}
+            {% elif row.kind == "level" %}{% include "discovery/partials/level.html" with level=cell.level hint=cell.hint %}
+            {% elif row.kind == "chips" %}{% for c in cell.chips %}<span class="chip">{{ c }}</span>{% empty %}<span class="text-muted">—</span>{% endfor %}
+            {% elif row.kind == "notes" %}{% for n in cell.notes %}<span class="chip {% if n.everyone %}chip-strong{% elif n.shared %}chip-shared{% endif %}">{{ n.name }}</span>{% empty %}<span class="text-muted">—</span>{% endfor %}
+            {% elif row.kind == "percent" %}{% if cell.percent is None %}<span class="text-muted">مبنای مقایسه</span>{% else %}<span class="text-lg text-gold">{{ cell.percent|fa }}٪</span>{% endif %}
+            {% else %}{{ cell.text|default:"—" }}{% endif %}
+            {% if forloop.counter0 in row.best %}<span class="best-badge">بهترین</span>{% endif %}
+          </td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+      {% endfor %}
+    </table>
+  </div>
+  <p class="mt-3 text-xs text-muted"><span class="chip chip-strong">نت</span> مشترک در همه · <span class="chip chip-shared">نت</span> مشترک با عطر دیگری · «بهترین»: کمترین قیمت، بیشترین امتیاز، ماندگاری یا پخش بو.</p>
+
+  {% if suggestions %}
+  <section class="mt-12">
+    <h2 class="mb-6 text-[1.5rem]">پیشنهاد برای افزودن به مقایسه</h2>
+    <div class="grid grid-cols-2 gap-4 md:grid-cols-4">{% for p in suggestions %}{% include "components/product_card.html" %}{% endfor %}</div>
+  </section>
+  {% endif %}
+  {% endif %}
+</div>
+{% endblock %}

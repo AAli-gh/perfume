@@ -1,0 +1,4 @@
+<a id="compare-badge" {% if oob %}hx-swap-oob="true"{% endif %} href="{% url 'discovery:compare' %}"
+   class="icon-btn {% if not compare|length %}hidden{% endif %}" aria-label="مقایسه ({{ compare|length }} عطر)" title="مقایسه عطرها">
+  {% icon "compare" %}<span class="absolute left-0.5 top-0.5 h-[18px] min-w-[18px] rounded-full bg-copper px-1 text-center text-[.7rem] font-bold leading-[18px] text-ink">{{ compare|length|fa }}</span>
+</a>
