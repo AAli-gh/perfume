@@ -8,6 +8,7 @@ from django.db import migrations, models
 from django.db.models import Value
 
 from apps.catalog.search import normalize
+from apps.core.db import PostgresOnly, is_postgres
 
 
 def index_existing_products(apps, schema_editor):
@@ -21,6 +22,9 @@ def index_existing_products(apps, schema_editor):
                                 *(c.name for c in p.categories.all())]))
         c = normalize(" ".join([p.collection.name if p.collection_id else "", *(t.name for t in p.tags.all()),
                                 *(v.value for v in p.attribute_values.all()), p.short_description, p.description]))
+        if not is_postgres(schema_editor.connection):
+            Product.objects.filter(pk=p.pk).update(search_document=" ".join(x for x in (a, b, c) if x))
+            continue
         Product.objects.filter(pk=p.pk).update(
             search_document=" ".join(x for x in (a, b, c) if x),
             search_vector=SearchVector(Value(a), weight="A", config="simple")
@@ -50,19 +54,20 @@ class Migration(migrations.Migration):
                 editable=False, null=True
             ),
         ),
-        migrations.AddIndex(
+        # ایندکس‌های GIN فقط روی PostgreSQL (روی SQLite نمایشی فقط state)
+        PostgresOnly(migrations.AddIndex(
             model_name="product",
             index=django.contrib.postgres.indexes.GinIndex(
                 fields=["search_vector"], name="catalog_product_search_vec"
             ),
-        ),
-        migrations.AddIndex(
+        )),
+        PostgresOnly(migrations.AddIndex(
             model_name="product",
             index=django.contrib.postgres.indexes.GinIndex(
                 fields=["search_document"],
                 name="catalog_product_search_trgm",
                 opclasses=["gin_trgm_ops"],
             ),
-        ),
+        )),
         migrations.RunPython(index_existing_products, migrations.RunPython.noop),
     ]

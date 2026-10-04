@@ -1,5 +1,4 @@
 from django.conf import settings
-from django.contrib.postgres.fields import ArrayField
 from django.contrib.postgres.indexes import GinIndex
 from django.contrib.postgres.search import SearchVectorField
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -7,6 +6,7 @@ from django.db import models
 from django.db.models import Avg, Count, Min, Q
 from django.urls import reverse
 
+from apps.core.db import ListField
 from apps.core.validators import image_upload
 from apps.core.models import SeoFields, StoreOwned, StoreQuerySet
 
@@ -246,9 +246,9 @@ class Product(StoreOwned, SeoFields):
         "پخش بو", null=True, blank=True, validators=[MinValueValidator(1), MaxValueValidator(5)],
         help_text="۱ (نزدیک به پوست) تا ۵ (بسیار قوی)",
     )
-    seasons = ArrayField(models.CharField(max_length=10, choices=Season.choices), verbose_name="فصل مناسب",
+    seasons = ListField(models.CharField(max_length=10, choices=Season.choices), verbose_name="فصل مناسب",
                          default=list, blank=True)
-    occasions = ArrayField(models.CharField(max_length=10, choices=Occasion.choices), verbose_name="موقعیت مناسب",
+    occasions = ListField(models.CharField(max_length=10, choices=Occasion.choices), verbose_name="موقعیت مناسب",
                            default=list, blank=True)
     is_active = models.BooleanField("فعال", default=True)
     is_featured = models.BooleanField("ویژه", default=False)

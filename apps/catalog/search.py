@@ -10,7 +10,9 @@
 import re
 
 from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
-from django.db.models import F, Q, Value
+from django.db.models import F, FloatField, Q, Value
+
+from apps.core.db import is_postgres
 
 _CHAR_MAP = str.maketrans({
     "ي": "ی", "ى": "ی", "ئ": "ی", "ك": "ک", "ة": "ه", "ۀ": "ه", "أ": "ا", "إ": "ا", "آ": "ا", "ٱ": "ا", "ؤ": "و",
@@ -59,6 +61,9 @@ def reindex_products(product_ids):
     )
     for product in products:
         a, b, c = document_parts(product)
+        if not is_postgres():  # پایگاه نمایشی: فقط سند متنی (بدون tsvector)
+            Product.objects.filter(pk=product.pk).update(search_document=" ".join(x for x in (a, b, c) if x))
+            continue
         Product.objects.filter(pk=product.pk).update(
             search_document=" ".join(x for x in (a, b, c) if x),
             search_vector=(
@@ -75,11 +80,13 @@ def search_products(queryset, raw_query):
     tokens = _TOKEN.findall(q)
     if not tokens:
         return queryset
-    # هر کلمه به‌صورت پیشوند (برای جستجو حین تایپ) و همه کلمات با AND
-    tsquery = SearchQuery(" & ".join(f"{t}:*" for t in tokens), config="simple", search_type="raw")
     substring = Q()
     for t in tokens:
         substring &= Q(search_document__contains=t)
+    if not is_postgres():  # پایگاه نمایشی: تطبیق متن نرمال‌شده، بدون رتبه‌بندی
+        return queryset.filter(substring).annotate(search_rank=Value(0.0, output_field=FloatField()))
+    # هر کلمه به‌صورت پیشوند (برای جستجو حین تایپ) و همه کلمات با AND
+    tsquery = SearchQuery(" & ".join(f"{t}:*" for t in tokens), config="simple", search_type="raw")
     return queryset.filter(Q(search_vector=tsquery) | substring).annotate(
         search_rank=SearchRank(F("search_vector"), tsquery)
     )
