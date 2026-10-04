@@ -141,6 +141,11 @@ def test_mobile_layout_and_menu(site, new_probe):
     page.goto(site + "/")
     page.click("[data-menu-toggle]")
     expect(page.locator("#main-nav")).to_have_attribute("data-open", "")
+    # پنل منو تا پایین صفحه را می‌پوشاند (header با backdrop-filter، containing block عنصر fixed است)
+    page.wait_for_timeout(400)
+    box = page.locator("#main-nav").bounding_box()
+    assert box["y"] == 72 and box["height"] >= 844 - 72 - 1, box
+    assert page.evaluate("document.elementFromPoint(200, 700).closest('#main-nav') !== null")
     page.click("#main-nav >> text=فروشگاه")
     page.wait_for_url("**/shop/")
     page.click("[data-drawer-open]")

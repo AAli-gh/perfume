@@ -5,7 +5,7 @@
     <a href="{{ home_url }}" class="whitespace-nowrap font-display text-[1.7rem] leading-none text-gold sm:text-[1.9rem]">{% if THEME_SETTINGS.logo %}<img src="{{ THEME_SETTINGS.logo.url }}" alt="{{ SITE.name }}" class="w-auto max-w-[180px] object-contain" style="height:{{ THEME_HEADER.logo_height }}px">{% else %}{{ SITE.name }}{% endif %}</a>
 
     <nav id="main-nav" aria-label="{% translate "منوی اصلی" %}"
-         class="fixed inset-x-0 bottom-0 top-[72px] translate-x-full bg-overlay/[.98] p-5 transition-transform data-[open]:translate-x-0 lg:static lg:flex-1 lg:translate-x-0 lg:bg-transparent lg:p-0">
+         class="fixed inset-x-0 top-[72px] h-[calc(100dvh-72px)] translate-x-full overflow-y-auto bg-overlay/[.98] p-5 transition-transform data-[open]:translate-x-0 lg:static lg:h-auto lg:flex-1 lg:translate-x-0 lg:overflow-visible lg:bg-transparent lg:p-0">
       <ul class="flex flex-col lg:flex-row lg:gap-7 xl:gap-9">
         {% for item in THEME_HEADER.menu %}
         <li><a href="{{ item.url }}" class="nav-link {% if item.active %}is-active{% endif %}">{{ item.label }}</a></li>
