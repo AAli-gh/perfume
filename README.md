@@ -23,6 +23,23 @@
   - پوشش تست ۹۷٪ همراه با E2E در مرورگر.
   - image امن، با پشتیبان‌گیری، پایش و CI.
 
+## تصاویر
+
+<table>
+<tr><td align="center" valign="top"><img src="docs/screenshots/home-hero.jpg" alt="صفحه اصلی"><br><sub>صفحه اصلی</sub></td><td align="center" valign="top"><img src="docs/screenshots/product.jpg" alt="صفحه محصول"><br><sub>صفحه محصول</sub></td></tr>
+<tr><td align="center" valign="top"><img src="docs/screenshots/studio-colors.jpg" alt="استودیو: رنگ‌ها با پیش‌نمایش زنده"><br><sub>استودیو: رنگ‌ها با پیش‌نمایش زنده</sub></td><td align="center" valign="top"><img src="docs/screenshots/studio-page-editor.jpg" alt="استودیو: سازنده صفحه"><br><sub>استودیو: سازنده صفحه</sub></td></tr>
+</table>
+
+<table>
+<tr><td align="center" valign="top"><img src="docs/screenshots/preset-gold.jpg" alt="طلایی لوکس"><br><sub>طلایی لوکس</sub></td><td align="center" valign="top"><img src="docs/screenshots/preset-emerald.jpg" alt="زمرد لوکس"><br><sub>زمرد لوکس</sub></td><td align="center" valign="top"><img src="docs/screenshots/preset-pearl.jpg" alt="مروارید"><br><sub>مروارید</sub></td><td align="center" valign="top"><img src="docs/screenshots/preset-minimal.jpg" alt="مینیمال روشن"><br><sub>مینیمال روشن</sub></td></tr>
+</table>
+
+<table>
+<tr><td align="center" valign="top"><img src="docs/screenshots/m-home.jpg" alt="موبایل"><br><sub>موبایل</sub></td><td align="center" valign="top"><img src="docs/screenshots/m-product.jpg" alt="محصول"><br><sub>محصول</sub></td><td align="center" valign="top"><img src="docs/screenshots/m-cart.jpg" alt="سبد"><br><sub>سبد</sub></td><td align="center" valign="top"><img src="docs/screenshots/m-menu.jpg" alt="منو"><br><sub>منو</sub></td></tr>
+</table>
+
+همه تصاویر (فروشگاه، خرید، موبایل، پیش‌تنظیم‌ها، استودیو و پنل مدیریت): [docs/screenshots.md](docs/screenshots.md)
+
 ## مستندات
 
 | سند | محتوا |
@@ -34,6 +51,7 @@
 | [نقشه راه](docs/roadmap.md) | چندفروشگاهی واقعی، لایه AI و بهبودها |
 | [راهنمای استقرار](DEPLOY.md) | production با Docker، TLS، پشتیبان‌گیری، پایش |
 | [پوسته‌ها](themes/README.md) | ساخت و تغییر پوسته |
+| [تصاویر](docs/screenshots.md) | همه بخش‌های سایت، استودیو و پنل مدیریت |
 
 ## ساختار پروژه
 
