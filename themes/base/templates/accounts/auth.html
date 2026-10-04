@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load seo static %}
+{% load seo static notifications %}
 {% block seo %}{% seo_head title="ورود / ثبت‌نام" %}{% endblock %}
 {% block content %}
 <div class="relative grid min-h-[calc(100vh-72px)] place-items-center overflow-hidden py-12">
@@ -14,6 +14,9 @@
       {% include "components/field.html" with field=form.password %}
       <label class="check">{{ form.remember }} {{ form.remember.label }}</label>
       <button class="btn btn-lg w-full" type="submit">ورود</button>
+      {% otp_login_enabled as otp_on %}{% if otp_on %}
+      <a class="btn btn-ghost w-full" href="{% url 'notifications:otp_login' %}{% if next %}?next={{ next|urlencode }}{% endif %}">ورود با کد پیامکی</a>
+      {% endif %}
     </form>
 
     <form class="grid content-start gap-4 border-line max-lg:border-t max-lg:pt-10 lg:border-s lg:px-14" method="post" action="{% url 'accounts:register' %}" novalidate>

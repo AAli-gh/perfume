@@ -4,7 +4,7 @@ from django.views.decorators.http import require_POST
 
 from apps.cart.cart import Cart
 
-from .forms import CheckoutForm
+from .forms import PROVINCES, CheckoutForm
 from .models import Order
 from .selectors import get_owned_order, remember_order
 from .services import CouponUnavailable, OutOfStock, create_order
@@ -21,7 +21,8 @@ def checkout(request):
 
     form = CheckoutForm(request.POST, store=request.store)
     if not form.is_valid():
-        return render(request, "cart/detail.html", {"cart": cart, "form": form, "form_error": True}, status=422)
+        context = {"cart": cart, "form": form, "form_error": True, **_quote_context(cart, form)}
+        return render(request, "cart/detail.html", context, status=422)
     try:
         order = create_order(cart, form, request.user)
     except OutOfStock as exc:
@@ -38,6 +39,27 @@ def checkout(request):
         return redirect("payments:start", number=order.number)
     messages.success(request, "سفارش شما با موفقیت ثبت شد.")
     return redirect(order)
+
+
+def _quote_context(cart, form):
+    """قیمت سبد با روش ارسال و استان انتخاب‌شده در فرم تسویه (حتی وقتی بقیه فرم هنوز ناقص است)."""
+    methods = {str(m.pk): m for m in getattr(form, "shipping_methods", [])}
+    method = methods.get(form.data.get("shipping_method", "")) or next(iter(methods.values()), None)
+    province = form.data.get("province", "")
+    if province not in PROVINCES:
+        province = ""
+    if method is None:
+        return {}
+    return {"quote": cart.quote(method, province), "shipping_label": method.name}
+
+
+@require_POST
+def quote(request):
+    """HTMX: به‌روزرسانی خلاصه سفارش با تغییر استان یا روش ارسال."""
+    cart = Cart(request)
+    form = CheckoutForm(request.POST, store=request.store)
+    context = {"cart": cart, "summary_id": "checkout-summary", **_quote_context(cart, form)}
+    return render(request, "cart/partials/summary.html", context)
 
 
 def detail(request, number):

@@ -1,5 +1,6 @@
 """فیلترهای قالب: اعداد فارسی، قیمت تومان، تاریخ شمسی و ستاره امتیاز."""
 
+import datetime
 import re
 
 import jdatetime
@@ -54,6 +55,8 @@ def jdate(value, fmt="%d %B %Y"):
     """نمایش تاریخ به تقویم شمسی."""
     if not value:
         return ""
+    if not isinstance(value, datetime.datetime):  # تاریخ بدون ساعت (date)
+        return jdatetime.date.fromgregorian(date=value, locale="fa_IR").strftime(fmt).translate(FA_DIGITS)
     if timezone.is_aware(value):
         value = timezone.localtime(value)
     jd = jdatetime.datetime.fromgregorian(datetime=value, locale="fa_IR")

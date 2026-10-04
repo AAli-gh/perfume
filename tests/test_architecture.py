@@ -8,8 +8,9 @@ import pytest
 APPS_DIR = Path(__file__).resolve().parent.parent / "apps"
 
 # هسته فروشگاه — نباید به لایه نمایش یا افزونه‌ها وابسته باشد
-DOMAIN_APPS = ["accounts", "catalog", "reviews", "discounts", "cart", "wishlist", "orders", "payments", "blog", "marketing"]
-PRESENTATION_AND_EXTENSIONS = ["themes", "pages", "builder", "seo", "ai"]
+DOMAIN_APPS = ["accounts", "catalog", "reviews", "discounts", "shipping", "cart", "wishlist", "orders", "payments", "blog",
+               "marketing"]
+PRESENTATION_AND_EXTENSIONS = ["themes", "pages", "builder", "seo", "ai", "notifications"]
 
 # وابستگی‌های مجاز هر اپ هسته (به‌جز core که هسته مشترک است)
 ALLOWED_DEPENDENCIES = {
@@ -17,8 +18,9 @@ ALLOWED_DEPENDENCIES = {
     "catalog": set(),
     "reviews": {"catalog"},
     "discounts": set(),
-    "cart": {"catalog", "discounts"},
-    "orders": {"accounts", "catalog", "cart", "discounts"},  # ← payments ندارد (Dependency Inversion)
+    "shipping": set(),
+    "cart": {"catalog", "discounts", "shipping"},
+    "orders": {"accounts", "catalog", "cart", "discounts", "shipping"},  # ← payments ندارد (Dependency Inversion)
     "payments": {"orders"},
     "wishlist": {"catalog"},
     "blog": set(),

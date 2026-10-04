@@ -15,6 +15,7 @@ from apps.discounts.models import Coupon
 from apps.discounts.services import record_usage
 
 from .models import Order, OrderItem
+from .signals import order_placed
 
 __all__ = ["CouponUnavailable", "OutOfStock", "create_order"]
 
@@ -55,7 +56,10 @@ def create_order(cart, form, user=None):
         if error:
             raise CouponUnavailable(error)
 
-    pricing = calculate(lines, cart.store.config, coupon)
+    method = form.cleaned_data.get("shipping_method")
+    pricing = calculate(lines, cart.store.config, coupon, shipping_method=method, province=order.province)
+    if method is not None:
+        order.shipping_method, order.shipping_method_name = method, method.name
     order.subtotal, order.discount, order.shipping, order.total = (
         pricing.subtotal, pricing.discount, pricing.shipping, pricing.total,
     )
@@ -74,4 +78,5 @@ def create_order(cart, form, user=None):
     if coupon:
         record_usage(coupon)
     remember_address(order.user, {f: getattr(order, f) for f in Address.FIELDS})
+    transaction.on_commit(lambda: order_placed.send(sender=Order, order=order))
     return order

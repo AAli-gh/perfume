@@ -12,7 +12,9 @@
     <h2 class="mb-5 mt-12 text-[2rem] lg:text-[2.6rem]">ثبت سفارش</h2>
     {% if form.non_field_errors %}<p class="alert alert-err mb-4">{{ form.non_field_errors|join:" " }}</p>{% endif %}
     {% if form_error %}<p class="alert alert-err mb-4">لطفاً خطاهای فرم را برطرف کنید.</p>{% endif %}
-    <form class="grid items-start gap-7 lg:grid-cols-[1.2fr_1fr]" method="post" action="{% url 'orders:checkout' %}" novalidate>
+    <form class="grid items-start gap-7 lg:grid-cols-[1.2fr_1fr]" method="post" action="{% url 'orders:checkout' %}" novalidate
+          hx-post="{% url 'orders:quote' %}" hx-trigger="change from:#id_province, change from:[name=shipping_method]"
+          hx-target="#checkout-summary" hx-swap="outerHTML">
       {% csrf_token %}
       <div class="panel min-w-0">
         <h3 class="panel-title">اطلاعات گیرنده</h3>
@@ -31,7 +33,18 @@
       <div class="panel min-w-0">
         <h3 class="panel-title">خلاصه سفارش</h3>
         <div class="panel-body">
-          {% include "cart/partials/summary.html" with summary_id="checkout-summary" %}
+          {% include "cart/partials/summary.html" with summary_id="checkout-summary" quote=quote shipping_label=shipping_label %}
+          {% if form.shipping_method %}
+          <fieldset class="my-4 grid gap-2">
+            <legend class="mb-2 text-[.95rem]">روش ارسال</legend>
+            {% for radio in form.shipping_method %}
+              <label class="flex cursor-pointer items-center gap-2.5 rounded border border-line px-3 py-2.5 text-[.92rem] has-[:checked]:border-copper has-[:checked]:bg-copper/10">
+                {{ radio.tag }} <span class="flex-1">{{ radio.choice_label }}</span>
+              </label>
+            {% endfor %}
+            {% for e in form.shipping_method.errors %}<span class="field-error">{{ e }}</span>{% endfor %}
+          </fieldset>
+          {% endif %}
           <fieldset class="my-4 grid gap-2">
             <legend class="mb-2 text-[.95rem]">روش پرداخت</legend>
             {% for radio in form.payment_method %}

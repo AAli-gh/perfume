@@ -1,0 +1,23 @@
+{% load majd %}{% autoescape off %}{% if audience == "staff" %}سفارش جدید در {{ store }}{% else %}{{ name }} عزیز، سلام{% endif %}
+
+{{ subject }}
+
+شماره سفارش: {{ number }}
+وضعیت: {{ status }}
+روش پرداخت: {{ payment_method }}
+{% for item in order.items.all %}- {{ item.product_name }} ({{ item.size_ml|fa }} میل) × {{ item.quantity|fa }}: {{ item.line_total|toman }}
+{% endfor %}
+جمع جزء: {{ order.subtotal|toman }}{% if order.discount %}
+تخفیف: {{ order.discount|toman }}{% endif %}
+هزینه ارسال: {% if order.shipping %}{{ order.shipping|toman }}{% else %}رایگان{% endif %}
+مبلغ نهایی: {{ total }}
+{% if tracking_code %}
+روش ارسال: {{ shipping_method }}
+کد رهگیری: {{ tracking_code }}{% if tracking_url %}
+پیگیری: {{ tracking_url }}{% endif %}
+{% endif %}
+گیرنده: {{ order.full_name }}، {{ order.province }}، {{ order.city }}، {{ order.address }}
+
+مشاهده سفارش: {{ order_url }}
+
+{{ store }}{% endautoescape %}

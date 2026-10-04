@@ -1,4 +1,4 @@
-<div {% if summary_id %}id="{{ summary_id }}"{% endif %} {% if oob %}hx-swap-oob="true"{% endif %}>
+{% with price=quote|default:cart %}<div {% if summary_id %}id="{{ summary_id }}"{% endif %} {% if oob %}hx-swap-oob="true"{% endif %}>
   {% for line in cart %}
     <div class="flex items-center gap-3 border-b border-line py-2.5">
       <img src="{{ line.product.image.url }}" alt="" class="h-[50px] w-[50px] border border-line object-cover">
@@ -6,15 +6,15 @@
       <span class="text-sm">{{ line.line_total|toman }}</span>
     </div>
   {% endfor %}
-  <div class="flex justify-between py-2.5 text-[.95rem]"><span>جمع جزء</span><span>{{ cart.subtotal|toman }}</span></div>
-  {% if cart.coupon %}
+  <div class="flex justify-between py-2.5 text-[.95rem]"><span>جمع جزء</span><span>{{ price.subtotal|toman }}</span></div>
+  {% if price.coupon %}
     <div class="flex items-center justify-between py-2.5 text-[.95rem] text-success">
-      <span>تخفیف ({{ cart.coupon.code }}، {{ cart.coupon.percent|fa }}٪)
+      <span>تخفیف ({{ price.coupon.code }}، {{ price.coupon.percent|fa }}٪)
         {% if removable %}<button class="ms-1 text-xs text-muted hover:text-danger" hx-post="{% url 'cart:coupon_remove' %}" hx-target="#cart-area" hx-swap="outerHTML">حذف</button>{% endif %}
       </span>
-      <span>− {{ cart.discount|toman }}</span>
+      <span>− {{ price.discount|toman }}</span>
     </div>
   {% endif %}
-  <div class="flex justify-between py-2.5 text-[.95rem]"><span>هزینه ارسال</span><span>{% if cart.shipping %}{{ cart.shipping|toman }}{% else %}رایگان{% endif %}</span></div>
-  <div class="mt-1.5 flex justify-between border-t border-line pt-3.5 text-xl text-gold"><span>مبلغ قابل پرداخت</span><span>{{ cart.total|toman }}</span></div>
-</div>
+  <div class="flex justify-between py-2.5 text-[.95rem]"><span>هزینه ارسال{% if shipping_label %} <small class="text-xs text-muted">({{ shipping_label }})</small>{% endif %}</span><span>{% if price.shipping %}{{ price.shipping|toman }}{% else %}رایگان{% endif %}</span></div>
+  <div class="mt-1.5 flex justify-between border-t border-line pt-3.5 text-xl text-gold"><span>مبلغ قابل پرداخت</span><span>{{ price.total|toman }}</span></div>
+</div>{% endwith %}

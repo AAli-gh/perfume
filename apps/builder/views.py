@@ -6,13 +6,14 @@ Viewها فقط هماهنگ‌کننده هستند: اعتبارسنجی در 
 from functools import wraps
 
 from django.contrib import messages
-from django.http import Http404
+from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
-from apps.core.templatetags.majd import fa
+from apps.core.templatetags.majd import fa, jdate
+from apps.orders import reports
 from apps.pages import services as page_services
 from apps.pages.models import Page, PageSection
 from apps.themes import chrome
@@ -23,7 +24,7 @@ from . import forms as F
 from . import preview
 from . import services as builder
 from .access import (
-    PUBLISH_PERM, SECTION_ADD_PERM, SECTION_CHANGE_PERM, SECTION_DELETE_PERM, THEME_PERM, studio_required,
+    PUBLISH_PERM, REPORTS_PERM, SECTION_ADD_PERM, SECTION_CHANGE_PERM, SECTION_DELETE_PERM, THEME_PERM, studio_required,
 )
 from .models import Revision
 from apps.core.audit import record
@@ -399,3 +400,63 @@ def restore(request, number):
     messages.success(request, f"نسخه {fa(revision.number)} در پیش‌نویس بارگذاری شد. پیش‌نمایش را ببینید و در صورت "
                               f"رضایت منتشر کنید.")
     return redirect("builder:preview")
+
+
+# ---------- گزارش فروش ----------
+
+CHART_W, CHART_H, CHART_PAD = 720, 220, 28
+
+
+def _chart(days):
+    """نمودار ستونی فروش روزانه به‌صورت SVG سمت سرور (بدون JS؛ سازگار با CSP)."""
+    top = max((d["revenue"] for d in days), default=0) or 1
+    step = CHART_W / max(len(days), 1)
+    width = max(step - 2, 1)  # فاصله ۲ پیکسلی بین ستون‌ها
+    label_every = max(1, len(days) // 6)
+    bars = []
+    for i, d in enumerate(days):
+        h = round(d["revenue"] / top * (CHART_H - CHART_PAD), 1)
+        bars.append({**d, "x": round(i * step, 1), "y": round(CHART_H - h, 1), "w": round(width, 1), "h": h,
+                     "label": jdate(d["day"], "%d %B") if i % label_every == 0 else ""})
+    grid = []
+    for f in (0.5, 1):
+        y = round(CHART_H - f * (CHART_H - CHART_PAD), 1)
+        grid.append({"y": y, "label_y": y - 4, "value": round(top * f)})
+    return {"bars": bars, "grid": grid, "w": CHART_W, "h": CHART_H, "full_h": CHART_H + 24, "label_y": CHART_H + 16}
+
+
+def _csv_cell(value):
+    text = str(value)
+    return "'" + text if text[:1] in ("=", "+", "-", "@", "\t", "\r") else text  # جلوگیری از فرمول در Excel
+
+
+@studio_required(REPORTS_PERM)
+def sales_report(request):
+    try:
+        days = int(request.GET.get("days", 30))
+    except ValueError:
+        days = 30
+    period = reports.Period.last(days)
+    if request.GET.get("format") == "csv":
+        import csv
+
+        response = HttpResponse(content_type="text/csv; charset=utf-8")
+        response["Content-Disposition"] = f'attachment; filename="orders-{period.start}-{period.end}.csv"'
+        response.write("\ufeff")  # BOM تا Excel متن فارسی را درست نشان دهد
+        writer = csv.writer(response)
+        for row in reports.export_rows(request.store, period):
+            writer.writerow([_csv_cell(v) for v in row])
+        record("studio.export_orders", request, target=f"{period.start}..{period.end}")
+        return response
+    current, previous = reports.summary(request.store, period), reports.summary(request.store, period.previous())
+    daily = reports.daily(request.store, period)
+    return render(request, "builder/reports.html", {
+        "nav": "reports", "period": period, "periods": reports.PERIODS.items(),
+        "summary": current, "previous": previous,
+        "changes": {k: reports.change(current[k], previous[k]) for k in ("revenue", "orders", "average")},
+        "daily": daily, "chart": _chart(daily),
+        "statuses": reports.by_status(request.store, period),
+        "payments": reports.by_payment_method(request.store, period),
+        "products": reports.top_products(request.store, period),
+        "coupons": reports.top_coupons(request.store, period),
+    })

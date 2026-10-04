@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     "apps.discounts",
     "apps.cart",
     "apps.wishlist",
+    "apps.shipping",
     "apps.orders",
     "apps.payments",
     "apps.blog",
@@ -48,6 +49,7 @@ INSTALLED_APPS = [
     "apps.themes",
     "apps.builder",
     "apps.seo",
+    "apps.notifications",
 ]
 
 MIDDLEWARE = [
@@ -170,6 +172,12 @@ CELERY_BEAT_SCHEDULE = {
     "release-expired-reservations": {"task": "apps.orders.tasks.release_expired_reservations", "schedule": 300.0},
     "prune-audit-log": {"task": "apps.core.tasks.prune_audit_log", "schedule": 86400.0},
 }
+
+# ---------- پیامک (apps/notifications) ----------
+# SMS_PROVIDER: kavenegar | smsir | console (توسعه: فقط لاگ) — خالی یعنی پیامک خاموش
+SMS_PROVIDER = env("SMS_PROVIDER", default="")
+SMS_API_KEY = env("SMS_API_KEY", default="")
+SMS_SENDER = env("SMS_SENDER", default="")  # شماره خط ارسال پیامک متنی
 
 # ---------- امنیت ----------
 CSP_ENABLED = env.bool("CSP_ENABLED", default=True)

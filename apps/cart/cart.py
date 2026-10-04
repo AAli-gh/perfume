@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from apps.catalog.models import ProductVariant
 from apps.core.stores import get_current_store
 from apps.discounts.selectors import find_coupon
+from apps.shipping.selectors import default_method
 
 from .pricing import calculate
 
@@ -100,9 +101,15 @@ class Cart:
     @property
     def pricing(self):
         if self._pricing is None:
-            code = self.session.get(COUPON_KEY)
-            self._pricing = calculate(self.lines, self.store.config, find_coupon(self.store, code) if code else None)
+            self._pricing = self.quote()
         return self._pricing
+
+    def quote(self, shipping_method=None, province=""):
+        """قیمت سبد با روش ارسال و استان مشخص (پیش‌فرض: اولین روش ارسال فعال، بدون استان)."""
+        code = self.session.get(COUPON_KEY)
+        method = shipping_method or default_method(self.store)
+        return calculate(self.lines, self.store.config, find_coupon(self.store, code) if code else None,
+                         shipping_method=method, province=province)
 
     @property
     def subtotal(self):

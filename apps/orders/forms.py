@@ -3,18 +3,26 @@ from django import forms
 from apps.accounts.models import Address
 from apps.accounts.services import default_address
 from apps.core.forms import StyledFormMixin, en_digits
+from apps.core.geo import PROVINCES
 from apps.core.stores import get_current_store
+
+from apps.shipping.selectors import active_methods
 
 from .integration import online_payment_available
 
 from .models import Order
 
-PROVINCES = [
-    "آذربایجان شرقی", "آذربایجان غربی", "اردبیل", "اصفهان", "البرز", "ایلام", "بوشهر", "تهران",
-    "چهارمحال و بختیاری", "خراسان جنوبی", "خراسان رضوی", "خراسان شمالی", "خوزستان", "زنجان", "سمنان",
-    "سیستان و بلوچستان", "فارس", "قزوین", "قم", "کردستان", "کرمان", "کرمانشاه", "کهگیلویه و بویراحمد",
-    "گلستان", "گیلان", "لرستان", "مازندران", "مرکزی", "هرمزگان", "همدان", "یزد",
-]
+
+
+class ShippingMethodField(forms.TypedChoiceField):
+    """انتخاب روش ارسال از میان روش‌های فعال همان فروشگاه (بدون کوئری اضافه برای اعتبارسنجی)."""
+
+    def __init__(self, methods):
+        self.methods = {str(m.pk): m for m in methods}
+        super().__init__(label="روش ارسال", choices=[(k, f"{m.name} · {m.description}" if m.description else m.name)
+                                  for k, m in self.methods.items()],
+                         coerce=self.methods.get, initial=next(iter(self.methods)), widget=forms.RadioSelect,
+                         error_messages={"required": "روش ارسال را انتخاب کنید."})
 
 
 class CheckoutForm(StyledFormMixin, forms.ModelForm):
@@ -46,6 +54,17 @@ class CheckoutForm(StyledFormMixin, forms.ModelForm):
             choices = [c for c in choices if c[0] != Order.PaymentMethod.ONLINE]
         self.fields["payment_method"].choices = choices
         self.fields["payment_method"].initial = choices[0][0]
+
+        self.shipping_methods = active_methods(store or get_current_store())
+        if self.shipping_methods:
+            self.fields["shipping_method"] = ShippingMethodField(self.shipping_methods)
+
+    def clean(self):
+        data = super().clean()
+        method, province = data.get("shipping_method"), data.get("province")
+        if method is not None and province and not method.serves(province):
+            self.add_error("shipping_method", f"«{method.name}» به استان {province} ارسال نمی‌کند.")
+        return data
 
     def clean_phone(self):
         return en_digits(self.cleaned_data["phone"])

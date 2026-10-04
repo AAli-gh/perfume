@@ -27,8 +27,8 @@ python manage.py runserver
 config/settings/   base · dev · prod · test
 apps/
   core/            Store (Tenant)، تنظیمات فروشگاه، امنیت، rate limit، audit، سلامت، لاگ، schema فرم‌ها
-  accounts/ catalog/ reviews/ discounts/ cart/ wishlist/ orders/ payments/ blog/ marketing/   ← هسته (Domain)
-  themes/ pages/ builder/ seo/ ai/                                                            ← نمایش و افزونه‌ها
+  accounts/ catalog/ reviews/ discounts/ shipping/ cart/ wishlist/ orders/ payments/ blog/ marketing/   ← هسته (Domain)
+  themes/ pages/ builder/ seo/ ai/ notifications/                                              ← نمایش و افزونه‌ها
 themes/            قالب‌های فروشگاه: base/ (مشترک) و پوسته‌ها (luxury/ …)
 static/            src/input.css ← css/app.css (Tailwind 3) · js/ · vendor/
 tests/             معماری، بودجه کوئری، e2e/
@@ -38,10 +38,10 @@ deploy/            entrypoint، gunicorn، nginx، backup/restore، smoke test
 ### جهت وابستگی (با تست قفل شده)
 
 ```
-   themes · pages · builder · seo · ai          (نمایش و افزونه‌ها)
+   themes · pages · builder · seo · ai · notifications   (نمایش و افزونه‌ها)
                     │
                     ▼
- accounts catalog reviews discounts cart wishlist orders payments blog marketing   (هسته)
+ accounts catalog reviews discounts shipping cart wishlist orders payments blog marketing   (هسته)
                     │
                     ▼
                   core
@@ -159,6 +159,13 @@ deploy/            entrypoint، gunicorn، nginx، backup/restore، smoke test
 2. کلید API را از متغیر محیطی بخوانید.
 3. `AI_PROVIDER=<code>` را تنظیم کنید.
 4. قابلیت‌ها در `apps/ai/features/` قرار می‌گیرند و خروجی آن‌ها همیشه پیش‌نویس است (ADR-0010).
+
+### افزودن سرویس پیامک یا شرکت حمل
+
+راهنمای کامل در [integrations.md](integrations.md#برای-توسعه‌دهنده). خلاصه:
+- **پیامک:** زیرکلاس `SMSProvider` در `apps/notifications/sms/` با `@register`.
+- **شرکت حمل:** زیرکلاس `Carrier` در `apps/shipping/carriers/` با `@register`.
+- **واکنش به رویدادهای سفارش:** به `order_placed` یا `order_status_changed` در `apps/orders/signals.py` وصل شوید. orders هرگز اپ شما را import نمی‌کند.
 
 ### افزودن task زمان‌بندی‌شده
 

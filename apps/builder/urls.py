@@ -22,5 +22,6 @@ urlpatterns = [
     path("publish/", views.publish, name="publish"),
     path("discard/", views.discard, name="discard"),
     path("history/", views.history, name="history"),
+    path("reports/", views.sales_report, name="reports"),
     path("history/<int:number>/restore/", views.restore, name="restore"),
 ]
