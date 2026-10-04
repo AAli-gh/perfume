@@ -16,7 +16,7 @@ def test_purchase_end_to_end(site, page):
     page.check("input[name=scent][value=woody]")
     expect(page.locator("#results > div:first-child > span:first-child")).to_contain_text("از ۲ محصول")
     assert "scent=woody" in page.url  # hx-push-url
-    page.locator(".product-card button[type=submit]").first.click()
+    page.locator(".product-card form[action$='/cart/add/'] button").first.click()
     expect(page.locator("#cart-badge")).to_have_text("۱")
     expect(page.locator("#toasts")).to_contain_text("به سبد خرید اضافه شد")
 
@@ -133,8 +133,11 @@ def test_rate_limited_htmx_request_shows_toast(site, probe):
 
 def test_mobile_layout_and_menu(site, new_probe):
     page = new_probe(viewport={"width": 390, "height": 844}, is_mobile=True, has_touch=True).page
+    page.goto(site + "/product/mystic-oud/")
+    page.click("form[id^=compare-button] button")
+    page.wait_for_timeout(300)
     for path in ["/", "/shop/", "/product/mystic-oud/", "/collections/", "/blog/", "/contact/", "/cart/",
-                 "/account/login/"]:
+                 "/account/login/", "/compare/", "/finder/"]:
         page.goto(site + path)
         overflow = page.evaluate("document.documentElement.scrollWidth - innerWidth")
         assert overflow <= 0, f"اسکرول افقی در {path}: {overflow}px"
@@ -159,3 +162,35 @@ def test_404_page(site, page):
     page.fill("#nf-search", "عود")
     page.click("form[role=search] button[type=submit] >> nth=-1")
     page.wait_for_url("**/shop/?q=*")
+
+
+def test_compare_and_perfume_finder(site, page):
+    # مقایسه: از کارت محصول (HTMX) و صفحه محصول
+    page.goto(f"{site}/shop/")
+    page.locator("article:has(a[href='/product/mystic-oud/']) form[id^=compare-icon] button").click()
+    expect(page.locator("#compare-badge")).to_be_visible()
+    expect(page.locator("#toasts")).to_contain_text("به مقایسه اضافه شد")
+    page.goto(f"{site}/product/royal-saffron/")
+    page.click("form[id^=compare-button] button")
+    expect(page.locator("form[id^=compare-button] button")).to_contain_text("در فهرست مقایسه")
+    page.click("#compare-badge")
+    page.wait_for_url("**/compare/")
+    expect(page.locator(".compare-table thead th")).to_have_count(3)
+    expect(page.locator(".compare-table")).to_contain_text("شباهت به «عود رازآلود»")
+    page.click("text=فقط تفاوت‌ها")
+    expect(page.locator(".compare-table")).not_to_contain_text("موجودی")
+
+    # عطریاب: هشت مرحله با HTMX و سپس نتیجه
+    page.goto(f"{site}/finder/")
+    for choice in ["زنانه", "شب و مهمانی", "زمستان", "شرقی", "وانیل", None, "قوی و بسیار ماندگار", "بالاتر هم اشکالی ندارد"]:
+        if choice:
+            page.locator("label.finder-option", has_text=choice).first.click()
+        page.click("#finder button[type=submit]")
+        if choice != "بالاتر هم اشکالی ندارد":
+            expect(page.locator("#finder")).to_be_visible()
+    page.wait_for_url("**/finder/results/")
+    expect(page.locator("h1")).to_contain_text("عطرهای پیشنهادی")
+    expect(page.locator(".match-ring").first).to_contain_text("٪")
+    page.click("text=مقایسه")
+    page.wait_for_url("**/compare/")
+    expect(page.locator(".compare-table thead th")).not_to_have_count(1)

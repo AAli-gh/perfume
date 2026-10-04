@@ -3,6 +3,8 @@ from django.http import Http404
 from django.shortcuts import render
 
 from . import selectors
+from .history import remember_view
+from .recommend import similar_products
 from .forms import ShopFilterForm
 from .models import Category, Collection, Product
 
@@ -88,9 +90,10 @@ def product_detail(request, slug):
         product = selectors.product_detail(request.store, slug)
     except Product.DoesNotExist:
         raise Http404 from None
+    remember_view(request, product)
     return render(request, "catalog/product.html", {
         "product": product,
         "gallery": selectors.product_gallery(product),
         "variants": list(product.variants.all()),
-        "related": selectors.related_products(product),
+        "related": similar_products(product) or selectors.related_products(product),
     })

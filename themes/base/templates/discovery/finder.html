@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% load seo %}
+{% block seo %}{% seo_head title="عطر مناسب من را پیدا کن" description="با پاسخ به چند سؤال کوتاه درباره سلیقه، موقعیت و فصل، عطرهای متناسب با شما پیشنهاد می‌شود." %}{% endblock %}
+{% block content %}
+{% include "components/page_hero.html" with image="img/hero-shop.jpg" title="عطر مناسب من را پیدا کن" subtitle="به ۸ سؤال کوتاه پاسخ دهید تا عطرهایی که با سلیقه شما جور است را پیشنهاد کنیم." %}
+<div class="container py-12">
+  <div class="mx-auto max-w-[760px]">{% include "discovery/partials/finder_step.html" %}</div>
+</div>
+{% endblock %}

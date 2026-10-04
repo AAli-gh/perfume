@@ -5,6 +5,8 @@ DEFAULT_HOME_SECTIONS = [
     "features",
     "collections",
     "best_sellers",
+    "for_you",
+    "finder_cta",
     "banner",
     "blog",
     "newsletter",

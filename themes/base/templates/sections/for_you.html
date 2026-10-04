@@ -1,0 +1,7 @@
+<section class="container {{ spacing }}">
+  <div class="mb-8">
+    <h2 class="m-0 text-[1.6rem] lg:text-[2.1rem]">{{ section.title }}</h2>
+    {% if section.favorite_notes %}<p class="m-0 mt-1 text-muted">بر اساس سلیقه شما: {{ section.favorite_notes|join:"، " }}</p>{% endif %}
+  </div>
+  {% include "components/carousel.html" with products=section.products %}
+</section>

@@ -1,12 +1,16 @@
 from django.conf import settings
+from django.contrib.postgres.fields import ArrayField
 from django.contrib.postgres.indexes import GinIndex
 from django.contrib.postgres.search import SearchVectorField
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Avg, Count, Min, Q
 from django.urls import reverse
 
 from apps.core.validators import image_upload
 from apps.core.models import SeoFields, StoreOwned, StoreQuerySet
+
+from .profile import Concentration, Gender, Occasion, Season, labels
 
 
 class Brand(StoreOwned):
@@ -231,6 +235,21 @@ class Product(StoreOwned, SeoFields):
     short_description = models.CharField("توضیح کوتاه", max_length=400)
     description = models.TextField("توضیحات کامل")
     image = models.ImageField("تصویر اصلی", upload_to="products/", validators=[image_upload])
+    # مشخصات رایحه (اختیاری؛ برای مقایسه، «عطر مناسب من» و پیشنهادها)
+    gender = models.CharField("مناسب برای", max_length=10, choices=Gender.choices, blank=True)
+    concentration = models.CharField("غلظت", max_length=10, choices=Concentration.choices, blank=True)
+    longevity = models.PositiveSmallIntegerField(
+        "ماندگاری", null=True, blank=True, validators=[MinValueValidator(1), MaxValueValidator(5)],
+        help_text="۱ (کمتر از ۲ ساعت) تا ۵ (بیش از ۸ ساعت)",
+    )
+    sillage = models.PositiveSmallIntegerField(
+        "پخش بو", null=True, blank=True, validators=[MinValueValidator(1), MaxValueValidator(5)],
+        help_text="۱ (نزدیک به پوست) تا ۵ (بسیار قوی)",
+    )
+    seasons = ArrayField(models.CharField(max_length=10, choices=Season.choices), verbose_name="فصل مناسب",
+                         default=list, blank=True)
+    occasions = ArrayField(models.CharField(max_length=10, choices=Occasion.choices), verbose_name="موقعیت مناسب",
+                           default=list, blank=True)
     is_active = models.BooleanField("فعال", default=True)
     is_featured = models.BooleanField("ویژه", default=False)
     created_at = models.DateTimeField("تاریخ ایجاد", auto_now_add=True)
@@ -267,6 +286,18 @@ class Product(StoreOwned, SeoFields):
     @property
     def in_stock(self):
         return any(v.stock > 0 for v in self.variants.all())
+
+    @property
+    def season_labels(self):
+        return labels(Season, self.seasons)
+
+    @property
+    def occasion_labels(self):
+        return labels(Occasion, self.occasions)
+
+    @property
+    def has_profile(self):
+        return bool(self.gender or self.concentration or self.longevity or self.sillage or self.seasons or self.occasions)
 
     def notes_by_layer(self):
         """{"top": [نت‌ها], "heart": [...], "base": [...]} — با prefetch روی notes__note بدون کوئری اضافه."""

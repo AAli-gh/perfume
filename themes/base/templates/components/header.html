@@ -1,4 +1,4 @@
-{% load i18n %}{% url 'pages:home' as home_url %}
+{% load i18n discovery %}{% url 'pages:home' as home_url %}
 <header class="{% if THEME_HEADER.sticky %}sticky top-0{% else %}relative{% endif %} z-50 border-b border-line bg-ink/90 backdrop-blur">
   <div class="container flex h-[72px] items-center gap-6 lg:gap-10">
     <button class="icon-btn lg:hidden" data-menu-toggle aria-label="{% translate "منو" %}" aria-expanded="false" aria-controls="main-nav">{% icon "menu" %}</button>
@@ -20,6 +20,7 @@
       {% else %}
         <a class="icon-btn" href="{% url 'accounts:login' %}" title="{% translate "ورود / ثبت‌نام" %}" aria-label="{% translate "ورود / ثبت‌نام" %}">{% icon "user" %}</a>
       {% endif %}
+      {% compare_badge %}
       <a class="icon-btn" href="{% url 'cart:detail' %}" aria-label="{% translate "سبد خرید" %}">{% icon "cart" %}{% include "components/cart_badge.html" %}</a>
     </div>
   </div>

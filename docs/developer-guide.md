@@ -28,7 +28,7 @@ config/settings/   base · dev · prod · test
 apps/
   core/            Store (Tenant)، تنظیمات فروشگاه، امنیت، rate limit، audit، سلامت، لاگ، schema فرم‌ها
   accounts/ catalog/ reviews/ discounts/ shipping/ cart/ wishlist/ orders/ payments/ blog/ marketing/   ← هسته (Domain)
-  themes/ pages/ builder/ seo/ ai/ notifications/                                              ← نمایش و افزونه‌ها
+  themes/ pages/ builder/ seo/ ai/ notifications/ discovery/                                   ← نمایش و افزونه‌ها
 themes/            قالب‌های فروشگاه: base/ (مشترک) و پوسته‌ها (luxury/ …)
 static/            src/input.css ← css/app.css (Tailwind 3) · js/ · vendor/
 tests/             معماری، بودجه کوئری، e2e/
@@ -38,7 +38,7 @@ deploy/            entrypoint، gunicorn، nginx، backup/restore، smoke test
 ### جهت وابستگی (با تست قفل شده)
 
 ```
-   themes · pages · builder · seo · ai · notifications   (نمایش و افزونه‌ها)
+   themes · pages · builder · seo · ai · notifications · discovery   (نمایش و افزونه‌ها)
                     │
                     ▼
  accounts catalog reviews discounts shipping cart wishlist orders payments blog marketing   (هسته)
