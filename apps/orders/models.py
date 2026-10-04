@@ -48,6 +48,17 @@ class Order(StoreOwned):
     total = models.PositiveIntegerField("مبلغ نهایی", default=0)
     coupon_code = models.CharField("کد تخفیف", max_length=30, blank=True)
 
+    shipping_method = models.ForeignKey(
+        "shipping.ShippingMethod", on_delete=models.SET_NULL, null=True, blank=True, related_name="+",
+        verbose_name="روش ارسال",
+    )
+    shipping_method_name = models.CharField("عنوان روش ارسال", max_length=80, blank=True)
+    tracking_code = models.CharField(
+        "کد رهگیری مرسوله", max_length=60, blank=True,
+        help_text="پیش از تغییر وضعیت به «ارسال شده» وارد کنید تا در پیامک و ایمیل مشتری بیاید",
+    )
+    shipped_at = models.DateTimeField("زمان ارسال", null=True, blank=True)
+
     reserved_until = models.DateTimeField(
         "مهلت پرداخت", null=True, blank=True, db_index=True,
         help_text="سفارش آنلاین پرداخت‌نشده بعد از این زمان لغو و موجودی آزاد می‌شود",
@@ -63,6 +74,12 @@ class Order(StoreOwned):
         ordering = ["-created_at"]
         verbose_name = "سفارش"
         verbose_name_plural = "سفارش‌ها"
+
+    @property
+    def tracking_url(self):
+        if not self.tracking_code or self.shipping_method is None:
+            return ""
+        return self.shipping_method.tracking_url(self.tracking_code)
 
     def __str__(self):
         return self.number

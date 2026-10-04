@@ -4,6 +4,7 @@
 - ظاهر و پوسته:   themes.change_themesettings
 - ویرایش بخش‌ها:  pages.change_pagesection   (افزودن: pages.add_pagesection، حذف: pages.delete_pagesection)
 - انتشار:         builder.publish_site        (ویرایشگر بدون این مجوز فقط پیش‌نویس می‌سازد)
+- گزارش فروش:     orders.view_order
 """
 
 from functools import wraps
@@ -16,7 +17,8 @@ SECTION_CHANGE_PERM = "pages.change_pagesection"
 SECTION_ADD_PERM = "pages.add_pagesection"
 SECTION_DELETE_PERM = "pages.delete_pagesection"
 PUBLISH_PERM = "builder.publish_site"  # انتشار، کنار گذاشتن تغییرات و بازگشت به نسخه قبلی
-STUDIO_PERMS = (THEME_PERM, SECTION_CHANGE_PERM, PUBLISH_PERM)
+REPORTS_PERM = "orders.view_order"  # گزارش فروش
+STUDIO_PERMS = (THEME_PERM, SECTION_CHANGE_PERM, PUBLISH_PERM, REPORTS_PERM)
 
 
 def can_use_studio(user):

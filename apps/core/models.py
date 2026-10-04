@@ -30,6 +30,14 @@ class Store(models.Model):
     def __str__(self):
         return self.name
 
+    @property
+    def base_url(self):
+        """آدرس مطلق فروشگاه (دامنه اصلی) برای پیوندهای پیامک و ایمیل، خارج از چرخه درخواست."""
+        domain = (self.domains.filter(is_primary=True).values_list("domain", flat=True).first()
+                  or self.domains.values_list("domain", flat=True).first() or "localhost:8000")
+        scheme = "http" if settings.DEBUG or domain.startswith(("localhost", "127.")) else "https"
+        return f"{scheme}://{domain}"
+
 
 class StoreDomain(models.Model):
     """دامنه‌هایی که به یک فروشگاه اشاره می‌کنند (برای تشخیص فروشگاه از روی Host)."""

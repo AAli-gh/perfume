@@ -49,6 +49,7 @@
 | [معماری و مرجع زیرسیستم‌ها](docs/architecture.md) | هر بخش پلتفرم چطور کار می‌کند و کدش کجاست |
 | [تصمیم‌های معماری (ADR)](docs/adr/README.md) | چرا این‌طور طراحی شده است |
 | [نقشه راه](docs/roadmap.md) | چندفروشگاهی واقعی، لایه AI و بهبودها |
+| [اتصال سرویس‌ها](docs/integrations.md) | پیامک، ایمیل سفارش، ورود با کد، روش‌های ارسال و گزارش فروش |
 | [راهنمای استقرار](DEPLOY.md) | production با Docker، TLS، پشتیبان‌گیری، پایش |
 | [پوسته‌ها](themes/README.md) | ساخت و تغییر پوسته |
 | [تصاویر](docs/screenshots.md) | همه بخش‌های سایت، استودیو و پنل مدیریت |
@@ -189,6 +190,7 @@ ruff check .                   # lint
 | `CELERY_TASK_ALWAYS_EAGER` / `CELERY_BROKER_URL` / `CELERY_RESULT_BACKEND` | اجرای taskها بدون worker (توسعه) و آدرس‌های جایگزین Celery |
 | `DEFAULT_THEME` | پوسته پیش‌فرض (`luxury`) |
 | `AI_PROVIDER` | ارائه‌دهنده AI. خالی یعنی غیرفعال. |
+| `SMS_PROVIDER` / `SMS_API_KEY` / `SMS_SENDER` | سرویس پیامک (`kavenegar`، `smsir` یا `console` برای توسعه)، کلید API و شماره خط. خالی یعنی پیامک خاموش. راهنما: [docs/integrations.md](docs/integrations.md) |
 | `PAYMENT_TEST_GATEWAY_ENABLED` | درگاه آزمایشی داخلی (در prod همیشه خاموش). درگاه واقعی از پنل مدیریت تنظیم می‌شود. |
 | `SEO_NOINDEX` | `true` در staging: جلوگیری از index شدن کل سایت |
 

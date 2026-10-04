@@ -4,6 +4,10 @@ from django.db import models
 from apps.core.validators import iran_mobile_validator, postal_code_validator
 
 
+# حساب‌هایی که با ورود پیامکی ساخته می‌شوند ایمیل واقعی ندارند: 09xxxxxxxxx@sms.invalid (دامنه رزروشده RFC 2606)
+PHONE_ACCOUNT_DOMAIN = "sms.invalid"
+
+
 class UserManager(BaseUserManager):
     use_in_migrations = True
 
@@ -46,8 +50,16 @@ class User(AbstractUser):
         return self.get_full_name() or self.email
 
     @property
+    def has_real_email(self):
+        return not self.email.endswith("@" + PHONE_ACCOUNT_DOMAIN)
+
+    @property
     def display_name(self):
-        return self.first_name or self.email.split("@")[0]
+        return self.first_name or (self.email.split("@")[0] if self.has_real_email else self.phone)
+
+    @property
+    def contact_label(self):
+        return self.email if self.has_real_email else self.phone
 
 
 class Address(models.Model):

@@ -1,0 +1,116 @@
+{% extends "builder/base.html" %}
+{% block title %}گزارش فروش{% endblock %}
+{% block content %}
+<div class="mb-5 flex flex-wrap items-end justify-between gap-3">
+  <div>
+    <h1 class="mb-1 text-[1.7rem]">گزارش فروش</h1>
+    <p class="m-0 text-sm text-muted">{{ period.start|jdate }} تا {{ period.end|jdate }} · سفارش‌های لغوشده و پرداخت‌آنلاینِ ناتمام جزو فروش نیستند.</p>
+  </div>
+  <div class="flex flex-wrap items-center gap-2">
+    <nav class="studio-tabs !border-0" aria-label="بازه گزارش">
+      {% for days, label in periods %}
+      <a href="?days={{ days }}" {% if days == period.days %}aria-current="page"{% endif %}>{{ label }}</a>
+      {% endfor %}
+    </nav>
+    <a class="btn btn-ghost btn-sm" href="?days={{ period.days }}&format=csv">دریافت فایل CSV سفارش‌ها</a>
+  </div>
+</div>
+
+<div class="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+  <div class="studio-preview">
+    <p class="m-0 text-sm text-muted">فروش</p>
+    <p class="m-0 mt-1 text-2xl text-gold">{{ summary.revenue|toman }}</p>
+    {% include "builder/_report_change.html" with value=changes.revenue %}
+  </div>
+  <div class="studio-preview">
+    <p class="m-0 text-sm text-muted">تعداد سفارش</p>
+    <p class="m-0 mt-1 text-2xl text-gold">{{ summary.orders|fa_int }}</p>
+    {% include "builder/_report_change.html" with value=changes.orders %}
+  </div>
+  <div class="studio-preview">
+    <p class="m-0 text-sm text-muted">میانگین هر سفارش</p>
+    <p class="m-0 mt-1 text-2xl text-gold">{{ summary.average|toman }}</p>
+    {% include "builder/_report_change.html" with value=changes.average %}
+  </div>
+  <div class="studio-preview">
+    <p class="m-0 text-sm text-muted">کالای فروخته‌شده</p>
+    <p class="m-0 mt-1 text-2xl text-gold">{{ summary.units|fa_int }} عدد</p>
+    <p class="m-0 mt-1 text-xs text-muted">تخفیف {{ summary.discount|toman }} · لغوشده {{ summary.cancelled|fa_int }}</p>
+  </div>
+</div>
+
+<section class="studio-preview mb-6" aria-labelledby="daily-title">
+  <h2 id="daily-title" class="mb-3 text-lg">فروش روزانه <small class="text-xs text-muted">({{ SITE.currency_label|default:"تومان" }})</small></h2>
+  {% if summary.orders %}
+  <svg viewBox="0 0 {{ chart.w }} {{ chart.full_h }}" class="h-auto w-full" dir="ltr" role="img" aria-labelledby="daily-title">
+    {% for g in chart.grid %}
+    <line x1="0" x2="{{ chart.w }}" y1="{{ g.y }}" y2="{{ g.y }}" class="stroke-line" stroke-width="1"/>
+    {% endfor %}
+    <line x1="0" x2="{{ chart.w }}" y1="{{ chart.h }}" y2="{{ chart.h }}" class="stroke-line-strong" stroke-width="1"/>
+    {% for b in chart.bars %}
+    <g>
+      <title>{{ b.day|jdate }}: {{ b.revenue|toman }} — {{ b.orders|fa }} سفارش</title>
+      <rect x="{{ b.x }}" y="0" width="{{ b.w }}" height="{{ chart.h }}" class="fill-transparent hover:fill-copper/10"/>
+      {% if b.h %}<rect x="{{ b.x }}" y="{{ b.y }}" width="{{ b.w }}" height="{{ b.h }}" rx="2" class="fill-primary"/>{% endif %}
+      {% if b.label %}<text x="{{ b.x }}" y="{{ chart.label_y }}" class="fill-muted text-[11px]">{{ b.label }}</text>{% endif %}
+    </g>
+    {% endfor %}
+    {% for g in chart.grid %}
+    <text x="4" y="{{ g.label_y }}" direction="ltr" class="fill-muted text-[11px]">{{ g.value|fa_int }}</text>
+    {% endfor %}
+  </svg>
+  <details class="mt-3 text-sm">
+    <summary class="cursor-pointer text-muted">جدول فروش روزانه</summary>
+    <table class="mt-2 w-full text-right">
+      <thead class="text-muted"><tr><th class="p-1.5 font-normal">روز</th><th class="p-1.5 font-normal">سفارش</th><th class="p-1.5 font-normal">فروش</th></tr></thead>
+      <tbody>{% for d in daily %}{% if d.orders %}<tr class="border-t border-line"><td class="p-1.5">{{ d.day|jdate }}</td><td class="p-1.5">{{ d.orders|fa }}</td><td class="p-1.5">{{ d.revenue|toman }}</td></tr>{% endif %}{% endfor %}</tbody>
+    </table>
+  </details>
+  {% else %}
+  <p class="m-0 rounded border border-dashed border-line p-6 text-center text-muted">در این بازه فروشی ثبت نشده است.</p>
+  {% endif %}
+</section>
+
+<div class="grid gap-6 xl:grid-cols-2">
+  <section class="studio-preview">
+    <h2 class="mb-3 text-lg">پرفروش‌ترین محصولات</h2>
+    <table class="w-full text-right text-sm">
+      <thead class="text-muted"><tr><th class="p-1.5 font-normal">محصول</th><th class="p-1.5 font-normal">تعداد</th><th class="p-1.5 font-normal">فروش</th></tr></thead>
+      <tbody>
+        {% for p in products %}<tr class="border-t border-line"><td class="p-1.5">{{ p.product_name }}</td><td class="p-1.5">{{ p.units|fa_int }}</td><td class="p-1.5">{{ p.amount|toman }}</td></tr>
+        {% empty %}<tr><td colspan="3" class="p-3 text-center text-muted">—</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </section>
+  <section class="studio-preview">
+    <h2 class="mb-3 text-lg">وضعیت سفارش‌ها</h2>
+    <table class="w-full text-right text-sm">
+      <thead class="text-muted"><tr><th class="p-1.5 font-normal">وضعیت</th><th class="p-1.5 font-normal">تعداد</th><th class="p-1.5 font-normal">مبلغ</th></tr></thead>
+      <tbody>
+        {% for s in statuses %}<tr class="border-t border-line"><td class="p-1.5">{{ s.label }}</td><td class="p-1.5">{{ s.orders|fa_int }}</td><td class="p-1.5">{{ s.amount|toman }}</td></tr>
+        {% empty %}<tr><td colspan="3" class="p-3 text-center text-muted">—</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </section>
+  <section class="studio-preview">
+    <h2 class="mb-3 text-lg">روش پرداخت</h2>
+    <table class="w-full text-right text-sm">
+      <thead class="text-muted"><tr><th class="p-1.5 font-normal">روش</th><th class="p-1.5 font-normal">سفارش</th><th class="p-1.5 font-normal">فروش</th></tr></thead>
+      <tbody>
+        {% for m in payments %}<tr class="border-t border-line"><td class="p-1.5">{{ m.label }}</td><td class="p-1.5">{{ m.orders|fa_int }}</td><td class="p-1.5">{{ m.amount|toman }}</td></tr>
+        {% empty %}<tr><td colspan="3" class="p-3 text-center text-muted">—</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </section>
+  <section class="studio-preview">
+    <h2 class="mb-3 text-lg">کدهای تخفیف</h2>
+    <table class="w-full text-right text-sm">
+      <thead class="text-muted"><tr><th class="p-1.5 font-normal">کد</th><th class="p-1.5 font-normal">سفارش</th><th class="p-1.5 font-normal">جمع تخفیف</th></tr></thead>
+      <tbody>
+        {% for c in coupons %}<tr class="border-t border-line"><td class="p-1.5" dir="ltr">{{ c.coupon_code }}</td><td class="p-1.5">{{ c.orders|fa_int }}</td><td class="p-1.5">{{ c.discount|toman }}</td></tr>
+        {% empty %}<tr><td colspan="3" class="p-3 text-center text-muted">—</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </section>
+</div>
+{% endblock %}

@@ -38,6 +38,9 @@
         {% endif %}
         <a href="{% url 'builder:preview' %}" {% if nav == 'preview' %}aria-current="page"{% endif %}>{% icon "search" "!w-4 !h-4" %} پیش‌نمایش</a>
         <a href="{% url 'builder:history' %}" {% if nav == 'history' %}aria-current="page"{% endif %}>{% icon "check" "!w-4 !h-4" %} تاریخچه انتشار</a>
+        {% if perms.orders.view_order %}
+        <a href="{% url 'builder:reports' %}" {% if nav == 'reports' %}aria-current="page"{% endif %}>{% icon "grid" "!w-4 !h-4" %} گزارش فروش</a>
+        {% endif %}
       </nav>
     </aside>
 

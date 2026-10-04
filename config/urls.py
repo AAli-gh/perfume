@@ -20,6 +20,7 @@ urlpatterns = [
     path("", include("apps.wishlist.urls")),
     path("orders/", include("apps.orders.urls")),
     path("account/", include("apps.accounts.urls")),
+    path("account/", include("apps.notifications.urls")),
     path("blog/", include("apps.blog.urls")),
 ]
 

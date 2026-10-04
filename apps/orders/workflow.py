@@ -12,6 +12,7 @@ from django.utils import timezone
 from apps.catalog import inventory
 
 from .models import Order, OrderStatusHistory
+from .signals import order_status_changed
 
 S = Order.Status
 
@@ -55,12 +56,17 @@ def transition(order, to_status, *, by=None, note=""):
     if to_status == S.PAID and locked.paid_at is None:
         locked.paid_at = timezone.now()
         fields.append("paid_at")
+    if to_status == S.SHIPPED and locked.shipped_at is None:
+        locked.shipped_at = timezone.now()
+        fields.append("shipped_at")
     if to_status == S.CANCELLED and not locked.inventory_released:
         inventory.release(stock_lines(locked), locked.number, by, note or "لغو سفارش")
         locked.inventory_released = True
         fields.append("inventory_released")
     locked.save(update_fields=fields)
     OrderStatusHistory.objects.create(order=locked, from_status=current, to_status=to_status, changed_by=by, note=note)
+    transaction.on_commit(lambda: order_status_changed.send(
+        sender=Order, order=locked, from_status=current, to_status=to_status))
 
     for f in fields:  # همگام‌سازی نمونه‌ای که فراخوان در دست دارد
         setattr(order, f, getattr(locked, f))

@@ -1,0 +1,1 @@
+{% load majd %}{% if value is None %}<p class="m-0 mt-1 text-xs text-muted">دوره قبل: بدون داده</p>{% else %}<p class="m-0 mt-1 text-xs {% if value >= 0 %}text-success{% else %}text-danger{% endif %}">{% if value > 0 %}▲ {{ value|fa }}٪{% elif value < 0 %}▼ {{ value|stringformat:"d"|slice:"1:"|fa }}٪{% else %}بدون تغییر{% endif %} نسبت به دوره قبل</p>{% endif %}

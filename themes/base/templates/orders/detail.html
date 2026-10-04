@@ -23,7 +23,8 @@
     <dl class="mt-4 grid gap-1 text-[.95rem]">
       <div class="flex justify-between"><dt>جمع جزء</dt><dd>{{ order.subtotal|toman }}</dd></div>
       {% if order.discount %}<div class="flex justify-between text-success"><dt>تخفیف ({{ order.coupon_code }})</dt><dd>− {{ order.discount|toman }}</dd></div>{% endif %}
-      <div class="flex justify-between"><dt>هزینه ارسال</dt><dd>{% if order.shipping %}{{ order.shipping|toman }}{% else %}رایگان{% endif %}</dd></div>
+      <div class="flex justify-between"><dt>هزینه ارسال{% if order.shipping_method_name %} <small class="text-muted">({{ order.shipping_method_name }})</small>{% endif %}</dt><dd>{% if order.shipping %}{{ order.shipping|toman }}{% else %}رایگان{% endif %}</dd></div>
+      {% if order.tracking_code %}<div class="flex justify-between"><dt>کد رهگیری مرسوله</dt><dd dir="ltr">{% if order.tracking_url %}<a class="text-gold underline" href="{{ order.tracking_url }}" target="_blank" rel="noopener noreferrer">{{ order.tracking_code }}</a>{% else %}{{ order.tracking_code }}{% endif %}</dd></div>{% endif %}
       <div class="mt-2 flex justify-between border-t border-line pt-3 text-lg text-gold"><dt>مبلغ نهایی</dt><dd>{{ order.total|toman }}</dd></div>
     </dl>
 
