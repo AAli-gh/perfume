@@ -36,7 +36,7 @@ class OrderItemInline(admin.TabularInline):
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
     list_display = ["number", "full_name", "phone", "total", "payment_method", "status", "created_at"]
-    list_filter = ["store", "status", "payment_method", "created_at"]
+    list_filter = ["store", "status", "payment_method", "packaging", "created_at"]
     list_editable = ["status"]
     search_fields = ["number", "first_name", "last_name", "phone", "email", "payments__ref_id", "tracking_code"]
     readonly_fields = [
@@ -50,6 +50,7 @@ class OrderAdmin(admin.ModelAdmin):
         ("گیرنده", {"fields": ("first_name", "last_name", "phone", "email", "province", "city", "address", "postal_code", "note")}),
         ("مبالغ", {"fields": ("subtotal", "discount", "coupon_code", "shipping", "total")}),
         ("ارسال", {"fields": ("shipping_method_name", "tracking_code", "shipped_at")}),
+        ("بسته‌بندی هدیه", {"fields": ("packaging", "packaging_note", "gift_message", "gift_from", "hide_prices")}),
         ("پرداخت", {"fields": ("paid_at", "reserved_until", "inventory_released")}),
     )
 

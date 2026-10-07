@@ -10,7 +10,7 @@ from apps.core.db import ListField
 from apps.core.validators import image_upload
 from apps.core.models import SeoFields, StoreOwned, StoreQuerySet
 
-from .profile import Concentration, Gender, Occasion, Season, labels
+from .profile import Concentration, Gender, Kind, Occasion, Season, labels
 
 
 class Brand(StoreOwned):
@@ -209,6 +209,12 @@ class ProductQuerySet(StoreQuerySet):
     def active(self):
         return self.filter(is_active=True)
 
+    def perfumes(self):
+        return self.filter(kind=Kind.PERFUME)
+
+    def gift_boxes(self):
+        return self.filter(kind=Kind.GIFT_BOX)
+
     def with_stats(self):
         """قیمت پایه (کمترین قیمت حجم‌ها)، میانگین امتیاز و تعداد نظرات تأییدشده."""
         approved = Q(reviews__is_approved=True)
@@ -223,7 +229,9 @@ class Product(StoreOwned, SeoFields):
     name = models.CharField("نام", max_length=150)
     slug = models.SlugField("نامک", allow_unicode=True, max_length=160)
     brand = models.ForeignKey(Brand, verbose_name="برند", on_delete=models.PROTECT, related_name="products")
-    scent = models.ForeignKey(ScentFamily, verbose_name="خانواده رایحه", on_delete=models.PROTECT, related_name="products")
+    kind = models.CharField("نوع محصول", max_length=10, choices=Kind.choices, default=Kind.PERFUME, db_index=True)
+    scent = models.ForeignKey(ScentFamily, verbose_name="خانواده رایحه", on_delete=models.PROTECT, related_name="products",
+                              null=True, blank=True, help_text="برای عطرها الزامی است")
     collection = models.ForeignKey(
         Collection, verbose_name="کالکشن", on_delete=models.SET_NULL, null=True, blank=True, related_name="products"
     )
@@ -236,6 +244,10 @@ class Product(StoreOwned, SeoFields):
     description = models.TextField("توضیحات کامل")
     image = models.ImageField("تصویر اصلی", upload_to="products/", validators=[image_upload])
     # مشخصات رایحه (اختیاری؛ برای مقایسه، «عطر مناسب من» و پیشنهادها)
+    gift_capacity = models.PositiveSmallIntegerField(
+        "گنجایش (تعداد شیشه عطر)", null=True, blank=True,
+        help_text="فقط برای باکس هدیه؛ چند شیشه عطر داخل یک باکس جا می‌شود",
+    )
     gender = models.CharField("مناسب برای", max_length=10, choices=Gender.choices, blank=True)
     concentration = models.CharField("غلظت", max_length=10, choices=Concentration.choices, blank=True)
     longevity = models.PositiveSmallIntegerField(
@@ -286,6 +298,18 @@ class Product(StoreOwned, SeoFields):
     @property
     def in_stock(self):
         return any(v.stock > 0 for v in self.variants.all())
+
+    @property
+    def is_gift_box(self):
+        return self.kind == Kind.GIFT_BOX
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+
+        if self.kind == Kind.PERFUME and not self.scent_id:
+            raise ValidationError({"scent": "خانواده رایحه برای عطر الزامی است."})
+        if self.kind == Kind.GIFT_BOX and not self.gift_capacity:
+            raise ValidationError({"gift_capacity": "گنجایش باکس هدیه را وارد کنید."})
 
     @property
     def season_labels(self):

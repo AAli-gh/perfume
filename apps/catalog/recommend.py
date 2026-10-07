@@ -51,7 +51,7 @@ def similarity(a, b):
 
 def candidates(store):
     """محصولات فعال قابل پیشنهاد، همراه نت‌ها (یک کوئری prefetch)."""
-    return listable_products(store).prefetch_related(
+    return listable_products(store).perfumes().prefetch_related(
         Prefetch("notes", queryset=ProductNote.objects.select_related("note")))
 
 

@@ -12,7 +12,7 @@
     <p style="margin:0 0 16px">شماره سفارش: <strong dir="ltr">{{ number }}</strong> · وضعیت: {{ status }} · {{ payment_method }}</p>
     <table role="presentation" width="100%" cellpadding="6" cellspacing="0" style="border-collapse:collapse;font-size:14px">
       {% for item in order.items.all %}
-      <tr style="border-bottom:1px solid #eee"><td>{{ item.product_name }} <span style="color:#8a7a6e">({{ item.size_ml|fa }} میل) × {{ item.quantity|fa }}</span></td><td align="left">{{ item.line_total|toman }}</td></tr>
+      <tr style="border-bottom:1px solid #eee"><td>{{ item.product_name }} <span style="color:#8a7a6e">{% if item.size_ml %}({{ item.size_ml|fa }} میل) {% endif %}× {{ item.quantity|fa }}</span></td><td align="left">{{ item.line_total|toman }}</td></tr>
       {% endfor %}
       <tr><td>جمع جزء</td><td align="left">{{ order.subtotal|toman }}</td></tr>
       {% if order.discount %}<tr><td>تخفیف</td><td align="left">− {{ order.discount|toman }}</td></tr>{% endif %}
@@ -21,6 +21,9 @@
     </table>
     {% if tracking_code %}
     <p style="margin:16px 0 0;padding:12px;background:#faf6f2;border-radius:6px">کد رهگیری مرسوله: <strong dir="ltr">{{ tracking_code }}</strong>{% if tracking_url %}<br><a href="{{ tracking_url }}" style="color:#8a4119">پیگیری مرسوله</a>{% endif %}</p>
+    {% endif %}
+    {% if order.is_gift %}
+    <p style="margin:16px 0 0;padding:12px;background:#faf6f2;border-radius:6px;font-size:14px">بسته‌بندی: {{ order.get_packaging_display }}{% if order.packaging_note %}<br>توضیح: {{ order.packaging_note }}{% endif %}{% if order.gift_message %}<br>پیام کارت هدیه: «{{ order.gift_message }}»{% if order.gift_from %} — از طرف {{ order.gift_from }}{% endif %}{% endif %}{% if order.hide_prices %}<br>فاکتور قیمت داخل بسته قرار نمی‌گیرد.{% endif %}</p>
     {% endif %}
     <p style="margin:16px 0 0;color:#6b5a4e;font-size:13px">گیرنده: {{ order.full_name }}، {{ order.province }}، {{ order.city }}، {{ order.address }}</p>
     <p style="margin:24px 0 0"><a href="{{ order_url }}" style="display:inline-block;background:#8a4119;color:#fff;text-decoration:none;padding:10px 18px;border-radius:6px">مشاهده سفارش</a></p>

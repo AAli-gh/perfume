@@ -39,7 +39,7 @@ def document_parts(product):
     """بخش‌های وزن‌دار سند جستجوی یک محصول: (A: نام، B: برند/نت/دسته، C: بقیه)."""
     notes = [link.note.name for link in product.notes.all()]
     a = [product.name]
-    b = [product.brand.name, product.scent.name, *notes, *(c.name for c in product.categories.all())]
+    b = [product.brand.name, product.scent.name if product.scent_id else "باکس هدیه", *notes, *(c.name for c in product.categories.all())]
     c = [
         product.collection.name if product.collection_id else "",
         *(t.name for t in product.tags.all()),

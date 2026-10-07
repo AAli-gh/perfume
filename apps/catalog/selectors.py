@@ -9,6 +9,7 @@ from dataclasses import dataclass, field
 from django.db.models import Count, F, Max, Min, Q
 
 from .models import AttributeValue, Brand, Category, Collection, Product, ProductVariant, ScentFamily
+from .profile import Kind
 from .search import search_products
 
 PRICE_STEP = 100_000
@@ -47,7 +48,7 @@ def price_bounds(store):
 def brands_with_counts(store):
     return (
         Brand.objects.for_store(store)
-        .annotate(n=Count("products", filter=Q(products__is_active=True)))
+        .annotate(n=Count("products", filter=Q(products__is_active=True, products__kind=Kind.PERFUME)))
         .filter(n__gt=0)
         .order_by(*Brand._meta.ordering)
     )
@@ -88,7 +89,8 @@ class ProductFilters:
 def filter_products(store, filters: ProductFilters, bounds=None):
     """اعمال فیلترهای فروشگاه روی محصولات قابل نمایش."""
     lo, hi = bounds or price_bounds(store)
-    products = listable_products(store)
+    # فهرست فروشگاه فقط عطرها؛ در جستجو باکس‌های هدیه هم پیدا می‌شوند
+    products = listable_products(store) if filters.q else listable_products(store).perfumes()
     if filters.q:
         products = search_products(products, filters.q)
     if filters.categories:
@@ -126,7 +128,7 @@ def filter_products(store, filters: ProductFilters, bounds=None):
 
 
 def best_sellers(store, limit=8):
-    return listable_products(store).order_by(F("rating_avg").desc(nulls_last=True), "-review_count")[:limit]
+    return listable_products(store).perfumes().order_by(F("rating_avg").desc(nulls_last=True), "-review_count")[:limit]
 
 
 def product_detail(store, slug):
@@ -137,10 +139,23 @@ def product_detail(store, slug):
 def related_products(product, limit=8):
     return (
         listable_products(product.store_id)
+        .filter(kind=product.kind)
         .exclude(pk=product.pk)
         .filter(Q(collection=product.collection) | Q(scent=product.scent))
         .order_by(F("rating_avg").desc(nulls_last=True))[:limit]
     )
+
+
+def gift_boxes(store):
+    """باکس‌های هدیه فعال فروشگاه (ارزان‌ترین اول)."""
+    return listable_products(store).gift_boxes().order_by("min_price", "pk")
+
+
+def gift_box_variants(store):
+    """حجم/مدل‌های موجود باکس‌های هدیه برای انتخاب در تسویه حساب."""
+    return (ProductVariant.objects.filter(product__store=store, product__is_active=True, product__kind=Kind.GIFT_BOX,
+                                          stock__gt=0)
+            .select_related("product").order_by("price", "pk"))
 
 
 def product_gallery(product):

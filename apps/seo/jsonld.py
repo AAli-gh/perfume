@@ -72,7 +72,7 @@ def product(obj, *, url, images, description, currency_code, currency_factor):
         "description": description,
         "sku": obj.slug,
         "brand": {"@type": "Brand", "name": obj.brand.name},
-        "category": obj.scent.name,
+        "category": obj.scent.name if obj.scent_id else "باکس هدیه",
     }
     variants = list(obj.variants.all())
     if variants:

@@ -44,7 +44,7 @@ def compare_page(request):
 @ratelimit("compare", "60/1m")
 @require_POST
 def compare_toggle(request, product_id):
-    product = get_object_or_404(Product.objects.for_store(request.store).active(), pk=product_id)
+    product = get_object_or_404(Product.objects.for_store(request.store).active().perfumes(), pk=product_id)
     compare = CompareList(request)
     active, error = compare.toggle(product.pk)
     if request.htmx:

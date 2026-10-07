@@ -16,7 +16,7 @@
       <thead><tr class="border-b border-line text-cream"><th class="p-2 text-start font-normal">محصول</th><th class="p-2 text-start font-normal">تعداد</th><th class="p-2 text-start font-normal">جمع</th></tr></thead>
       <tbody>
         {% for item in order.items.all %}
-          <tr class="border-b border-line"><td class="p-2">{{ item.product_name }} <small class="text-muted">({{ item.size_ml|fa }} میل)</small></td><td class="p-2">{{ item.quantity|fa }}</td><td class="p-2">{{ item.line_total|toman }}</td></tr>
+          <tr class="border-b border-line"><td class="p-2">{{ item.product_name }} {% if item.size_ml %}<small class="text-muted">({{ item.size_ml|fa }} میل)</small>{% endif %}</td><td class="p-2">{{ item.quantity|fa }}</td><td class="p-2">{{ item.line_total|toman }}</td></tr>
         {% endfor %}
       </tbody>
     </table>
@@ -32,6 +32,14 @@
       <strong class="text-cream">ارسال به:</strong> {{ order.full_name }} — <span dir="ltr">{{ order.phone|fa }}</span><br>
       {{ order.province }}، {{ order.city }}، {{ order.address }} — کد پستی {{ order.postal_code|fa }}
     </div>
+    {% if order.is_gift %}
+    <div class="mt-4 rounded border border-copper/40 bg-copper/[.06] p-4 text-sm leading-7" id="order-gift">
+      <strong class="text-cream">بسته‌بندی:</strong> {{ order.get_packaging_display }}
+      {% if order.packaging_note %}<br><span class="text-muted">توضیح شما:</span> {{ order.packaging_note|linebreaksbr }}{% endif %}
+      {% if order.gift_message %}<br><span class="text-muted">پیام کارت هدیه:</span> «{{ order.gift_message }}»{% if order.gift_from %} — از طرف {{ order.gift_from }}{% endif %}{% endif %}
+      {% if order.hide_prices %}<br><span class="text-muted">فاکتور قیمت داخل بسته قرار نمی‌گیرد.</span>{% endif %}
+    </div>
+    {% endif %}
 
     {% if order.status == "pending" %}
       <div class="mt-6 text-center">

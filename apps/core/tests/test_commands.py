@@ -21,8 +21,9 @@ def run(*args):
 
 def test_seed_demo_builds_full_store(store):
     output = run("seed_demo")
-    assert "12 محصول و 6 مقاله" in output
-    assert Product.objects.for_store(store).count() == 12
+    assert "12 محصول، 3 باکس هدیه و 6 مقاله" in output
+    assert Product.objects.for_store(store).perfumes().count() == 12
+    assert Product.objects.for_store(store).gift_boxes().filter(gift_capacity__gte=1).count() == 3
     assert Collection.objects.for_store(store).count() == 5
     assert Post.objects.for_store(store).published().count() == 6
     assert Coupon.objects.filter(code="MAJD10").exists()
@@ -30,7 +31,7 @@ def test_seed_demo_builds_full_store(store):
     # موجودی اولیه در دفتر انبار ثبت می‌شود
     assert StockMovement.objects.count() == ProductVariant.objects.count()
     # جستجو برای داده بذر هم کار می‌کند
-    assert Product.objects.exclude(search_document="").count() == 12
+    assert Product.objects.exclude(search_document="").count() == 15
 
 
 def test_seed_demo_is_idempotent_and_reset_rebuilds(store):
@@ -39,12 +40,12 @@ def test_seed_demo_is_idempotent_and_reset_rebuilds(store):
     run("seed_demo")
     assert set(Product.objects.values_list("pk", flat=True)) == first_ids  # تکرار، چیزی تکراری نمی‌سازد
     run("seed_demo", "--reset")
-    assert Product.objects.count() == 12 and not first_ids & set(Product.objects.values_list("pk", flat=True))
+    assert Product.objects.count() == 15 and not first_ids & set(Product.objects.values_list("pk", flat=True))
 
 
 def test_seed_demo_for_another_store(store, other_store):
     run("seed_demo", f"--store={other_store.code}")
-    assert Product.objects.for_store(other_store).count() == 12
+    assert Product.objects.for_store(other_store).count() == 15
     assert Product.objects.for_store(store).count() == 0
 
 

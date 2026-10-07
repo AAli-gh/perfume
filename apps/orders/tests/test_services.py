@@ -36,7 +36,7 @@ def test_admin_cancel_uses_service(order, admin_client):
     data = {
         "first_name": "a", "last_name": "b", "phone": "09120000000", "email": "", "province": "تهران",
         "city": "تهران", "address": "x", "postal_code": "1234567890", "note": "",
-        "status": "cancelled", "payment_method": "online",
+        "status": "cancelled", "payment_method": "online", "packaging": "none",
         "items-TOTAL_FORMS": "1", "items-INITIAL_FORMS": "1", "items-MIN_NUM_FORMS": "0", "items-MAX_NUM_FORMS": "1000",
         "items-0-id": str(order.items.get().pk), "items-0-order": str(order.pk),
         "history-TOTAL_FORMS": "0", "history-INITIAL_FORMS": "0", "history-MIN_NUM_FORMS": "0", "history-MAX_NUM_FORMS": "1000",

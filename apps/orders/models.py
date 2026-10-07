@@ -19,6 +19,12 @@ class Order(StoreOwned):
         DELIVERED = "delivered", "تحویل شده"
         CANCELLED = "cancelled", "لغو شده"
 
+    class Packaging(models.TextChoices):
+        NONE = "none", "بسته‌بندی معمولی"
+        IN_BOX = "in_box", "عطرها داخل باکس هدیه چیده شوند"
+        SEPARATE = "separate", "باکس هدیه جدا ارسال شود (بدون چیدن)"
+        CUSTOM = "custom", "توضیح می‌دهم چطور بسته‌بندی شود"
+
     class PaymentMethod(models.TextChoices):
         ONLINE = "online", "پرداخت آنلاین"
         CARD = "card", "کارت به کارت"
@@ -59,6 +65,12 @@ class Order(StoreOwned):
     )
     shipped_at = models.DateTimeField("زمان ارسال", null=True, blank=True)
 
+    packaging = models.CharField("بسته‌بندی", max_length=10, choices=Packaging.choices, default=Packaging.NONE)
+    packaging_note = models.TextField("توضیح بسته‌بندی", max_length=500, blank=True)
+    gift_message = models.TextField("پیام کارت هدیه", max_length=300, blank=True)
+    gift_from = models.CharField("از طرف (روی کارت)", max_length=80, blank=True)
+    hide_prices = models.BooleanField("فاکتور قیمت داخل بسته نباشد", default=False)
+
     reserved_until = models.DateTimeField(
         "مهلت پرداخت", null=True, blank=True, db_index=True,
         help_text="سفارش آنلاین پرداخت‌نشده بعد از این زمان لغو و موجودی آزاد می‌شود",
@@ -74,6 +86,10 @@ class Order(StoreOwned):
         ordering = ["-created_at"]
         verbose_name = "سفارش"
         verbose_name_plural = "سفارش‌ها"
+
+    @property
+    def is_gift(self):
+        return self.packaging != self.Packaging.NONE or bool(self.gift_message)
 
     @property
     def tracking_url(self):

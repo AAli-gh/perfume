@@ -104,11 +104,14 @@ class Cart:
             self._pricing = self.quote()
         return self._pricing
 
-    def quote(self, shipping_method=None, province=""):
-        """قیمت سبد با روش ارسال و استان مشخص (پیش‌فرض: اولین روش ارسال فعال، بدون استان)."""
+    def quote(self, shipping_method=None, province="", extra=()):
+        """قیمت سبد با روش ارسال و استان مشخص (پیش‌فرض: اولین روش ارسال فعال، بدون استان).
+
+        extra: اقلامی که فقط در این محاسبه به سبد افزوده می‌شوند (مثل باکس هدیه انتخاب‌شده در تسویه).
+        """
         code = self.session.get(COUPON_KEY)
         method = shipping_method or default_method(self.store)
-        return calculate(self.lines, self.store.config, find_coupon(self.store, code) if code else None,
+        return calculate([*self.lines, *extra], self.store.config, find_coupon(self.store, code) if code else None,
                          shipping_method=method, province=province)
 
     @property

@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load seo majd %}
+{% block seo %}{% seo_head title="باکس‌های هدیه" description="باکس‌های هدیه لوکس برای عطر؛ جدا بخرید یا هنگام سفارش، عطرها را داخل باکس بچینیم و با پیام کارت هدیه ارسال کنیم." %}{% endblock %}
+{% block content %}
+{% include "components/page_hero.html" with image="img/hero-collections.jpg" title="باکس‌های هدیه" subtitle="باکس را جدا بخرید، یا هنگام ثبت سفارش انتخاب کنید عطرهایتان داخل باکس چیده و با پیام کارت هدیه ارسال شود." %}
+<section class="container py-14">
+  <ol class="mb-10 grid gap-3 text-[.95rem] sm:grid-cols-3">
+    <li class="panel flex gap-3 p-4">{% icon "gift" "!h-6 !w-6 shrink-0 text-gold" %}<span><strong class="block text-cream">۱. باکس را انتخاب کنید</strong>به سبد خرید اضافه کنید یا در صفحه تسویه انتخاب کنید.</span></li>
+    <li class="panel flex gap-3 p-4">{% icon "bag" "!h-6 !w-6 shrink-0 text-gold" %}<span><strong class="block text-cream">۲. نحوه بسته‌بندی</strong>عطرها داخل باکس چیده شوند، باکس جدا بیاید یا توضیح بدهید چطور می‌خواهید.</span></li>
+    <li class="panel flex gap-3 p-4">{% icon "mail" "!h-6 !w-6 shrink-0 text-gold" %}<span><strong class="block text-cream">۳. پیام کارت هدیه</strong>متن کارت را بنویسید؛ می‌توانید فاکتور قیمت را هم حذف کنید.</span></li>
+  </ol>
+  <div class="grid grid-cols-2 gap-4 md:grid-cols-3">
+    {% for p in boxes %}{% include "components/product_card.html" %}{% empty %}<p class="col-span-full text-muted">فعلاً باکس هدیه‌ای موجود نیست.</p>{% endfor %}
+  </div>
+</section>
+{% endblock %}

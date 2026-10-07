@@ -2,6 +2,8 @@
 
 from django import template
 
+from apps.cart.cart import Cart
+
 from ..forms import CheckoutForm, checkout_initial
 
 register = template.Library()
@@ -14,4 +16,5 @@ def checkout_form(context):
     if isinstance(form, CheckoutForm):
         return form
     request = context["request"]
-    return CheckoutForm(initial=checkout_initial(request.user), store=getattr(request, "store", None))
+    return CheckoutForm(initial=checkout_initial(request.user), store=getattr(request, "store", None),
+                        cart=context.get("cart") or Cart(request))

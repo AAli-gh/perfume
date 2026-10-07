@@ -57,6 +57,19 @@
 <tr><td align="center" valign="top"><img src="screenshots/m-compare.jpg" alt="مقایسه در موبایل"><br><sub>مقایسه در موبایل</sub></td><td align="center" valign="top"><img src="screenshots/m-finder.jpg" alt="عطریاب در موبایل"><br><sub>عطریاب در موبایل</sub></td></tr>
 </table>
 
+## باکس هدیه و بسته‌بندی
+
+خرید باکس جدا یا انتخاب در تسویه، با چیدن عطرها داخل باکس، ارسال جدا یا توضیح دلخواه ([gift-boxes.md](gift-boxes.md)).
+
+<table>
+<tr><td align="center" valign="top"><img src="screenshots/gift-boxes.jpg" alt="صفحه باکس‌های هدیه"><br><sub>صفحه باکس‌های هدیه</sub></td><td align="center" valign="top"><img src="screenshots/gift-box-product.jpg" alt="صفحه باکس: گنجایش و امکانات"><br><sub>صفحه باکس: گنجایش و امکانات</sub></td></tr>
+<tr><td align="center" valign="top"><img src="screenshots/checkout-gift.jpg" alt="تسویه: انتخاب باکس و پیام کارت؛ باکس به خلاصه سفارش اضافه می‌شود"><br><sub>تسویه: انتخاب باکس و پیام کارت؛ باکس به خلاصه سفارش اضافه می‌شود</sub></td><td align="center" valign="top"><img src="screenshots/checkout-gift-custom.jpg" alt="«توضیح می‌دهم چطور بسته‌بندی شود»"><br><sub>«توضیح می‌دهم چطور بسته‌بندی شود»</sub></td></tr>
+</table>
+
+<table>
+<tr><td align="center" valign="top"><img src="screenshots/m-checkout-gift.jpg" alt="بسته‌بندی هدیه در موبایل"><br><sub>بسته‌بندی هدیه در موبایل</sub></td></tr>
+</table>
+
 ## استودیو (`/studio/`)
 
 ویرایش ظاهر و صفحه اصلی برای مدیر فروشگاه، با پیش‌نویس، پیش‌نمایش زنده و انتشار.

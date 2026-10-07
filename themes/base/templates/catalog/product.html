@@ -3,7 +3,7 @@
 {% block seo %}{% seo_head product %}{% endblock %}
 {% block content %}
 <nav class="container border-b border-line py-4 text-sm text-muted" aria-label="مسیر">
-  <a class="text-muted" href="{% url 'pages:home' %}">خانه</a><span class="mx-2">‹</span><a class="text-muted" href="{% url 'catalog:shop' %}">عطرها</a><span class="mx-2">‹</span><strong class="font-normal text-body">{{ product.name }}</strong>
+  <a class="text-muted" href="{% url 'pages:home' %}">خانه</a><span class="mx-2">‹</span>{% if product.is_gift_box %}<a class="text-muted" href="{% url 'catalog:gift_boxes' %}">باکس‌های هدیه</a>{% else %}<a class="text-muted" href="{% url 'catalog:shop' %}">عطرها</a>{% endif %}<span class="mx-2">‹</span><strong class="font-normal text-body">{{ product.name }}</strong>
 </nav>
 
 <div class="container">
@@ -38,21 +38,29 @@
         <div class="mb-3 text-[1.8rem] text-price"><span data-variant-price>{{ product.default_variant.price|toman }}</span></div>
         <p>{{ product.short_description }}</p>
 
+        {% if product.is_gift_box %}
+        <ul class="my-6 grid gap-2 rounded border border-line bg-panel/60 p-4 text-[.95rem]">
+          <li class="flex items-center gap-2">{% icon "gift" "!h-5 !w-5 text-gold" %} گنجایش: <strong class="text-cream">{{ product.gift_capacity|fa }} شیشه عطر</strong></li>
+          <li class="flex items-center gap-2">{% icon "check" "!h-5 !w-5 text-success" %} هنگام ثبت سفارش انتخاب کنید عطرها داخل باکس چیده شوند یا باکس جدا ارسال شود</li>
+          <li class="flex items-center gap-2">{% icon "check" "!h-5 !w-5 text-success" %} امکان نوشتن پیام کارت هدیه و ارسال بدون فاکتور قیمت</li>
+        </ul>
+        {% else %}
         <div class="my-6 grid grid-cols-3 gap-2 text-center sm:gap-2.5">{% with notes=product.notes_by_layer %}
           <div><img src="{% static 'img/note-top.jpg' %}" alt="" class="mb-2.5 aspect-video w-full border border-line object-cover"><h4 class="m-0 text-[.98rem] text-cream">نت آغازین</h4><p class="m-0 text-sm leading-relaxed text-muted">{{ notes.top|join:"، " }}</p></div>
           <div><img src="{% static 'img/note-mid.jpg' %}" alt="" class="mb-2.5 aspect-video w-full border border-line object-cover"><h4 class="m-0 text-[.98rem] text-cream">نت میانی</h4><p class="m-0 text-sm leading-relaxed text-muted">{{ notes.heart|join:"، " }}</p></div>
           <div><img src="{% static 'img/note-base.jpg' %}" alt="" class="mb-2.5 aspect-video w-full border border-line object-cover"><h4 class="m-0 text-[.98rem] text-cream">نت پایه</h4><p class="m-0 text-sm leading-relaxed text-muted">{{ notes.base|join:"، " }}</p></div>
         {% endwith %}</div>
+        {% endif %}
 
         <div class="grid gap-[18px] border-t border-line pt-5">
-          <div class="flex flex-wrap items-center gap-4">
-            <span class="min-w-[60px]">حجم</span>
+          <div class="flex flex-wrap items-center gap-4{% if product.is_gift_box and variants|length < 2 %} hidden{% endif %}">
+            <span class="min-w-[60px]">{% if product.is_gift_box %}مدل{% else %}حجم{% endif %}</span>
             <div class="flex gap-2">
               {% for v in variants %}
                 <label class="cursor-pointer">
                   <input type="radio" name="variant" value="{{ v.pk }}" class="peer sr-only" data-price="{{ v.price|toman }}"
                          {% if v == product.default_variant %}checked{% endif %} {% if not v.stock %}disabled{% endif %}>
-                  <span class="block rounded border border-line px-4 py-1.5 text-muted peer-checked:border-copper peer-checked:bg-copper/10 peer-checked:text-gold peer-disabled:line-through peer-disabled:opacity-40 peer-focus-visible:ring-2 peer-focus-visible:ring-copper">{{ v.size_ml|fa }} میل</span>
+                  <span class="block rounded border border-line px-4 py-1.5 text-muted peer-checked:border-copper peer-checked:bg-copper/10 peer-checked:text-gold peer-disabled:line-through peer-disabled:opacity-40 peer-focus-visible:ring-2 peer-focus-visible:ring-copper">{% if product.is_gift_box %}{{ v.price|toman }}{% else %}{{ v.size_ml|fa }} میل{% endif %}</span>
                 </label>
               {% endfor %}
             </div>
@@ -80,7 +88,16 @@
           </div>
         </div>
       </form>
-      <div class="mt-3 grid gap-2 sm:grid-cols-2">{% wishlist_button product %}{% compare_button product %}</div>
+      <div class="mt-3 grid gap-2 {% if not product.is_gift_box %}sm:grid-cols-2{% endif %}">{% wishlist_button product %}{% if not product.is_gift_box %}{% compare_button product %}{% endif %}</div>
+      {% if gift_boxes %}
+      <div class="mt-5 rounded border border-line bg-panel/50 p-4">
+        <p class="mb-3 flex items-center gap-2 text-cream">{% icon "gift" "!h-5 !w-5 text-gold" %} می‌خواهید هدیه بدهید؟ این عطر را داخل باکس هدیه بفرستید</p>
+        <div class="flex flex-wrap gap-2">
+          {% for box in gift_boxes %}<a class="chip !px-3 !py-1 hover:border-copper" href="{{ box.get_absolute_url }}">{{ box.name }} · {{ box.min_price|toman }}</a>{% endfor %}
+          <a class="chip !px-3 !py-1 text-gold" href="{% url 'catalog:gift_boxes' %}">همه باکس‌ها ←</a>
+        </div>
+      </div>
+      {% endif %}
     </div>
   </section>
 

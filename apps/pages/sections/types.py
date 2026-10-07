@@ -98,7 +98,7 @@ class FeaturedProductsSection(SectionType):
     template = "sections/best_sellers.html"  # همان چیدمان اسلایدر
 
     def get_context(self, settings, *, request, section=None):
-        products = catalog.listable_products(request.store).filter(is_featured=True).order_by("-created_at")
+        products = catalog.listable_products(request.store).perfumes().filter(is_featured=True).order_by("-created_at")
         return {**settings, "products": products[: settings["limit"]]}
 
     def is_visible(self, context):
@@ -274,6 +274,27 @@ class ForYouSection(SectionType):
 
         products, taste, _ = recommendations_for(request, limit=settings["limit"])
         return {**settings, "products": products, "favorite_notes": taste.favorite_notes(4)}
+
+    def is_visible(self, context):
+        return bool(context["products"])
+
+
+# ---------- باکس‌های هدیه ----------
+
+class GiftBoxesForm(SectionForm):
+    title = _text("عنوان", "باکس‌های هدیه", required=True)
+    link_text = _text("متن پیوند", "همه باکس‌ها ←", max_length=60)
+    link_url = LinkField(label="پیوند", initial="/gift-boxes/")
+    limit = _limit(8)
+
+
+@register
+class GiftBoxesSection(SectionType):
+    key, label, icon, form_class = "gift_boxes", "باکس‌های هدیه", "gift", GiftBoxesForm
+    template = "sections/best_sellers.html"  # همان چیدمان اسلایدر
+
+    def get_context(self, settings, *, request, section=None):
+        return {**settings, "products": catalog.gift_boxes(request.store)[: settings["limit"]]}
 
     def is_visible(self, context):
         return bool(context["products"])

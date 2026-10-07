@@ -123,6 +123,12 @@
   .best-badge { @apply mt-1 block text-[.7rem] font-medium text-success; }
   .finder-option { @apply flex cursor-pointer items-center gap-3 rounded border border-line bg-input/20 px-4 py-3 transition hover:border-line-strong has-[:checked]:border-copper has-[:checked]:bg-copper/10; }
   .finder-option:has(:focus-visible) { @apply outline outline-2 outline-copper; }
+  /* بسته‌بندی هدیه در تسویه: جزئیات فقط با انتخاب باکس/توضیح نمایش داده می‌شوند (بدون JavaScript) */
+  .gift-panel:has([name=packaging][value=none]:checked) [data-gift-details] { display: none; }
+  .gift-panel:not(:has([name=packaging][value=custom]:checked)) [data-gift-custom] { display: none; }
+  .gift-panel:has([name=packaging][value=custom]:checked) [data-gift-boxes] { display: none; }
+  .gift-box-option { @apply flex cursor-pointer items-center gap-3 rounded border border-line bg-input/20 p-2.5 transition hover:border-line-strong has-[:checked]:border-copper has-[:checked]:bg-copper/10; }
+  .gift-box-option:has(:focus-visible) { @apply outline outline-2 outline-copper; }
   .match-ring { @apply grid h-14 w-14 shrink-0 place-items-center rounded-full border-2 border-copper text-sm font-bold text-gold; }
   [data-card="flat"] .product-card { background: rgb(var(--color-surface)); }
   [data-card="outline"] .product-card { background: transparent; }

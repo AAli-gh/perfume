@@ -2,7 +2,7 @@ from django.contrib import messages
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_POST
 
-from apps.cart.cart import Cart
+from apps.cart.cart import Cart, CartLine
 
 from .forms import PROVINCES, CheckoutForm
 from .models import Order
@@ -19,7 +19,7 @@ def checkout(request):
         messages.error(request, "سبد خرید شما خالی است.")
         return redirect("cart:detail")
 
-    form = CheckoutForm(request.POST, store=request.store)
+    form = CheckoutForm(request.POST, store=request.store, cart=cart)
     if not form.is_valid():
         context = {"cart": cart, "form": form, "form_error": True, **_quote_context(cart, form)}
         return render(request, "cart/detail.html", context, status=422)
@@ -48,16 +48,16 @@ def _quote_context(cart, form):
     province = form.data.get("province", "")
     if province not in PROVINCES:
         province = ""
-    if method is None:
-        return {}
-    return {"quote": cart.quote(method, province), "shipping_label": method.name}
+    extra = [CartLine(box, 1)] if (box := form.chosen_gift_box()) else []
+    return {"quote": cart.quote(method, province, extra), "shipping_label": method.name if method else "",
+            "extra_lines": extra}
 
 
 @require_POST
 def quote(request):
     """HTMX: به‌روزرسانی خلاصه سفارش با تغییر استان یا روش ارسال."""
     cart = Cart(request)
-    form = CheckoutForm(request.POST, store=request.store)
+    form = CheckoutForm(request.POST, store=request.store, cart=cart)
     context = {"cart": cart, "summary_id": "checkout-summary", **_quote_context(cart, form)}
     return render(request, "cart/partials/summary.html", context)
 

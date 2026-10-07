@@ -1,5 +1,5 @@
 {% load discovery %}<article class="product-card relative">
-  {% compare_button p "icon" %}
+  {% if not p.is_gift_box %}{% compare_button p "icon" %}{% endif %}
   <a class="thumb block aspect-[5/6] overflow-hidden bg-media" href="{{ p.get_absolute_url }}">
     <img src="{{ p.image.url }}" alt="عطر {{ p.name }}" loading="lazy" class="h-full w-full object-cover">
   </a>

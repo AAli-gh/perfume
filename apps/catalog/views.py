@@ -95,5 +95,11 @@ def product_detail(request, slug):
         "product": product,
         "gallery": selectors.product_gallery(product),
         "variants": list(product.variants.all()),
-        "related": similar_products(product) or selectors.related_products(product),
+        "related": (selectors.related_products(product) if product.is_gift_box
+                    else similar_products(product) or selectors.related_products(product)),
+        "gift_boxes": [] if product.is_gift_box else selectors.gift_boxes(request.store)[:4],
     })
+
+
+def gift_boxes(request):
+    return render(request, "catalog/gift_boxes.html", {"boxes": selectors.gift_boxes(request.store)})

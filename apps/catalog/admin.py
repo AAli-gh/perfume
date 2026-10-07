@@ -55,9 +55,9 @@ class ProductAdminForm(forms.ModelForm):
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     form = ProductAdminForm
-    list_display = ["thumb", "name", "brand", "scent", "collection", "is_active", "is_featured"]
+    list_display = ["thumb", "name", "kind", "brand", "scent", "collection", "is_active", "is_featured"]
     list_display_links = ["thumb", "name"]
-    list_filter = ["store", "is_active", "is_featured", "brand", "scent", "collection"]
+    list_filter = ["store", "kind", "is_active", "is_featured", "brand", "scent", "collection"]
     list_editable = ["is_active", "is_featured"]
     search_fields = ["name", "short_description", "notes__note__name"]
     filter_horizontal = ["categories", "tags", "attribute_values"]

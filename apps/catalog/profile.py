@@ -3,6 +3,11 @@
 from django.db import models
 
 
+class Kind(models.TextChoices):
+    PERFUME = "perfume", "عطر"
+    GIFT_BOX = "gift_box", "باکس هدیه"
+
+
 class Gender(models.TextChoices):
     MEN = "men", "مردانه"
     WOMEN = "women", "زنانه"

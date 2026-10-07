@@ -13,9 +13,10 @@
     {% if form.non_field_errors %}<p class="alert alert-err mb-4">{{ form.non_field_errors|join:" " }}</p>{% endif %}
     {% if form_error %}<p class="alert alert-err mb-4">لطفاً خطاهای فرم را برطرف کنید.</p>{% endif %}
     <form class="grid items-start gap-7 lg:grid-cols-[1.2fr_1fr]" method="post" action="{% url 'orders:checkout' %}" novalidate
-          hx-post="{% url 'orders:quote' %}" hx-trigger="change from:#id_province, change from:[name=shipping_method]"
+          hx-post="{% url 'orders:quote' %}" hx-trigger="change from:#id_province, change from:[name=shipping_method], change from:[name=packaging], change from:[name=gift_box]"
           hx-target="#checkout-summary" hx-swap="outerHTML">
       {% csrf_token %}
+      <div class="grid min-w-0 gap-7">
       <div class="panel min-w-0">
         <h3 class="panel-title">اطلاعات گیرنده</h3>
         <div class="panel-body grid gap-x-5 gap-y-4 sm:grid-cols-2">
@@ -29,6 +30,8 @@
           {% include "components/field.html" with field=form.postal_code %}
           {% include "components/field.html" with field=form.note class="sm:col-span-2" %}
         </div>
+      </div>
+      {% include "orders/partials/gift_packaging.html" %}
       </div>
       <div class="panel min-w-0">
         <h3 class="panel-title">خلاصه سفارش</h3>

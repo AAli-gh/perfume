@@ -42,10 +42,17 @@ def create_order(cart, form, user=None):
     order.user = user if user and user.is_authenticated else None
     order.save()  # شماره سفارش برای مرجع گردش موجودی لازم است
 
+    wanted = [(line.variant, line.quantity) for line in cart]
+    box = form.cleaned_data.get("gift_box")
+    if box is not None:  # باکس هدیه انتخاب‌شده در صفحه تسویه
+        wanted.append((box, 1))
+    quantities = {}
+    for variant, quantity in wanted:
+        quantities[variant.pk] = quantities.get(variant.pk, 0) + quantity
     variants = inventory.reserve(
-        [inventory.StockLine(line.variant.pk, line.quantity) for line in cart], order.number, user=order.user
+        [inventory.StockLine(pk, quantity) for pk, quantity in quantities.items()], order.number, user=order.user
     )
-    lines = [_Line(variants[line.variant.pk], line.quantity) for line in cart]
+    lines = [_Line(variants[pk], quantity) for pk, quantity in quantities.items()]
 
     coupon = None
     if cart.coupon_code:

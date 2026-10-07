@@ -194,3 +194,37 @@ def test_compare_and_perfume_finder(site, page):
     page.click("text=مقایسه")
     page.wait_for_url("**/compare/")
     expect(page.locator(".compare-table thead th")).not_to_have_count(1)
+
+
+def test_gift_box_packaging_at_checkout(site, page):
+    page.goto(f"{site}/gift-boxes/")
+    expect(page.locator("main")).to_contain_text("باکس")
+    page.goto(f"{site}/product/royal-saffron/")
+    page.click("form[data-variant-form] button[type=submit]")
+    expect(page.locator("#cart-badge")).to_have_text("۱")
+
+    page.goto(f"{site}/cart/")
+    details = page.locator("#gift-packaging [data-gift-details]")
+    expect(details).to_be_hidden()  # بسته‌بندی معمولی: جزئیات هدیه پنهان (فقط CSS)
+    page.locator("#gift-packaging label", has_text="داخل باکس هدیه").click()
+    expect(details).to_be_visible()
+    expect(page.locator("#gift-packaging [data-gift-custom]")).to_be_hidden()
+    page.locator(".gift-box-option", has_text="سلطنتی").click()
+    expect(page.locator("#checkout-summary [data-extra-line]")).to_contain_text("سلطنتی")  # قیمت با HTMX به‌روز شد
+    page.fill("#id_gift_message", "تولدت مبارک")
+    page.fill("#id_gift_from", "سارا")
+
+    page.fill("#id_first_name", "علی")
+    page.fill("#id_last_name", "رضایی")
+    page.fill("#id_phone", "09121234567")
+    page.select_option("#id_province", "تهران")
+    page.fill("#id_city", "تهران")
+    page.fill("#id_address", "خیابان آزادی ۱")
+    page.fill("#id_postal_code", "1234567890")
+    page.check("input[name=payment_method][value=cod]")
+    page.check("#id_accept_terms")
+    page.click("#order-section button[type=submit]")
+    page.wait_for_url("**/orders/MJ*/")
+    expect(page.locator("#order-gift")).to_contain_text("تولدت مبارک")
+    order = Order.objects.get()
+    assert order.packaging == Order.Packaging.IN_BOX and order.items.count() == 2
