@@ -42,6 +42,11 @@ def document_parts(product):
     b = [product.brand.name, product.scent.name if product.scent_id else "باکس هدیه", *notes, *(c.name for c in product.categories.all())]
     c = [
         product.collection.name if product.collection_id else "",
+        # مشخصات رایحه («زنانه»، «تابستان»، «شب و مهمانی»، …) تا جستجوی یک‌کلمه‌ای هم آن‌ها را پیدا کند
+        product.get_gender_display() if product.gender else "",
+        product.get_concentration_display() if product.concentration else "",
+        *product.season_labels,
+        *product.occasion_labels,
         *(t.name for t in product.tags.all()),
         *(str(v.value) for v in product.attribute_values.all()),
         product.short_description,

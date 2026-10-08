@@ -19,6 +19,9 @@ BUDGETS = {
     "/": 16,
     "/shop/": 14,
     "/shop/?scent=woody&sort=price": 14,
+    "/shop/?q=عطر خنک زیر ۴ میلیون": 14,
+    "/shop/?q=عطر خنک زیر سه تومن": 15,  # بدون نتیجه دقیق: کنار گذاشتن شرط قیمت
+    "/search/suggest/?q=زنانه شیرین برای شب": 10,
     "/product/mystic-oud/": 17,
     "/collections/": 8,
     "/collections/oud/": 15,

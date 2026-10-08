@@ -57,6 +57,19 @@
 <tr><td align="center" valign="top"><img src="screenshots/m-compare.jpg" alt="مقایسه در موبایل"><br><sub>مقایسه در موبایل</sub></td><td align="center" valign="top"><img src="screenshots/m-finder.jpg" alt="عطریاب در موبایل"><br><sub>عطریاب در موبایل</sub></td></tr>
 </table>
 
+## جستجوی هوشمند
+
+«عطر خنک زیر سه تومن»: برداشت از عبارت، پیشنهاد زنده و نزدیک‌ترین نتایج ([smart-search.md](smart-search.md)).
+
+<table>
+<tr><td align="center" valign="top"><img src="screenshots/smart-search-panel.jpg" alt="پنل جستجو با نمونه‌ها"><br><sub>پنل جستجو با نمونه‌ها</sub></td><td align="center" valign="top"><img src="screenshots/smart-search-suggest.jpg" alt="پیشنهاد زنده حین تایپ"><br><sub>پیشنهاد زنده حین تایپ</sub></td></tr>
+<tr><td align="center" valign="top"><img src="screenshots/smart-search-results.jpg" alt="برچسب هر شرط با ✕ و کلمات نادیده"><br><sub>برچسب هر شرط با ✕ و کلمات نادیده</sub></td><td align="center" valign="top"><img src="screenshots/smart-search-relaxed.jpg" alt="نتیجه دقیق نبود: نزدیک‌ترین گزینه‌ها"><br><sub>نتیجه دقیق نبود: نزدیک‌ترین گزینه‌ها</sub></td></tr>
+</table>
+
+<table>
+<tr><td align="center" valign="top"><img src="screenshots/m-smart-search.jpg" alt="جستجوی هوشمند در موبایل"><br><sub>جستجوی هوشمند در موبایل</sub></td></tr>
+</table>
+
 ## باکس هدیه و بسته‌بندی
 
 خرید باکس جدا یا انتخاب در تسویه، با چیدن عطرها داخل باکس، ارسال جدا یا توضیح دلخواه ([gift-boxes.md](gift-boxes.md)).

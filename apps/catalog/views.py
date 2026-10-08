@@ -2,6 +2,8 @@ from django.core.paginator import Paginator
 from django.http import Http404
 from django.shortcuts import render
 
+from apps.core.ratelimit import ratelimit
+
 from . import selectors
 from .history import remember_view
 from .recommend import similar_products
@@ -9,6 +11,7 @@ from .forms import ShopFilterForm
 from .models import Category, Collection, Product
 
 PER_PAGE = 8
+SUGGEST_LIMIT = 5
 
 
 def _render_partial_or_page(request, partial, page, context):
@@ -42,7 +45,8 @@ def shop(request, *, landing=None):
         max_price=data.get("max_price"),
         sort=data.get("sort", ""),
     )
-    products = selectors.filter_products(store, filters, bounds=(lo, hi))
+    search = selectors.search_shop(store, filters, bounds=(lo, hi))
+    products = search.products
     if (data.get("collection") and collection is None) or (data.get("category") and category is None):
         products = products.none()
     page = Paginator(products, PER_PAGE).get_page(request.GET.get("page"))
@@ -55,6 +59,7 @@ def shop(request, *, landing=None):
         "selected_brands": filters.brands,
         "selected_scents": filters.scents,
         "q": filters.q,
+        **_search_context(search),
         "collection": collection,
         "category": category,
         "landing": landing,
@@ -65,6 +70,30 @@ def shop(request, *, landing=None):
         "max_price": filters.max_price if filters.max_price is not None else hi,
     }
     return _render_partial_or_page(request, "catalog/partials/results.html", "catalog/shop.html", context)
+
+
+def _search_context(search):
+    """برداشت جستجوی هوشمند برای قالب: برچسب‌ها با پیوند حذف، شرط‌های کنارگذاشته و کلمات نادیده."""
+    parsed = search.parsed
+    if parsed is None or not parsed.is_smart:
+        return {"smart": None}
+    chips = [{"label": c.label, "kind": c.kind, "negated": c.negated, "note": c.note,
+              "relaxed": c in search.relaxed, "remove_q": parsed.without(c)} for c in parsed.criteria]
+    return {"smart": {"chips": chips, "exact": search.exact, "relaxed": [c.label for c in search.relaxed],
+                      "ignored": parsed.ignored}}
+
+
+@ratelimit("search-suggest", "120/1m", methods=("GET",))
+def search_suggest(request):
+    """HTMX: پیش‌نمایش زنده جستجو در پنل جستجوی هدر (برداشت از عبارت + چند نتیجه اول)."""
+    q = request.GET.get("q", "").strip()[:200]
+    if not q:
+        return render(request, "catalog/partials/search_suggest.html", {"q": ""})
+    search = selectors.search_shop(request.store, selectors.ProductFilters(q=q))
+    products = list(search.products[:SUGGEST_LIMIT + 1])
+    context = {"q": q, "products": products[:SUGGEST_LIMIT], "more": len(products) > SUGGEST_LIMIT,
+               **_search_context(search)}
+    return render(request, "catalog/partials/search_suggest.html", context)
 
 
 def collection_detail(request, slug):

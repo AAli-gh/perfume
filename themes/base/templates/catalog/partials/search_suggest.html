@@ -1,0 +1,21 @@
+{% if not q %}
+  <p class="mb-3 text-sm text-muted">هر طور که دوست دارید بنویسید؛ قیمت، حس رایحه، فصل، موقعیت، جنسیت و نت‌ها را می‌فهمیم:</p>
+  {% include "catalog/partials/search_examples.html" %}
+{% else %}
+  {% include "catalog/partials/smart_query.html" with remove_base="/shop/" %}
+  {% if products %}
+    <ul class="grid gap-1.5" data-suggest-results>
+      {% for p in products %}
+        <li><a class="flex items-center gap-3 rounded border border-transparent p-2 hover:border-line hover:bg-panel/70" href="{{ p.get_absolute_url }}">
+          <img src="{{ p.image.url }}" alt="" class="h-12 w-12 shrink-0 border border-line object-cover" loading="lazy">
+          <span class="min-w-0 flex-1"><span class="block truncate text-cream">{{ p.name }}</span><small class="text-xs text-muted">{{ p.brand.name }}{% if p.scent %} · {{ p.scent.name }}{% endif %}</small></span>
+          <span class="shrink-0 text-sm text-gold">{% if p.variants.all|length > 1 %}از {% endif %}{{ p.min_price|toman }}</span>
+        </a></li>
+      {% endfor %}
+    </ul>
+    <a class="btn btn-ghost btn-sm mt-3 w-full" href="{% url 'catalog:shop' %}?q={{ q|urlencode }}">{% if more %}مشاهده همه نتایج{% else %}مشاهده در فروشگاه{% endif %}</a>
+  {% else %}
+    <p class="py-4 text-center text-muted">عطری پیدا نشد. نمونه‌ها را امتحان کنید:</p>
+    {% include "catalog/partials/search_examples.html" %}
+  {% endif %}
+{% endif %}

@@ -228,3 +228,31 @@ def test_gift_box_packaging_at_checkout(site, page):
     expect(page.locator("#order-gift")).to_contain_text("تولدت مبارک")
     order = Order.objects.get()
     assert order.packaging == Order.Packaging.IN_BOX and order.items.count() == 2
+
+
+def test_smart_search_live_suggestions_and_chips(site, page):
+    page.goto(f"{site}/")
+    page.click("[data-search-open]")
+    expect(page.locator("#search-suggest [data-search-examples]")).to_be_visible()
+    page.fill("#site-search", "عطر خنک زیر سه تومن")
+    suggest = page.locator("#search-suggest")
+    expect(suggest.locator("[data-smart-query]")).to_contain_text("خنک و تازه")
+    expect(suggest.locator("[data-smart-query]")).to_contain_text("قیمت تا ۳ میلیون تومان")
+    expect(suggest.locator("[data-relaxed]")).to_be_visible()  # داده نمونه عطر خنک زیر ۳ میلیون ندارد
+    expect(suggest.locator("[data-suggest-results] li").first).to_contain_text("آکوا اینفرنو")
+    page.press("#site-search", "Enter")
+    page.wait_for_url("**/shop/?q=*")
+    expect(page.locator("#results [data-smart-query]")).to_contain_text("خنک و تازه")
+    expect(page.locator("#results .product-card").first).to_contain_text("آکوا اینفرنو")
+
+    # ✕ روی برچسب قیمت: همان جستجو بدون شرط قیمت
+    page.locator("#results .smart-chip", has_text="قیمت").click()
+    page.wait_for_load_state()
+    expect(page.locator("#shop-search")).to_have_value("عطر خنک")
+    expect(page.locator("#results [data-relaxed]")).to_have_count(0)
+
+    page.fill("#shop-search", "زنانه شیرین برای شب")
+    page.press("#shop-search", "Enter")
+    page.wait_for_url("**/shop/?q=*")
+    expect(page.locator("#results .smart-chip")).to_have_count(3)
+    expect(page.locator("#results .product-card")).not_to_have_count(0)

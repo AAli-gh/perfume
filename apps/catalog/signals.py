@@ -4,8 +4,9 @@ from django.db import transaction
 from django.db.models.signals import m2m_changed, post_delete, post_save
 from django.dispatch import receiver
 
-from .models import Brand, Category, Collection, FragranceNote, Product, ProductNote, ScentFamily, Tag
+from .models import Brand, Category, Collection, FragranceNote, Product, ProductNote, ProductVariant, ScentFamily, Tag
 from .search import reindex_products
+from .smart_search import invalidate_vocab
 
 
 @receiver(post_save, sender=Product)
@@ -51,3 +52,15 @@ def _taxonomy_renamed(sender, instance, created=False, raw=False, **kwargs):
         ids = list(instance.products.values_list("pk", flat=True))
     if ids:
         transaction.on_commit(lambda: reindex_products_task.delay(ids))
+
+
+@receiver([post_save, post_delete], sender=Product)
+@receiver([post_save, post_delete], sender=ProductVariant)
+@receiver([post_save, post_delete], sender=Brand)
+@receiver([post_save, post_delete], sender=ScentFamily)
+@receiver([post_save, post_delete], sender=FragranceNote)
+def _smart_vocab_changed(sender, instance, raw=False, **kwargs):
+    """واژگان جستجوی هوشمند (نام‌ها، نت‌ها، بازه قیمت) کش می‌شود؛ با هر تغییر پاک شود."""
+    store_id = instance.product.store_id if sender is ProductVariant else getattr(instance, "store_id", None)
+    if store_id:
+        transaction.on_commit(lambda: invalidate_vocab(store_id))
