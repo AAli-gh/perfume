@@ -35,7 +35,14 @@
 
       <form action="{% url 'cart:add' %}" method="post" hx-post="{% url 'cart:add' %}" hx-swap="none" data-variant-form>
         {% csrf_token %}
-        <div class="mb-3 text-[1.8rem] text-price"><span data-variant-price>{{ product.default_variant.price|toman }}</span></div>
+        {% with v=product.default_variant %}
+        <div class="mb-3 flex flex-wrap items-baseline gap-x-3 text-[1.8rem] text-price">
+          <span data-variant-price>{{ v.current_price|toman }}</span>
+          <del class="text-base text-muted" data-variant-regular {% if not v.on_sale %}hidden{% endif %}>{% if v.on_sale %}{{ v.price|toman }}{% endif %}</del>
+          <span class="sale-badge" data-variant-off {% if not v.on_sale %}hidden{% endif %}>{% if v.on_sale %}{{ v.discount_percent|fa }}٪ تخفیف{% endif %}</span>
+        </div>
+        {% if v.on_sale and v.sale_ends_at %}<p class="-mt-2 mb-3 text-sm text-gold" data-sale-ends>حراج تا {{ v.sale_ends_at|jdate:"%d %B، ساعت %H:%M" }}</p>{% endif %}
+        {% endwith %}
         <p>{{ product.short_description }}</p>
 
         {% if product.is_gift_box %}
@@ -58,9 +65,9 @@
             <div class="flex gap-2">
               {% for v in variants %}
                 <label class="cursor-pointer">
-                  <input type="radio" name="variant" value="{{ v.pk }}" class="peer sr-only" data-price="{{ v.price|toman }}"
+                  <input type="radio" name="variant" value="{{ v.pk }}" class="peer sr-only" data-price="{{ v.current_price|toman }}" data-regular="{% if v.on_sale %}{{ v.price|toman }}{% endif %}" data-off="{% if v.on_sale %}{{ v.discount_percent|fa }}٪ تخفیف{% endif %}"
                          {% if v == product.default_variant %}checked{% endif %} {% if not v.stock %}disabled{% endif %}>
-                  <span class="block rounded border border-line px-4 py-1.5 text-muted peer-checked:border-copper peer-checked:bg-copper/10 peer-checked:text-gold peer-disabled:line-through peer-disabled:opacity-40 peer-focus-visible:ring-2 peer-focus-visible:ring-copper">{% if product.is_gift_box %}{{ v.price|toman }}{% else %}{{ v.size_ml|fa }} میل{% endif %}</span>
+                  <span class="block rounded border border-line px-4 py-1.5 text-muted peer-checked:border-copper peer-checked:bg-copper/10 peer-checked:text-gold peer-disabled:line-through peer-disabled:opacity-40 peer-focus-visible:ring-2 peer-focus-visible:ring-copper">{% if product.is_gift_box %}{{ v.current_price|toman }}{% else %}{{ v.size_ml|fa }} میل{% endif %}</span>
                 </label>
               {% endfor %}
             </div>

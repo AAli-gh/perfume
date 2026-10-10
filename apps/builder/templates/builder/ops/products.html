@@ -1,0 +1,73 @@
+{% extends "builder/base.html" %}
+{% block title %}اکسل و قیمت‌ها{% endblock %}
+{% block content %}
+<h1 class="mb-1 text-[1.7rem]">اکسل و قیمت‌ها</h1>
+<p class="mb-6 text-sm text-muted">فهرست محصولات را در Excel بگیرید، قیمت و موجودی را همان‌جا عوض کنید و فایل را برگردانید؛ یا قیمت گروهی از محصولات را با درصد یا مبلغ ثابت تغییر دهید. همه تغییرات قبل از اعمال پیش‌نمایش دارند.</p>
+
+<div class="grid gap-5 xl:grid-cols-2">
+  <section class="studio-preview" aria-labelledby="excel-title">
+    <h2 id="excel-title" class="mb-3 text-lg">۱. خروجی و ورود از فایل</h2>
+    <div class="mb-4 flex flex-wrap gap-2">
+      <a class="btn btn-sm" href="{% url 'builder:products_export' %}">دریافت فایل Excel</a>
+      <a class="btn btn-ghost btn-sm" href="{% url 'builder:products_export' %}?format=csv">دریافت CSV</a>
+    </div>
+    <form method="post" action="{% url 'builder:products_import' %}" enctype="multipart/form-data" class="grid gap-3">
+      {% csrf_token %}
+      {% include "components/field.html" with field=import_form.file %}
+      <button class="btn btn-sm justify-self-start" type="submit">بارگذاری و پیش‌نمایش</button>
+    </form>
+    <details class="mt-4 text-sm text-muted">
+      <summary class="cursor-pointer">قالب فایل</summary>
+      <p class="mt-2">هر ردیف یک حجم است. ستون‌ها: {% for key, label in columns %}<bdi class="chip">{{ label }}</bdi> {% endfor %}</p>
+      <ul class="list-disc ps-5">
+        <li>«شناسه محصول» و «حجم» برای پیدا کردن ردیف لازم است؛ ستون خالی یعنی «تغییر نده».</li>
+        <li>شناسه‌ای که در فروشگاه نیست با نام، برند، خانواده رایحه و قیمت ← محصول جدید (غیرفعال؛ تصویر را در پنل بگذارید).</li>
+        <li>عددها با ارقام فارسی یا لاتین و با/بدون جداکننده (۳٬۵۰۰٬۰۰۰) پذیرفته می‌شوند. «فعال»: بله/خیر.</li>
+        <li>تغییر موجودی با علت «ورود گروهی از فایل» در گردش موجودی ثبت می‌شود و قیمت‌ها قابل بازگرداندن‌اند.</li>
+      </ul>
+    </details>
+  </section>
+
+  <section class="studio-preview" aria-labelledby="price-title">
+    <h2 id="price-title" class="mb-3 text-lg">۲. تغییر گروهی قیمت</h2>
+    <form method="get" action="{% url 'builder:products_prices' %}" class="grid gap-4">
+      {% if price_form.non_field_errors %}<p class="alert alert-err">{{ price_form.non_field_errors|join:" " }}</p>{% endif %}
+      <div class="grid gap-3 sm:grid-cols-[auto_auto_1fr]">
+        {% include "components/field.html" with field=price_form.direction %}
+        {% include "components/field.html" with field=price_form.mode %}
+        {% include "components/field.html" with field=price_form.value %}
+      </div>
+      {% include "components/field.html" with field=price_form.rounding %}
+      <fieldset class="grid gap-3 rounded border border-line p-3">
+        <legend class="px-1 text-sm">کدام محصولات؟ (خالی = همه)</legend>
+        <div><span class="text-sm text-muted">برند</span><div class="flex flex-wrap gap-x-4">{% for c in price_form.brands %}<label class="check">{{ c.tag }} {{ c.choice_label }}</label>{% endfor %}</div></div>
+        <div><span class="text-sm text-muted">خانواده رایحه</span><div class="flex flex-wrap gap-x-4">{% for c in price_form.scents %}<label class="check">{{ c.tag }} {{ c.choice_label }}</label>{% endfor %}</div></div>
+        <div><span class="text-sm text-muted">کالکشن</span><div class="flex flex-wrap gap-x-4">{% for c in price_form.collections %}<label class="check">{{ c.tag }} {{ c.choice_label }}</label>{% endfor %}</div></div>
+        <div class="flex flex-wrap items-end gap-4">{% include "components/field.html" with field=price_form.kind %}<label class="check pb-2">{{ price_form.active_only }} {{ price_form.active_only.label }}</label></div>
+      </fieldset>
+      <button class="btn btn-sm justify-self-start" type="submit">پیش‌نمایش قیمت‌های جدید</button>
+    </form>
+  </section>
+</div>
+
+<section class="studio-preview mt-5" aria-labelledby="batches-title">
+  <h2 id="batches-title" class="mb-3 text-lg">تاریخچه تغییر قیمت</h2>
+  {% if batches %}
+  <table class="w-full text-right text-sm">
+    <thead class="text-muted"><tr><th class="p-1.5 font-normal">زمان</th><th class="p-1.5 font-normal">شرح</th><th class="p-1.5 font-normal">حجم‌ها</th><th class="p-1.5 font-normal">کاربر</th><th class="p-1.5 font-normal"></th></tr></thead>
+    <tbody>
+      {% for b in batches %}
+      <tr class="border-t border-line">
+        <td class="p-1.5">{{ b.created_at|jdate:"%d %B، %H:%M" }}</td>
+        <td class="p-1.5">{{ b.description }}</td>
+        <td class="p-1.5">{{ b.count|fa }}</td>
+        <td class="p-1.5"><bdi>{{ b.created_by.display_name|default:b.created_by.get_username|default:"—" }}</bdi></td>
+        <td class="p-1.5">{% if b.reverted_at %}<span class="text-muted">برگردانده شد</span>{% else %}
+          <form method="post" action="{% url 'builder:products_price_revert' b.pk %}">{% csrf_token %}<button class="text-sm text-gold hover:underline" type="submit">بازگرداندن</button></form>{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}<p class="m-0 text-sm text-muted">هنوز تغییر گروهی قیمتی ثبت نشده است.</p>{% endif %}
+</section>
+{% endblock %}

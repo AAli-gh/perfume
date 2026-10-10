@@ -10,6 +10,8 @@
   <meta name="htmx-config" content='{"includeIndicatorStyles":false,"allowEval":false,"allowScriptTags":false}'>
   <script src="{% static 'vendor/htmx.min.js' %}" defer></script>
   <script src="{% static 'js/studio.js' %}" defer></script>
+  <script src="{% static 'js/jalali-picker.js' %}" defer></script>
+  <link rel="stylesheet" href="{% static 'css/jalali-picker.css' %}">
 </head>
 <body class="studio" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
   <header class="border-b border-line bg-ink-2/90">
@@ -35,6 +37,8 @@
         {% endif %}
         {% if perms.catalog.change_product %}
         <a href="{% url 'builder:stock' %}" {% if nav == 'stock' %}aria-current="page"{% endif %}>{% icon "truck" "!w-4 !h-4" %} موجودی</a>
+        <a href="{% url 'builder:products' %}" {% if nav == 'products' %}aria-current="page"{% endif %}>{% icon "grid" "!w-4 !h-4" %} اکسل و قیمت‌ها</a>
+        <a href="{% url 'builder:sales' %}" {% if nav == 'sales' %}aria-current="page"{% endif %}>{% icon "flame" "!w-4 !h-4" %} حراج زمان‌دار</a>
         {% endif %}
         {% if perms.themes.change_themesettings %}
         <a href="{% url 'builder:theme' %}" {% if nav == 'theme' %}aria-current="page"{% endif %}>{% icon "flame" "!w-4 !h-4" %} ظاهر و پوسته</a>

@@ -744,7 +744,7 @@ def _list_overlap(products, field_name, values):
 
 def apply(products, parsed, vocab):
     """اعمال معیارهای parsed روی محصولات (listable_products)."""
-    from .models import ProductVariant
+    from .models import ProductVariant, effective_price
 
     crit = parsed.criteria
     if any(c.kind == "gift_box" for c in crit):
@@ -828,15 +828,16 @@ def apply(products, parsed, vocab):
         if c.kind == "price":
             lo, hi = c.value
             if lo:
-                variant_q &= Q(price__gte=lo)
+                variant_q &= Q(current__gte=lo)  # قیمت فعلی (با حراج)
             if hi:
-                variant_q &= Q(price__lte=hi)
+                variant_q &= Q(current__lte=hi)
         elif c.kind == "size":
             variant_q &= Q(size_ml=c.value)
         elif c.kind == "stock":
             variant_q &= Q(stock__gt=0)
     if variant_q:
-        products = products.filter(Exists(ProductVariant.objects.filter(variant_q, product=OuterRef("pk"))))
+        variants = ProductVariant.objects.annotate(current=effective_price())
+        products = products.filter(Exists(variants.filter(variant_q, product=OuterRef("pk"))))
 
     if parsed.text:
         products = search_products(products, parsed.text)

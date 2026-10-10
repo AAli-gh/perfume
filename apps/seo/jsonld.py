@@ -76,7 +76,7 @@ def product(obj, *, url, images, description, currency_code, currency_factor):
     }
     variants = list(obj.variants.all())
     if variants:
-        prices = [v.price * currency_factor for v in variants]
+        prices = [v.current_price * currency_factor for v in variants]
         in_stock = any(v.stock > 0 for v in variants)
         availability = f"https://schema.org/{'InStock' if in_stock else 'OutOfStock'}"
         if len(variants) == 1:

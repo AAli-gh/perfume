@@ -8,7 +8,9 @@ from dataclasses import dataclass, field
 
 from django.db.models import Count, F, Max, Min, Q
 
-from .models import AttributeValue, Brand, Category, Collection, Product, ProductVariant, ScentFamily
+from .models import (
+    AttributeValue, Brand, Category, Collection, Product, ProductVariant, ScentFamily, effective_price,
+)
 from . import smart_search as smart
 from .profile import Kind
 from .search import search_products
@@ -37,7 +39,8 @@ def listable_products(store):
 
 def price_bounds(store):
     """کمترین و بیشترین قیمت حجم‌های فعال فروشگاه، گردشده به PRICE_STEP."""
-    agg = ProductVariant.objects.filter(product__store=store, product__is_active=True).aggregate(lo=Min("price"), hi=Max("price"))
+    agg = (ProductVariant.objects.filter(product__store=store, product__is_active=True)
+           .annotate(current=effective_price()).aggregate(lo=Min("current"), hi=Max("current")))
     lo = (agg["lo"] or 0) // PRICE_STEP * PRICE_STEP
     hi = -(-(agg["hi"] or 0) // PRICE_STEP) * PRICE_STEP
     return lo, hi

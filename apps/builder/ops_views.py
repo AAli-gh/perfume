@@ -5,22 +5,28 @@ catalog.inventory عبور می‌کند تا تاریخچه، دفتر موجو
 """
 
 import re
+import secrets
 
 from django.contrib import messages
+from django.core.cache import cache
 from django.core.paginator import Paginator
-from django.db.models import Q
-from django.http import Http404
+from django.db.models import Count, Q
+from django.http import Http404, HttpResponse
 from django.shortcuts import redirect, render
+from django.utils import timezone
 from django.views.decorators.http import require_POST
 
-from apps.catalog import inventory
-from apps.catalog.models import ProductVariant, StockMovement
+from apps.catalog import bulk, inventory
+from apps.catalog import sales as sale_service
+from apps.catalog.models import PriceChangeBatch, ProductVariant, SaleCampaign, StockMovement, sale_active
+from apps.core import spreadsheet
 from apps.core.audit import record
 from apps.core.forms import en_digits
 from apps.orders.models import Order
 from apps.orders.workflow import InvalidTransition, transition
 
 from . import ops
+from .ops_forms import ImportForm, PriceChangeForm, SaleForm
 from .access import ORDERS_PERM, PRODUCTS_PERM, REPORTS_PERM, studio_required
 
 S = Order.Status
@@ -212,3 +218,151 @@ def _restock(request):
     else:
         messages.success(request, f"آستانه «{variant}» ذخیره شد.")
     return redirect(request.get_full_path())
+
+
+# ---------- محصولات: خروجی، ورود از فایل، تغییر گروهی قیمت ----------
+
+IMPORT_TTL = 1800
+
+
+@studio_required(PRODUCTS_PERM)
+def products(request):
+    return render(request, "builder/ops/products.html", {
+        "nav": "products", "import_form": ImportForm(), "price_form": PriceChangeForm(store=request.store),
+        "batches": PriceChangeBatch.objects.for_store(request.store).select_related("created_by")[:10],
+        "columns": bulk.COLUMNS,
+    })
+
+
+@studio_required(PRODUCTS_PERM)
+def products_export(request):
+    rows = list(bulk.export_rows(request.store))
+    stamp = timezone.localdate().isoformat()
+    record("studio.export_products", request, target=f"{len(rows) - 1} ردیف")
+    if request.GET.get("format") == "csv":
+        response = HttpResponse(spreadsheet.write_csv(rows), content_type="text/csv; charset=utf-8")
+        response["Content-Disposition"] = f'attachment; filename="products-{stamp}.csv"'
+        return response
+    response = HttpResponse(spreadsheet.write_xlsx(rows, "محصولات"),
+                            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    response["Content-Disposition"] = f'attachment; filename="products-{stamp}.xlsx"'
+    return response
+
+
+@studio_required(PRODUCTS_PERM)
+@require_POST
+def products_import(request):
+    """مرحله ۱: خواندن فایل و نمایش پیش‌نمایش تغییرات (هنوز چیزی ذخیره نمی‌شود)."""
+    form = ImportForm(request.POST, request.FILES)
+    if not form.is_valid():
+        messages.error(request, "فایلی انتخاب نشده است.")
+        return redirect("builder:products")
+    upload = form.cleaned_data["file"]
+    try:
+        table = spreadsheet.read_table(upload.name, upload.read(spreadsheet.MAX_UPLOAD + 1))
+    except spreadsheet.SpreadsheetError as exc:
+        messages.error(request, str(exc))
+        return redirect("builder:products")
+    plan = bulk.plan_import(request.store, table)
+    token = secrets.token_urlsafe(16)
+    cache.set(f"studio-import:{request.user.pk}:{token}", table, IMPORT_TTL)
+    return render(request, "builder/ops/import_preview.html", {
+        "nav": "products", "plan": plan, "token": token, "filename": upload.name,
+        "counts": {a: plan.count(a) for a in ("update", "new_variant", "new_product", "unchanged", "error")},
+    })
+
+
+@studio_required(PRODUCTS_PERM)
+@require_POST
+def products_import_confirm(request):
+    """مرحله ۲: اعمال همان فایل (با وضعیت فعلی پایگاه داده دوباره برنامه‌ریزی می‌شود)."""
+    key = f"studio-import:{request.user.pk}:{request.POST.get('token', '')}"
+    table = cache.get(key)
+    if table is None:
+        messages.error(request, "مهلت پیش‌نمایش تمام شده است؛ فایل را دوباره بارگذاری کنید.")
+        return redirect("builder:products")
+    cache.delete(key)
+    plan = bulk.plan_import(request.store, table)
+    counts = bulk.apply_import(request.store, plan, user=request.user)
+    record("studio.import_products", request, target=str(counts))
+    messages.success(request, (
+        f"اعمال شد: {counts['updated']} حجم به‌روز شد ({counts['prices']} قیمت، {counts['stock']} موجودی)، "
+        f"{counts['new_products']} محصول جدید و {counts['new_variants']} حجم جدید."
+        + (" محصولات جدید غیرفعال‌اند؛ در پنل مدیریت تصویرشان را بگذارید و فعالشان کنید." if counts["new_products"]
+           else "")))
+    return redirect("builder:products")
+
+
+@studio_required(PRODUCTS_PERM)
+def products_prices(request):
+    """تغییر گروهی قیمت: GET = پیش‌نمایش، POST با confirm = اعمال."""
+    source = request.POST if request.method == "POST" else request.GET
+    form = PriceChangeForm(source, store=request.store)
+    if not form.is_valid():
+        return render(request, "builder/ops/products.html", {
+            "nav": "products", "import_form": ImportForm(), "price_form": form, "columns": bulk.COLUMNS,
+            "batches": PriceChangeBatch.objects.for_store(request.store).select_related("created_by")[:10],
+        }, status=422)
+    rows = bulk.plan_prices(bulk.price_scope(request.store, **form.scope_kwargs()), form.rule)
+    description = f"{form.scope_label()}: {form.rule.describe()}"
+    if request.method == "POST" and request.POST.get("confirm") == "1":
+        if not rows:
+            messages.error(request, "قیمتی تغییر نمی‌کند.")
+            return redirect("builder:products")
+        batch = bulk.apply_prices(request.store, rows, description, user=request.user)
+        record("studio.bulk_price", request, target=description)
+        messages.success(request, f"قیمت {batch.count} حجم تغییر کرد ({description}). در صورت اشتباه از «تاریخچه تغییر قیمت» برگردانید.")
+        return redirect("builder:products")
+    return render(request, "builder/ops/price_preview.html", {
+        "nav": "products", "rows": rows[:500], "total": len(rows), "description": description,
+        "query": source.urlencode(),
+    })
+
+
+@studio_required(PRODUCTS_PERM)
+@require_POST
+def products_price_revert(request, pk):
+    batch = PriceChangeBatch.objects.for_store(request.store).filter(pk=pk).first()
+    if batch is None:
+        raise Http404
+    reverted, skipped = bulk.revert_batch(batch)
+    record("studio.revert_price", request, target=batch.description)
+    messages.success(request, f"قیمت {reverted} حجم به قبل برگشت."
+                              + (f" {skipped} حجم بعد از آن دوباره تغییر کرده بود و دست نخورد." if skipped else ""))
+    return redirect("builder:products")
+
+
+# ---------- حراج زمان‌دار ----------
+
+@studio_required(PRODUCTS_PERM)
+def sales(request):
+    form = SaleForm(request.POST or None, store=request.store)
+    if request.method == "POST" and form.is_valid():
+        d = form.cleaned_data
+        variants = bulk.price_scope(request.store, **form.scope_kwargs())
+        campaign, applied, replaced = sale_service.create_campaign(
+            request.store, variants, name=d["name"], percent=d["percent"], starts_at=d["starts_at"],
+            ends_at=d["ends_at"], rounding=d["rounding"], user=request.user)
+        record("studio.sale_create", request, target=f"{campaign.name} ({applied})")
+        messages.success(request, f"حراج «{campaign.name}» برای {applied} حجم ثبت شد ({campaign.get_status_display()})."
+                                  + (f" حراج قبلی {replaced} حجم جایگزین شد." if replaced else ""))
+        return redirect("builder:sales")
+    campaigns = (SaleCampaign.objects.for_store(request.store).select_related("created_by")
+                 .annotate(variant_count=Count("variants"))[:30])
+    on_sale = (ProductVariant.objects.filter(product__store=request.store).filter(sale_active())
+               .select_related("product").order_by("product__name")[:100])
+    return render(request, "builder/ops/sales.html", {
+        "nav": "sales", "form": form, "campaigns": campaigns, "on_sale": on_sale,
+    }, status=422 if request.method == "POST" else 200)
+
+
+@studio_required(PRODUCTS_PERM)
+@require_POST
+def sale_end(request, pk):
+    campaign = SaleCampaign.objects.for_store(request.store).filter(pk=pk).first()
+    if campaign is None:
+        raise Http404
+    count = sale_service.end_campaign(campaign)
+    record("studio.sale_end", request, target=campaign.name)
+    messages.success(request, f"حراج «{campaign.name}» پایان یافت؛ قیمت {count} حجم به حالت عادی برگشت.")
+    return redirect("builder:sales")

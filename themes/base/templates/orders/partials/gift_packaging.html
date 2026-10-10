@@ -21,7 +21,7 @@
               {% if variant %}
                 <img src="{{ variant.product.image.url }}" alt="" class="h-14 w-14 border border-line object-cover" loading="lazy">
                 <span class="flex-1 leading-normal">{{ variant.product.name }}<small class="block text-xs text-muted">گنجایش {{ variant.product.gift_capacity|fa }} عطر</small></span>
-                <span class="text-sm text-gold">{{ variant.price|toman }}</span>
+                <span class="text-sm text-gold">{{ variant.current_price|toman }}</span>
               {% else %}
                 <span class="flex-1">{{ radio.choice_label }}</span>
               {% endif %}

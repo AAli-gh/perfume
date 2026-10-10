@@ -117,6 +117,7 @@
   .smart-chip { @apply text-sm transition hover:border-danger/70; }
   .smart-chip.is-negated { @apply border-danger/50 text-cream; }
   .smart-chip.is-relaxed { @apply border-dashed text-muted line-through decoration-muted/60; }
+  .sale-badge { @apply rounded-full bg-danger/90 px-2 py-0.5 text-xs font-medium text-white; }
   .search-example { @apply rounded-full border border-line px-3 py-1 text-sm text-muted transition hover:border-copper hover:text-gold; }
   .compare-table th, .compare-table td { @apply border-b border-line; }
   .compare-label { @apply sticky right-0 z-[1] w-40 min-w-[9rem] bg-panel p-3 text-start align-top text-sm font-normal text-muted; }

@@ -116,7 +116,14 @@
   // قیمت متناسب با حجم انتخاب‌شده
   document.addEventListener("change", (e) => {
     const radio = e.target.closest("[data-variant-form] input[name=variant]");
-    if (radio) radio.form.querySelector("[data-variant-price]").textContent = radio.dataset.price;
+    if (radio) {
+      const form = radio.form;
+      form.querySelector("[data-variant-price]").textContent = radio.dataset.price;
+      for (const [sel, value] of [["[data-variant-regular]", radio.dataset.regular], ["[data-variant-off]", radio.dataset.off]]) {
+        const el = form.querySelector(sel);
+        if (el) { el.textContent = value || ""; el.hidden = !value; }
+      }
+    }
   });
 
   // برچسب محدوده قیمت

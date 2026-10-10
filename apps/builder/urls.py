@@ -28,5 +28,13 @@ urlpatterns = [
     path("orders/status/", ops_views.orders_status, name="orders_status"),
     path("orders/tracking/", ops_views.tracking, name="tracking"),
     path("stock/", ops_views.stock, name="stock"),
+    path("products/", ops_views.products, name="products"),
+    path("products/export/", ops_views.products_export, name="products_export"),
+    path("products/import/", ops_views.products_import, name="products_import"),
+    path("products/import/confirm/", ops_views.products_import_confirm, name="products_import_confirm"),
+    path("products/prices/", ops_views.products_prices, name="products_prices"),
+    path("sales/", ops_views.sales, name="sales"),
+    path("sales/<int:pk>/end/", ops_views.sale_end, name="sale_end"),
+    path("products/prices/<int:pk>/revert/", ops_views.products_price_revert, name="products_price_revert"),
     path("history/<int:number>/restore/", views.restore, name="restore"),
 ]

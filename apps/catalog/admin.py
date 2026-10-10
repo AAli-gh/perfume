@@ -3,11 +3,12 @@ from django.contrib import admin
 from django.utils.html import format_html
 
 from .models import (
-    Attribute, AttributeValue, BackInStockRequest, Brand, Category, Collection, FragranceNote, Product, ProductImage, ProductNote,
+    Attribute, AttributeValue, BackInStockRequest, Brand, Category, PriceChangeBatch, SaleCampaign, Collection, FragranceNote, Product, ProductImage, ProductNote,
     ProductVariant, ScentFamily, StockMovement, Tag,
 )
 from . import inventory
 from .profile import Occasion, Season
+from apps.core.jalali import JalaliAdminMixin
 
 
 @admin.register(Brand, ScentFamily)
@@ -25,9 +26,10 @@ class CollectionAdmin(admin.ModelAdmin):
     prepopulated_fields = {"slug": ["name"]}
 
 
-class VariantInline(admin.TabularInline):
+class VariantInline(JalaliAdminMixin, admin.TabularInline):
     model = ProductVariant
     extra = 1
+    fields = ["size_ml", "price", "stock", "low_stock_threshold", "sale_price", "sale_starts_at", "sale_ends_at"]
 
 
 class NoteInline(admin.TabularInline):
@@ -152,3 +154,20 @@ class BackInStockRequestAdmin(admin.ModelAdmin):
     search_fields = ["phone", "variant__product__name"]
     raw_id_fields = ["variant", "user"]
     readonly_fields = ["created_at", "notified_at"]
+
+
+@admin.register(SaleCampaign)
+class SaleCampaignAdmin(JalaliAdminMixin, admin.ModelAdmin):
+    list_display = ["name", "percent", "starts_at", "ends_at", "ended_at"]
+    list_filter = ["store"]
+    readonly_fields = ["created_by", "created_at", "ended_at"]
+
+
+@admin.register(PriceChangeBatch)
+class PriceChangeBatchAdmin(admin.ModelAdmin):
+    list_display = ["description", "created_at", "created_by", "reverted_at"]
+    list_filter = ["store"]
+    readonly_fields = ["store", "description", "changes", "created_by", "created_at", "reverted_at"]
+
+    def has_add_permission(self, request):
+        return False

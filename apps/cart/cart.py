@@ -25,11 +25,15 @@ class CartLine:
 
     @property
     def unit_price(self):
+        return self.variant.current_price  # قیمت حراج اگر فعال باشد
+
+    @property
+    def regular_price(self):
         return self.variant.price
 
     @property
     def line_total(self):
-        return self.variant.price * self.quantity
+        return self.unit_price * self.quantity
 
 
 class Cart:

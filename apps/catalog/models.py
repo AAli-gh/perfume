@@ -3,8 +3,9 @@ from django.contrib.postgres.indexes import GinIndex
 from django.contrib.postgres.search import SearchVectorField
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.db.models import Avg, Count, Min, Q
+from django.db.models import Avg, Case, Count, F, Min, Q, When
 from django.urls import reverse
+from django.utils import timezone
 
 from apps.core.db import ListField
 from apps.core.validators import image_upload
@@ -216,10 +217,11 @@ class ProductQuerySet(StoreQuerySet):
         return self.filter(kind=Kind.GIFT_BOX)
 
     def with_stats(self):
-        """قیمت پایه (کمترین قیمت حجم‌ها)، میانگین امتیاز و تعداد نظرات تأییدشده."""
+        """قیمت پایه (کمترین قیمت فعلی حجم‌ها، با احتساب حراج)، قیمت پیش از حراج، امتیاز و تعداد نظرات."""
         approved = Q(reviews__is_approved=True)
         return self.annotate(
-            min_price=Min("variants__price"),
+            min_price=Min(effective_price("variants__")),
+            min_regular_price=Min("variants__price"),
             rating_avg=Avg("reviews__rating", filter=approved),
             review_count=Count("reviews", filter=approved, distinct=True),
         )
@@ -293,7 +295,7 @@ class Product(StoreOwned, SeoFields):
     @property
     def default_variant(self):
         variants = [v for v in self.variants.all() if v.stock > 0] or list(self.variants.all())
-        return min(variants, key=lambda v: v.price) if variants else None
+        return min(variants, key=lambda v: v.current_price) if variants else None
 
     @property
     def in_stock(self):
@@ -356,6 +358,54 @@ class ProductNote(models.Model):
         return f"{self.get_layer_display()}: {self.note}"
 
 
+def sale_active(prefix="", now=None):
+    """Q حجم‌هایی که همین الان حراج فعال دارند (قیمت حراج کمتر از قیمت اصلی و در بازه زمانی)."""
+    now = now or timezone.now()
+    return (Q(**{f"{prefix}sale_price__isnull": False}) & Q(**{f"{prefix}sale_price__lt": F(f"{prefix}price")})
+            & (Q(**{f"{prefix}sale_starts_at__isnull": True}) | Q(**{f"{prefix}sale_starts_at__lte": now}))
+            & (Q(**{f"{prefix}sale_ends_at__isnull": True}) | Q(**{f"{prefix}sale_ends_at__gt": now})))
+
+
+def effective_price(prefix="", now=None):
+    """قیمت فعلی در کوئری: قیمت حراج اگر فعال است، وگرنه قیمت اصلی."""
+    return Case(When(sale_active(prefix, now), then=F(f"{prefix}sale_price")), default=F(f"{prefix}price"),
+                output_field=models.PositiveIntegerField())
+
+
+class SaleCampaign(StoreOwned):
+    """حراج زمان‌دار گروهی از حجم‌ها (مثلاً «۲۰٪ تخفیف برند X تا پایان مهر»)."""
+
+    name = models.CharField("عنوان حراج", max_length=100)
+    percent = models.PositiveSmallIntegerField("درصد تخفیف", validators=[MinValueValidator(1), MaxValueValidator(90)])
+    starts_at = models.DateTimeField("شروع", null=True, blank=True)
+    ends_at = models.DateTimeField("پایان", null=True, blank=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+                                   related_name="+", verbose_name="کاربر")
+    created_at = models.DateTimeField("زمان ثبت", auto_now_add=True)
+    ended_at = models.DateTimeField("پایان دستی", null=True, blank=True)
+
+    objects = StoreQuerySet.as_manager()
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "حراج زمان‌دار"
+        verbose_name_plural = "حراج‌های زمان‌دار"
+
+    def __str__(self):
+        return self.name
+
+    def status(self, now=None):
+        now = now or timezone.now()
+        if self.ended_at or (self.ends_at and self.ends_at <= now):
+            return "ended"
+        if self.starts_at and self.starts_at > now:
+            return "scheduled"
+        return "active"
+
+    def get_status_display(self):
+        return {"ended": "پایان‌یافته", "scheduled": "زمان‌بندی‌شده", "active": "فعال"}[self.status()]
+
+
 class ProductVariant(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="variants", verbose_name="محصول")
     size_ml = models.PositiveSmallIntegerField("حجم (میلی‌لیتر)")
@@ -365,6 +415,12 @@ class ProductVariant(models.Model):
         "آستانه موجودی کم", null=True, blank=True,
         help_text="خالی = آستانه پیش‌فرض فروشگاه (تنظیمات فروشگاه)",
     )
+    sale_price = models.PositiveIntegerField("قیمت حراج (تومان)", null=True, blank=True,
+                                             help_text="خالی = بدون حراج؛ باید کمتر از قیمت اصلی باشد")
+    sale_starts_at = models.DateTimeField("شروع حراج", null=True, blank=True, help_text="خالی = از همین حالا")
+    sale_ends_at = models.DateTimeField("پایان حراج", null=True, blank=True, help_text="خالی = تا اطلاع بعدی")
+    sale_campaign = models.ForeignKey(SaleCampaign, on_delete=models.SET_NULL, null=True, blank=True,
+                                      related_name="variants", verbose_name="حراج گروهی")
 
     class Meta:
         ordering = ["size_ml"]
@@ -374,6 +430,33 @@ class ProductVariant(models.Model):
 
     def __str__(self):
         return f"{self.product.name} — {self.size_ml} میل"
+
+    def is_on_sale(self, now=None):
+        now = now or timezone.now()
+        return (self.sale_price is not None and self.sale_price < self.price
+                and (self.sale_starts_at is None or self.sale_starts_at <= now)
+                and (self.sale_ends_at is None or self.sale_ends_at > now))
+
+    @property
+    def on_sale(self):
+        return self.is_on_sale()
+
+    @property
+    def current_price(self):
+        """قیمتی که مشتری الان می‌پردازد (سبد، سفارش، نمایش)."""
+        return self.sale_price if self.is_on_sale() else self.price
+
+    @property
+    def discount_percent(self):
+        return round((self.price - self.sale_price) * 100 / self.price) if self.is_on_sale() and self.price else 0
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+
+        if self.sale_price is not None and self.price is not None and self.sale_price >= self.price:
+            raise ValidationError({"sale_price": "قیمت حراج باید کمتر از قیمت اصلی باشد."})
+        if self.sale_starts_at and self.sale_ends_at and self.sale_ends_at <= self.sale_starts_at:
+            raise ValidationError({"sale_ends_at": "پایان حراج باید بعد از شروع آن باشد."})
 
 
 class BackInStockRequest(models.Model):
@@ -443,3 +526,28 @@ class ProductImage(models.Model):
         ordering = ["order", "id"]
         verbose_name = "تصویر گالری"
         verbose_name_plural = "گالری تصاویر"
+
+
+class PriceChangeBatch(StoreOwned):
+    """یک تغییر گروهی قیمت (یا ورود از فایل) با قیمت قبلی هر حجم تا بتوان آن را برگرداند."""
+
+    description = models.CharField("شرح", max_length=200)
+    changes = models.JSONField("تغییرات", default=list, help_text="[[شناسه حجم، قیمت قبلی، قیمت جدید]، …]")
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+                                   related_name="+", verbose_name="کاربر")
+    created_at = models.DateTimeField("زمان", auto_now_add=True)
+    reverted_at = models.DateTimeField("زمان بازگرداندن", null=True, blank=True)
+
+    objects = StoreQuerySet.as_manager()
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "تغییر گروهی قیمت"
+        verbose_name_plural = "تغییرهای گروهی قیمت"
+
+    def __str__(self):
+        return self.description
+
+    @property
+    def count(self):
+        return len(self.changes)

@@ -1,0 +1,62 @@
+{% extends "builder/base.html" %}
+{% block title %}حراج زمان‌دار{% endblock %}
+{% block content %}
+<h1 class="mb-1 text-[1.7rem]">حراج زمان‌دار</h1>
+<p class="mb-6 text-sm text-muted">قیمت قبل و بعد تخفیف روی خود محصولات نمایش داده می‌شود و حراج در زمان شروع خودکار فعال و در زمان پایان خودکار تمام می‌شود. برای یک حجم تنها، «قیمت حراج» را در پنل مدیریت ← محصول هم می‌توانید بگذارید.</p>
+<div class="grid gap-5 xl:grid-cols-[1fr_1.1fr]">
+  <section class="studio-preview" aria-labelledby="new-sale">
+    <h2 id="new-sale" class="mb-3 text-lg">حراج جدید</h2>
+    <form method="post" class="grid gap-4" novalidate>
+      {% csrf_token %}
+      {% if form.non_field_errors %}<p class="alert alert-err">{{ form.non_field_errors|join:" " }}</p>{% endif %}
+      <div class="grid gap-3 sm:grid-cols-[1fr_8rem]">
+        {% include "components/field.html" with field=form.name %}
+        {% include "components/field.html" with field=form.percent %}
+      </div>
+      <div class="grid gap-3 sm:grid-cols-2">
+        {% include "components/field.html" with field=form.starts_at %}
+        {% include "components/field.html" with field=form.ends_at %}
+      </div>
+      {% include "components/field.html" with field=form.rounding %}
+      <fieldset class="grid gap-3 rounded border border-line p-3">
+        <legend class="px-1 text-sm">کدام محصولات؟ (خالی = همه)</legend>
+        <div><span class="text-sm text-muted">برند</span><div class="flex flex-wrap gap-x-4">{% for c in form.brands %}<label class="check">{{ c.tag }} {{ c.choice_label }}</label>{% endfor %}</div></div>
+        <div><span class="text-sm text-muted">خانواده رایحه</span><div class="flex flex-wrap gap-x-4">{% for c in form.scents %}<label class="check">{{ c.tag }} {{ c.choice_label }}</label>{% endfor %}</div></div>
+        <div><span class="text-sm text-muted">کالکشن</span><div class="flex flex-wrap gap-x-4">{% for c in form.collections %}<label class="check">{{ c.tag }} {{ c.choice_label }}</label>{% endfor %}</div></div>
+        <div class="flex flex-wrap items-end gap-4">{% include "components/field.html" with field=form.kind %}<label class="check pb-2">{{ form.active_only }} {{ form.active_only.label }}</label></div>
+      </fieldset>
+      <button class="btn justify-self-start" type="submit">ثبت حراج</button>
+    </form>
+  </section>
+  <div class="grid content-start gap-5">
+    <section class="studio-preview" aria-labelledby="sale-list">
+      <h2 id="sale-list" class="mb-3 text-lg">حراج‌ها</h2>
+      {% if campaigns %}
+      <table class="w-full text-right text-sm">
+        <thead class="text-muted"><tr><th class="p-1.5 font-normal">حراج</th><th class="p-1.5 font-normal">زمان</th><th class="p-1.5 font-normal">وضعیت</th><th class="p-1.5 font-normal"></th></tr></thead>
+        <tbody>
+          {% for c in campaigns %}
+          <tr class="border-t border-line">
+            <td class="p-1.5">{{ c.name }}<small class="block text-xs text-muted">{{ c.percent|fa }}٪ · {{ c.variant_count|fa }} حجم</small></td>
+            <td class="p-1.5 text-xs">{% if c.starts_at %}از {{ c.starts_at|jdate:"%d %B %H:%M" }}{% else %}از ثبت{% endif %}<br>{% if c.ends_at %}تا {{ c.ends_at|jdate:"%d %B %H:%M" }}{% else %}بدون پایان{% endif %}</td>
+            <td class="p-1.5">{{ c.get_status_display }}</td>
+            <td class="p-1.5">{% if c.status != "ended" and c.variant_count %}<form method="post" action="{% url 'builder:sale_end' c.pk %}">{% csrf_token %}<button class="text-sm text-gold hover:underline" type="submit">پایان حراج</button></form>{% endif %}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}<p class="m-0 text-sm text-muted">هنوز حراجی ثبت نشده است.</p>{% endif %}
+    </section>
+    <section class="studio-preview" aria-labelledby="on-sale">
+      <h2 id="on-sale" class="mb-3 text-lg">الان در حراج</h2>
+      {% if on_sale %}
+      <ul class="m-0 grid list-none gap-1.5 p-0 text-sm">
+        {% for v in on_sale %}
+        <li class="flex justify-between gap-2 border-t border-line pt-1.5"><span>{{ v.product.name }} <small class="text-muted">{% if v.size_ml %}{{ v.size_ml|fa }} میل{% endif %}</small></span><span><del class="text-muted">{{ v.price|toman }}</del> <b class="text-gold">{{ v.sale_price|toman }}</b></span></li>
+        {% endfor %}
+      </ul>
+      {% else %}<p class="m-0 text-sm text-muted">هیچ کالایی الان در حراج نیست.</p>{% endif %}
+    </section>
+  </div>
+</div>
+{% endblock %}

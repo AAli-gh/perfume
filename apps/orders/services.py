@@ -31,7 +31,7 @@ class _Line:
 
     @property
     def unit_price(self):
-        return self.variant.price
+        return self.variant.current_price  # قیمت حراج در لحظه ثبت (حجم قفل‌شده)
 
 
 @transaction.atomic

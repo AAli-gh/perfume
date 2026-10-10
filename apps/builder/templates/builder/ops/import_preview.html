@@ -1,0 +1,38 @@
+{% extends "builder/base.html" %}
+{% block title %}پیش‌نمایش ورود از فایل{% endblock %}
+{% block content %}
+<h1 class="mb-1 text-[1.7rem]">پیش‌نمایش ورود از فایل</h1>
+<p class="mb-4 text-sm text-muted"><bdi>{{ filename }}</bdi> — هنوز چیزی ذخیره نشده است. ردیف‌های دارای خطا نادیده گرفته می‌شوند.</p>
+{% if plan.missing_headers %}
+<p class="alert alert-err">ستون‌های لازم در ردیف اول فایل پیدا نشد: {{ plan.missing_headers|join:"، " }}. از «دریافت فایل Excel» برای قالب درست استفاده کنید.</p>
+<a class="btn btn-ghost" href="{% url 'builder:products' %}">بازگشت</a>
+{% else %}
+<div class="mb-4 flex flex-wrap gap-2 text-sm" data-import-counts>
+  <span class="chip chip-strong">به‌روزرسانی: {{ counts.update|fa }}</span>
+  <span class="chip chip-strong">حجم جدید: {{ counts.new_variant|fa }}</span>
+  <span class="chip chip-strong">محصول جدید: {{ counts.new_product|fa }}</span>
+  <span class="chip">بدون تغییر: {{ counts.unchanged|fa }}</span>
+  <span class="chip {% if counts.error %}!border-danger text-danger{% endif %}">خطا: {{ counts.error|fa }}</span>
+</div>
+<div class="studio-preview mb-4 max-h-[60vh] overflow-auto">
+  <table class="w-full min-w-[640px] text-right text-sm">
+    <thead class="text-muted"><tr><th class="p-1.5 font-normal">ردیف</th><th class="p-1.5 font-normal">کالا</th><th class="p-1.5 font-normal">نتیجه</th><th class="p-1.5 font-normal">تغییرات</th></tr></thead>
+    <tbody>
+      {% for r in plan.rows %}{% if r.action != "unchanged" %}
+      <tr class="border-t border-line {% if r.action == 'error' %}text-danger{% endif %}">
+        <td class="p-1.5">{{ r.line|fa }}</td>
+        <td class="p-1.5">{{ r.title }}</td>
+        <td class="p-1.5">{% if r.action == "error" %}خطا{% elif r.action == "new_product" %}محصول جدید{% elif r.action == "new_variant" %}حجم جدید{% else %}به‌روزرسانی{% endif %}</td>
+        <td class="p-1.5">{% if r.error %}{{ r.error }}{% else %}{% for label, old, new in r.changes %}<span class="me-2 inline-block">{{ label }}: {% if old != "" %}<del class="text-muted">{{ old|fa }}</del> ← {% endif %}<b>{{ new|fa }}</b></span>{% endfor %}{% endif %}</td>
+      </tr>
+      {% endif %}{% endfor %}
+    </tbody>
+  </table>
+</div>
+<form method="post" action="{% url 'builder:products_import_confirm' %}" class="flex gap-2">
+  {% csrf_token %}<input type="hidden" name="token" value="{{ token }}">
+  <button class="btn" type="submit" {% if not plan.applicable %}disabled{% endif %}>اعمال {{ plan.applicable|length|fa }} ردیف</button>
+  <a class="btn btn-ghost" href="{% url 'builder:products' %}">انصراف</a>
+</form>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,16 @@
+/* تقویم شمسی (js/jalali-picker.js) — مستقل از پوسته تا در پنل مدیریت Django هم کار کند */
+.jalali-picker { position: absolute; z-index: 10000; width: 252px; padding: 8px; border: 1px solid #bbb; border-radius: 8px; background: #fff; color: #222; box-shadow: 0 6px 24px rgba(0,0,0,.18); font: 13px/1.6 Vazirmatn, Tahoma, sans-serif; }
+.jalali-picker[hidden] { display: none; }
+.jalali-picker button { font: inherit; border: 0; background: none; color: inherit; cursor: pointer; border-radius: 4px; }
+.jalali-picker .jp-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.jalali-picker .jp-head button { width: 28px; height: 28px; font-size: 18px; }
+.jalali-picker .jp-head button:hover, .jalali-picker .jp-days button:hover { background: #f1e6dc; }
+.jalali-picker .jp-week, .jalali-picker .jp-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; text-align: center; }
+.jalali-picker .jp-week span { color: #888; font-size: 11px; }
+.jalali-picker .jp-days button { height: 30px; }
+.jalali-picker .jp-days .is-today { outline: 1px solid #a3542a; }
+.jalali-picker .jp-days .is-selected { background: #a3542a; color: #fff; }
+.jalali-picker .jp-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 8px; padding-top: 6px; border-top: 1px solid #eee; }
+.jalali-picker .jp-foot label { display: flex; align-items: center; gap: 4px; margin-inline-end: auto; }
+.jalali-picker .jp-foot input { font: inherit; padding: 2px 4px; border: 1px solid #ccc; border-radius: 4px; }
+.jalali-picker .jp-foot button { padding: 2px 8px; border: 1px solid #ddd; }

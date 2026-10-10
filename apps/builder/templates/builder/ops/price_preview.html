@@ -1,0 +1,28 @@
+{% extends "builder/base.html" %}
+{% block title %}پیش‌نمایش تغییر قیمت{% endblock %}
+{% block content %}
+<h1 class="mb-1 text-[1.7rem]">پیش‌نمایش تغییر قیمت</h1>
+<p class="mb-4 text-sm text-muted">{{ description }} — قیمت {{ total|fa }} حجم تغییر می‌کند. هنوز چیزی ذخیره نشده است.</p>
+{% if rows %}
+<div class="studio-preview mb-4 max-h-[60vh] overflow-auto">
+  <table class="w-full text-right text-sm" data-price-preview>
+    <thead class="text-muted"><tr><th class="p-1.5 font-normal">محصول</th><th class="p-1.5 font-normal">حجم</th><th class="p-1.5 font-normal">قیمت فعلی</th><th class="p-1.5 font-normal">قیمت جدید</th></tr></thead>
+    <tbody>
+      {% for v, old, new in rows %}
+      <tr class="border-t border-line"><td class="p-1.5">{{ v.product.name }}</td><td class="p-1.5">{% if v.size_ml %}{{ v.size_ml|fa }} میل{% endif %}</td><td class="p-1.5 text-muted">{{ old|toman }}</td><td class="p-1.5 text-gold">{{ new|toman }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% if total > rows|length %}<p class="mt-2 text-xs text-muted">… و {{ total|fa }} حجم در مجموع.</p>{% endif %}
+</div>
+<form method="post" action="{% url 'builder:products_prices' %}" class="flex gap-2">
+  {% csrf_token %}<input type="hidden" name="confirm" value="1">
+  {% for key, values in request.GET.lists %}{% for value in values %}<input type="hidden" name="{{ key }}" value="{{ value }}">{% endfor %}{% endfor %}
+  <button class="btn" type="submit">اعمال قیمت‌های جدید</button>
+  <a class="btn btn-ghost" href="{% url 'builder:products' %}">انصراف</a>
+</form>
+{% else %}
+<p class="alert">با این شرایط قیمت هیچ حجمی تغییر نمی‌کند.</p>
+<a class="btn btn-ghost" href="{% url 'builder:products' %}">بازگشت</a>
+{% endif %}
+{% endblock %}
