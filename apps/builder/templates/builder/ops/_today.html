@@ -1,0 +1,84 @@
+{# پیشخوان عملیات: کارهای امروز #}
+<p class="mb-5 text-muted">کارهای امروز فروشگاه · {{ ops.sales.today.orders|fa }} سفارش امروز</p>
+
+<div class="mb-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4" data-ops-cards>
+  <div class="studio-preview">
+    <p class="m-0 text-sm text-muted">فروش امروز</p>
+    <p class="m-0 mt-1 text-2xl text-gold" data-sales-today>{{ ops.sales.today.revenue|toman }}</p>
+    <p class="m-0 mt-1 text-xs text-muted">
+      {% with c=ops.sales.change %}{% if c is None %}دیروز تا این ساعت فروشی نبود{% else %}<span class="{% if c >= 0 %}text-success{% else %}text-danger{% endif %}">{% if c >= 0 %}+{% endif %}{{ c|fa }}٪</span> نسبت به دیروز تا همین ساعت{% endif %}{% endwith %}
+      · کل دیروز {{ ops.sales.yesterday.revenue|toman }} ({{ ops.sales.yesterday.orders|fa }} سفارش)
+    </p>
+  </div>
+  <a class="studio-preview hover:border-line-strong" href="{% url 'builder:orders' %}?q=card">
+    <p class="m-0 text-sm text-muted">کارت به کارت منتظر تأیید</p>
+    <p class="m-0 mt-1 text-2xl {% if ops.awaiting_card %}text-gold{% else %}text-muted{% endif %}">{{ ops.awaiting_card|fa }}</p>
+    <p class="m-0 mt-1 text-xs text-muted">واریز را بررسی و «پرداخت شده» کنید</p>
+  </a>
+  <a class="studio-preview hover:border-line-strong" href="{% url 'builder:orders' %}?q=prepare">
+    <p class="m-0 text-sm text-muted">منتظر آماده‌سازی</p>
+    <p class="m-0 mt-1 text-2xl {% if ops.to_prepare %}text-gold{% else %}text-muted{% endif %}">{{ ops.to_prepare|fa }}</p>
+    <p class="m-0 mt-1 text-xs text-muted">پرداخت‌شده و پرداخت در محل</p>
+  </a>
+  <a class="studio-preview hover:border-line-strong" href="{% url 'builder:orders' %}?q=ship">
+    <p class="m-0 text-sm text-muted">منتظر ارسال</p>
+    <p class="m-0 mt-1 text-2xl {% if ops.to_ship %}text-gold{% else %}text-muted{% endif %}">{{ ops.to_ship|fa }}</p>
+    <p class="m-0 mt-1 text-xs text-muted">در حال آماده‌سازی؛ کد رهگیری را ثبت کنید</p>
+  </a>
+</div>
+
+<div class="mb-5 flex flex-wrap gap-2 text-sm">
+  <a class="chip !px-3 !py-1 {% if ops.pending_reviews %}chip-strong{% endif %}" href="{% url 'admin:reviews_review_changelist' %}?is_approved__exact=0">نظر منتظر تأیید: {{ ops.pending_reviews|fa }}</a>
+  <a class="chip !px-3 !py-1 {% if ops.unread_messages %}chip-strong{% endif %}" href="{% url 'admin:pages_contactmessage_changelist' %}?is_read__exact=0">پیام خوانده‌نشده: {{ ops.unread_messages|fa }}</a>
+  {% if perms.catalog.change_product %}
+  <a class="chip !px-3 !py-1 {% if ops.low_stock_count %}chip-strong{% endif %}" href="{% url 'builder:stock' %}">رو به اتمام: {{ ops.low_stock_count|fa }}{% if ops.out_of_stock %} (ناموجود {{ ops.out_of_stock|fa }}){% endif %}</a>
+  <a class="chip !px-3 !py-1" href="{% url 'builder:stock' %}">«خبرم کن» در انتظار: {{ ops.waiting_requests|fa }}</a>
+  {% endif %}
+</div>
+
+<div class="grid gap-5 xl:grid-cols-[1.4fr_1fr]">
+  <section class="studio-preview" aria-labelledby="todo-title">
+    <div class="mb-3 flex items-center justify-between gap-2">
+      <h2 id="todo-title" class="m-0 text-lg">سفارش‌هایی که اقدام لازم دارند</h2>
+      <a class="text-sm" href="{% url 'builder:orders' %}">همه سفارش‌ها ←</a>
+    </div>
+    {% if ops.orders %}
+    <table class="w-full text-right text-sm">
+      <thead class="text-muted"><tr><th class="p-1.5 font-normal">سفارش</th><th class="p-1.5 font-normal">مشتری</th><th class="p-1.5 font-normal">وضعیت</th><th class="p-1.5 font-normal">مبلغ</th></tr></thead>
+      <tbody>
+        {% for o in ops.orders %}
+        <tr class="border-t border-line">
+          <td class="p-1.5"><a dir="ltr" href="{% url 'admin:orders_order_change' o.pk %}">{{ o.number }}</a>{% if o.is_gift %} {% icon "gift" "!h-3.5 !w-3.5 text-gold" %}{% endif %}<small class="block text-xs text-muted">{{ o.created_at|jdate:"%d %B، %H:%M" }}</small></td>
+          <td class="p-1.5">{{ o.full_name }}<small class="block text-xs text-muted">{{ o.city }}</small></td>
+          <td class="p-1.5">{{ o.get_status_display }}<small class="block text-xs text-muted">{{ o.get_payment_method_display }}</small></td>
+          <td class="p-1.5">{{ o.total|toman }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="m-0 rounded border border-dashed border-line p-6 text-center text-muted">کاری در صف نیست. 🎉</p>
+    {% endif %}
+  </section>
+
+  {% if perms.catalog.change_product %}
+  <section class="studio-preview" aria-labelledby="low-title">
+    <div class="mb-3 flex items-center justify-between gap-2">
+      <h2 id="low-title" class="m-0 text-lg">رو به اتمام</h2>
+      <a class="text-sm" href="{% url 'builder:stock' %}">مدیریت موجودی ←</a>
+    </div>
+    {% if ops.low_stock %}
+    <ul class="m-0 grid list-none gap-1.5 p-0 text-sm">
+      {% for v in ops.low_stock %}
+      <li class="flex items-center justify-between gap-2 border-t border-line pt-1.5">
+        <span>{{ v.product.name }} <small class="text-muted">{% if v.size_ml %}{{ v.size_ml|fa }} میل{% endif %}</small></span>
+        <span class="{% if v.stock %}text-gold{% else %}text-danger{% endif %}">{% if v.stock %}{{ v.stock|fa }} عدد{% else %}ناموجود{% endif %}{% if v.waiting %} · {{ v.waiting|fa }} منتظر{% endif %}</span>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="m-0 rounded border border-dashed border-line p-6 text-center text-muted">همه کالاها موجودی کافی دارند.</p>
+    {% endif %}
+  </section>
+  {% endif %}
+</div>

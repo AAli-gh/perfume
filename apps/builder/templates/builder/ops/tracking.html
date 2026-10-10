@@ -1,0 +1,32 @@
+{% extends "builder/base.html" %}
+{% block title %}ثبت کد رهگیری{% endblock %}
+{% block content %}
+<h1 class="mb-1 text-[1.7rem]">ثبت گروهی کد رهگیری</h1>
+<p class="mb-5 text-sm text-muted">برای هر سفارش کد رهگیری را بنویسید، یا فهرستی که از پنل پست/پیک گرفته‌اید را در کادر پایین بچسبانید (هر خط: شماره سفارش و کد رهگیری). با گزینه «ارسال شده»، وضعیت سفارش عوض می‌شود و پیامک کد رهگیری برای مشتری می‌رود.</p>
+<form method="post" class="grid gap-5">
+  {% csrf_token %}
+  {% if rows %}
+  <div class="studio-preview overflow-x-auto">
+    <table class="w-full min-w-[560px] text-right text-sm">
+      <thead class="text-muted"><tr><th class="p-1.5 font-normal">سفارش</th><th class="p-1.5 font-normal">گیرنده</th><th class="p-1.5 font-normal">روش ارسال</th><th class="p-1.5 font-normal">کد رهگیری</th></tr></thead>
+      <tbody>
+        {% for o in rows %}
+        <tr class="border-t border-line">
+          <td class="p-1.5" dir="ltr">{{ o.number }}</td>
+          <td class="p-1.5">{{ o.full_name }}<small class="block text-xs text-muted">{{ o.province }}، {{ o.city }}</small></td>
+          <td class="p-1.5">{{ o.shipping_method_name|default:"—" }}</td>
+          <td class="p-1.5"><input class="input !py-1" dir="ltr" name="code-{{ o.pk }}" value="{{ o.tracking_code }}" aria-label="کد رهگیری {{ o.number }}" autocomplete="off"></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+  <div class="field">
+    <label for="bulk">چسباندن فهرست (اختیاری)</label>
+    <textarea id="bulk" name="bulk" rows="5" class="input" dir="ltr" placeholder="MJ2610A1B2C3  123456789012&#10;MJ2610D4E5F6, 987654321098"></textarea>
+  </div>
+  <label class="check"><input type="checkbox" name="ship" checked> وضعیت این سفارش‌ها «ارسال شده» شود و پیامک کد رهگیری برای مشتری برود</label>
+  <div><button class="btn" type="submit">ذخیره کدهای رهگیری</button> <a class="btn btn-ghost" href="{% url 'builder:orders' %}?q=ship">بازگشت</a></div>
+</form>
+{% endblock %}

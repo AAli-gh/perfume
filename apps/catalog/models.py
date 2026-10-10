@@ -361,6 +361,10 @@ class ProductVariant(models.Model):
     size_ml = models.PositiveSmallIntegerField("حجم (میلی‌لیتر)")
     price = models.PositiveIntegerField("قیمت (تومان)")
     stock = models.PositiveIntegerField("موجودی", default=0)
+    low_stock_threshold = models.PositiveSmallIntegerField(
+        "آستانه موجودی کم", null=True, blank=True,
+        help_text="خالی = آستانه پیش‌فرض فروشگاه (تنظیمات فروشگاه)",
+    )
 
     class Meta:
         ordering = ["size_ml"]
@@ -370,6 +374,30 @@ class ProductVariant(models.Model):
 
     def __str__(self):
         return f"{self.product.name} — {self.size_ml} میل"
+
+
+class BackInStockRequest(models.Model):
+    """«موجود شد خبرم کن»: مشتری برای حجم ناموجود شماره می‌گذارد؛ با موجود شدن یک پیامک می‌گیرد."""
+
+    variant = models.ForeignKey(ProductVariant, on_delete=models.CASCADE, related_name="stock_requests",
+                                verbose_name="کالا")
+    phone = models.CharField("موبایل", max_length=11)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+                             related_name="+", verbose_name="کاربر")
+    created_at = models.DateTimeField("زمان ثبت", auto_now_add=True)
+    notified_at = models.DateTimeField("زمان اطلاع‌رسانی", null=True, blank=True, db_index=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "درخواست «موجود شد خبرم کن»"
+        verbose_name_plural = "درخواست‌های «موجود شد خبرم کن»"
+        constraints = [
+            models.UniqueConstraint(fields=["variant", "phone"], condition=models.Q(notified_at__isnull=True),
+                                    name="catalog_one_open_stock_request"),
+        ]
+
+    def __str__(self):
+        return f"{self.variant} ← {self.phone}"
 
 
 class StockMovement(models.Model):
@@ -383,6 +411,9 @@ class StockMovement(models.Model):
         ADJUSTMENT = "adjustment", "اصلاح دستی"
         RESERVED = "reserved", "رزرو برای سفارش"
         RELEASED = "released", "آزادسازی رزرو / لغو سفارش"
+        RESTOCK = "restock", "ورود کالا"
+        RETURNED = "returned", "مرجوعی مشتری"
+        IMPORT = "import", "ورود گروهی از فایل"
 
     variant = models.ForeignKey("ProductVariant", on_delete=models.CASCADE, related_name="movements", verbose_name="کالا")
     change = models.IntegerField("تغییر")

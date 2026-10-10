@@ -1,0 +1,45 @@
+/* چاپ فاکتور، برگه بسته‌بندی و برچسب ارسال (استودیو) — مستقل از پوسته تیره سایت */
+* { box-sizing: border-box; }
+body { margin: 0; background: #e9e6e2; color: #1b1512; font: 13px/1.8 "Vazirmatn", Tahoma, sans-serif; }
+bdi { unicode-bidi: isolate; }
+.toolbar { position: sticky; top: 0; z-index: 2; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; padding: 10px 16px; background: #1d140f; color: #f3dfc8; }
+.toolbar button { font: inherit; padding: 6px 18px; border: 0; border-radius: 4px; background: #a3542a; color: #fff; cursor: pointer; }
+.toolbar .hint { font-size: 12px; opacity: .75; }
+.page { width: 210mm; min-height: 148mm; margin: 12px auto; padding: 14mm 14mm 10mm; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.15); }
+.doc-head { display: flex; justify-content: space-between; gap: 16px; padding-bottom: 8px; border-bottom: 2px solid #1b1512; }
+.seller { display: grid; }
+.seller .brand { font-size: 20px; }
+.doc-title { display: grid; text-align: left; }
+.doc-title h1 { margin: 0; font-size: 18px; }
+.party { margin: 10px 0; display: grid; gap: 2px; }
+.notice, .pack-note { margin: 10px 0; padding: 8px 10px; border: 1px dashed #a3542a; border-radius: 4px; background: #fbf4ee; }
+.items { width: 100%; border-collapse: collapse; margin-top: 8px; }
+.items th, .items td { padding: 6px 8px; border: 1px solid #bbb; text-align: right; }
+.items thead th { background: #f1ece7; }
+.items tfoot td:first-child { text-align: left; }
+.items tfoot .grand td { font-weight: 700; font-size: 15px; }
+.items.check .box { width: 28px; text-align: center; font-size: 16px; }
+.items.check .qty { font-weight: 700; font-size: 15px; width: 60px; text-align: center; }
+.muted { color: #555; }
+.doc-foot { margin-top: 18px; padding-top: 6px; border-top: 1px solid #ccc; text-align: center; color: #555; font-size: 12px; }
+.gift-card { margin-top: 18px; padding: 16px 20px; border: 2px dashed #888; text-align: center; font-size: 16px; }
+.gift-card .cut { display: block; margin-bottom: 8px; color: #888; font-size: 11px; }
+.gift-card .message { margin: 0; font-size: 18px; line-height: 2; }
+.gift-card .from { margin: 8px 0 0; text-align: left; font-style: italic; }
+/* برچسب ارسال: ۲ ستون در A4 (هر برچسب حدود ۱۰۰×۷۰ میلی‌متر) */
+.labels { display: grid; grid-template-columns: repeat(2, 98mm); gap: 4mm; justify-content: center; width: 210mm; margin: 12px auto; padding: 8mm 0; background: #fff; }
+.label { height: 68mm; padding: 4mm 5mm; border: 1px solid #444; border-radius: 3mm; display: grid; grid-template-rows: 1fr auto auto; gap: 2mm; overflow: hidden; break-inside: avoid; }
+.label .to, .label .from { display: grid; line-height: 1.6; }
+.label .to strong { font-size: 16px; }
+.label .from { font-size: 11px; color: #444; border-top: 1px dashed #999; padding-top: 1.5mm; }
+.label .tag { font-size: 10px; color: #777; }
+.label .big { font-size: 15px; font-weight: 700; letter-spacing: .5px; }
+.label .meta { font-size: 11px; border-top: 1px solid #ddd; padding-top: 1mm; }
+@media print {
+  @page { size: A4; margin: 8mm; }
+  body { background: #fff; }
+  .no-print { display: none !important; }
+  .page { width: auto; min-height: 0; margin: 0; padding: 0; box-shadow: none; break-after: page; }
+  .page:last-of-type { break-after: auto; }
+  .labels { width: auto; margin: 0; padding: 0; }
+}

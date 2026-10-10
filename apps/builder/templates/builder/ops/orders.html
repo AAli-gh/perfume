@@ -1,0 +1,65 @@
+{% extends "builder/base.html" %}
+{% block title %}سفارش‌ها{% endblock %}
+{% block content %}
+<div class="mb-4 flex flex-wrap items-end justify-between gap-3">
+  <div>
+    <h1 class="mb-1 text-[1.7rem]">سفارش‌ها</h1>
+    <p class="m-0 text-sm text-muted">سفارش‌ها را انتخاب کنید و با یک کلیک فاکتور، برگه بسته‌بندی یا برچسب ارسال همه را چاپ کنید.</p>
+  </div>
+  <form method="get" class="flex gap-2" role="search">
+    <input type="hidden" name="q" value="{{ tab }}">
+    <input class="input !py-1.5" type="search" name="s" value="{{ search }}" placeholder="شماره، نام، موبایل یا کد رهگیری" aria-label="جستجوی سفارش">
+    <button class="btn btn-sm" type="submit">{% icon "search" "!h-4 !w-4" %}</button>
+  </form>
+</div>
+<nav class="studio-tabs mb-4" aria-label="دسته سفارش‌ها">
+  {% for key, label, n in tabs %}
+  <a href="?q={{ key }}" {% if key == tab %}aria-current="page"{% endif %}>{{ label }}{% if n %} <span class="rounded-full bg-copper/20 px-1.5 text-xs text-gold">{{ n|fa }}</span>{% endif %}</a>
+  {% endfor %}
+</nav>
+
+<form method="get" action="{% url 'builder:print_orders' %}" id="orders-form" target="_blank">
+  <div class="mb-3 flex flex-wrap items-center gap-2 text-sm" data-bulk-bar>
+    <span class="text-muted">انتخاب‌شده‌ها:</span>
+    {% for key, label in docs.items %}
+    <button class="btn btn-ghost btn-sm" type="submit" name="doc" value="{{ key }}">چاپ {{ label }}</button>
+    {% endfor %}
+    {% if perms.orders.change_order %}
+    <button class="btn btn-ghost btn-sm" type="submit" formaction="{% url 'builder:tracking' %}" formtarget="_self">ثبت کد رهگیری</button>
+    <button class="btn btn-ghost btn-sm" type="submit" formmethod="post" formaction="{% url 'builder:orders_status' %}" formtarget="_self" name="to" value="paid">تأیید پرداخت (کارت به کارت)</button>
+    <button class="btn btn-ghost btn-sm" type="submit" formmethod="post" formaction="{% url 'builder:orders_status' %}" formtarget="_self" name="to" value="processing">در حال آماده‌سازی</button>
+    <button class="btn btn-ghost btn-sm" type="submit" formmethod="post" formaction="{% url 'builder:orders_status' %}" formtarget="_self" name="to" value="delivered">تحویل شد</button>
+    {% endif %}
+  </div>
+  {% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}">
+  {% if page.object_list %}
+  <div class="overflow-x-auto">
+  <table class="w-full min-w-[720px] text-right text-sm">
+    <thead class="text-muted">
+      <tr>
+        <th class="w-8 p-1.5"><input type="checkbox" data-check-all aria-label="انتخاب همه"></th>
+        <th class="p-1.5 font-normal">سفارش</th><th class="p-1.5 font-normal">مشتری</th><th class="p-1.5 font-normal">وضعیت</th>
+        <th class="p-1.5 font-normal">ارسال</th><th class="p-1.5 font-normal">مبلغ</th><th class="p-1.5 font-normal"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for o in page.object_list %}
+      <tr class="border-t border-line" data-order-row="{{ o.number }}">
+        <td class="p-1.5"><input type="checkbox" name="ids" value="{{ o.pk }}" aria-label="انتخاب {{ o.number }}"></td>
+        <td class="p-1.5"><a dir="ltr" href="{% url 'admin:orders_order_change' o.pk %}">{{ o.number }}</a>{% if o.is_gift %} <span title="بسته‌بندی هدیه">{% icon "gift" "!h-3.5 !w-3.5 text-gold" %}</span>{% endif %}<small class="block text-xs text-muted">{{ o.created_at|jdate:"%d %B، %H:%M" }}</small></td>
+        <td class="p-1.5">{{ o.full_name }}<small class="block text-xs text-muted" dir="ltr">{{ o.phone|fa }}</small></td>
+        <td class="p-1.5">{{ o.get_status_display }}<small class="block text-xs text-muted">{{ o.get_payment_method_display }}</small></td>
+        <td class="p-1.5">{{ o.shipping_method_name|default:"—" }}{% if o.tracking_code %}<small class="block text-xs text-muted" dir="ltr">{{ o.tracking_code }}</small>{% endif %}</td>
+        <td class="p-1.5">{{ o.total|toman }}</td>
+        <td class="p-1.5 text-xs"><a href="{% url 'builder:print_orders' %}?doc=invoice&ids={{ o.pk }}" target="_blank">فاکتور</a> · <a href="{% url 'builder:print_orders' %}?doc=packing&ids={{ o.pk }}" target="_blank">بسته‌بندی</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% include "components/pagination.html" %}
+  {% else %}
+  <p class="rounded border border-dashed border-line p-8 text-center text-muted">سفارشی در این دسته نیست.</p>
+  {% endif %}
+</form>
+{% endblock %}

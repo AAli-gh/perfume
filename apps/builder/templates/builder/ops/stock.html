@@ -1,0 +1,39 @@
+{% extends "builder/base.html" %}
+{% block title %}موجودی{% endblock %}
+{% block content %}
+<div class="mb-4 flex flex-wrap items-end justify-between gap-3">
+  <div>
+    <h1 class="mb-1 text-[1.7rem]">موجودی</h1>
+    <p class="m-0 text-sm text-muted">{% if show_all %}همه حجم‌ها، کم‌موجودترین اول.{% else %}حجم‌هایی که موجودی‌شان به آستانه رسیده است. با رسیدن به آستانه برای مدیران پیامک/ایمیل می‌رود؛ با موجود شدن کالا، مشتریانی که «خبرم کن» زده‌اند پیامک می‌گیرند.{% endif %}</p>
+  </div>
+  <nav class="studio-tabs !border-0"><a href="?" {% if not show_all %}aria-current="page"{% endif %}>رو به اتمام</a><a href="?all=1" {% if show_all %}aria-current="page"{% endif %}>همه</a></nav>
+</div>
+{% if page.object_list %}
+<div class="studio-preview overflow-x-auto">
+  <table class="w-full min-w-[640px] text-right text-sm">
+    <thead class="text-muted"><tr><th class="p-1.5 font-normal">کالا</th><th class="p-1.5 font-normal">موجودی</th><th class="p-1.5 font-normal">منتظر «خبرم کن»</th><th class="p-1.5 font-normal">افزودن موجودی / آستانه</th></tr></thead>
+    <tbody>
+      {% for v in page.object_list %}
+      <tr class="border-t border-line" data-variant="{{ v.pk }}">
+        <td class="p-1.5"><a href="{% url 'admin:catalog_product_change' v.product_id %}">{{ v.product.name }}</a> <small class="text-muted">{% if v.size_ml %}{{ v.size_ml|fa }} میل{% endif %}</small></td>
+        <td class="p-1.5 {% if not v.stock %}text-danger{% elif v.stock <= v.threshold %}text-gold{% endif %}">{% if v.stock %}{{ v.stock|fa }}{% else %}ناموجود{% endif %}</td>
+        <td class="p-1.5">{{ v.waiting|default:0|fa }}</td>
+        <td class="p-1.5">
+          <form method="post" class="flex flex-wrap items-center gap-1.5">
+            {% csrf_token %}<input type="hidden" name="variant" value="{{ v.pk }}">
+            <input class="input !w-20 !py-1" type="number" min="0" name="add" placeholder="+ تعداد" aria-label="تعداد ورود کالا">
+            <input class="input !w-20 !py-1" type="number" min="0" name="threshold" value="{{ v.low_stock_threshold|default_if_none:'' }}" placeholder="{{ v.threshold|fa }}" aria-label="آستانه (خالی: پیش‌فرض فروشگاه)" title="آستانه موجودی کم؛ خالی = پیش‌فرض فروشگاه">
+            <button class="btn btn-sm" type="submit">ثبت</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% include "components/pagination.html" %}
+{% else %}
+<p class="rounded border border-dashed border-line p-8 text-center text-muted">همه کالاها موجودی کافی دارند.</p>
+{% endif %}
+<p class="mt-4 text-xs text-muted">آستانه پیش‌فرض فروشگاه: پنل مدیریت ← فروشگاه‌ها ← تنظیمات فروشگاه. هر ورود کالا در «گردش موجودی» با نام شما ثبت می‌شود.</p>
+{% endblock %}

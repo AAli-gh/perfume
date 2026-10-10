@@ -12,6 +12,12 @@ ORDER_SHIPPED = "order_shipped"
 ORDER_DELIVERED = "order_delivered"
 ORDER_CANCELLED = "order_cancelled"
 OTP = "otp"
+STAFF_OTP = "staff_otp"
+LOW_STOCK = "low_stock"
+BACK_IN_STOCK = "back_in_stock"
+CART_REMINDER = "cart_reminder"
+CAMPAIGN = "campaign"
+GIFT_CARD = "gift_card"
 
 EVENT_CHOICES = [
     (ORDER_PLACED, "ثبت سفارش"),
@@ -21,6 +27,12 @@ EVENT_CHOICES = [
     (ORDER_DELIVERED, "تحویل سفارش"),
     (ORDER_CANCELLED, "لغو سفارش"),
     (OTP, "کد ورود یک‌بارمصرف"),
+    (STAFF_OTP, "کد ورود دومرحله‌ای کارکنان"),
+    (LOW_STOCK, "موجودی کم"),
+    (BACK_IN_STOCK, "موجود شد خبرم کن"),
+    (CART_REMINDER, "یادآوری سبد خرید رهاشده"),
+    (CAMPAIGN, "پیامک گروهی به مشتریان"),
+    (GIFT_CARD, "ارسال کارت هدیه"),
 ]
 
 # وضعیت جدید سفارش ← رویداد
@@ -34,8 +46,18 @@ STATUS_EVENTS = {
 
 ORDER_VARS = ("store", "name", "number", "total", "status", "payment_method", "shipping_method",
               "tracking_code", "tracking_url", "order_url", "phone")
-EVENT_VARS = {event: ORDER_VARS for event, _ in EVENT_CHOICES if event != OTP}
-EVENT_VARS[OTP] = ("store", "code", "minutes")
+STOCK_VARS = ("store", "product", "size", "stock", "product_url")
+NON_ORDER_EVENTS = {
+    OTP: ("store", "code", "minutes"),
+    STAFF_OTP: ("store", "code", "minutes"),
+    LOW_STOCK: STOCK_VARS,
+    BACK_IN_STOCK: STOCK_VARS,
+    CART_REMINDER: ("store", "name", "items", "total", "cart_url"),
+    CAMPAIGN: ("store", "name", "code", "percent", "message", "shop_url"),
+    GIFT_CARD: ("store", "name", "code", "amount", "sender", "message", "expires", "shop_url"),
+}
+EVENT_VARS = {event: ORDER_VARS for event, _ in EVENT_CHOICES if event not in NON_ORDER_EVENTS}
+EVENT_VARS.update(NON_ORDER_EVENTS)
 
 
 def placeholders(text):
@@ -94,4 +116,14 @@ DEFAULT_RULES = [
     DefaultRule(ORDER_CANCELLED, SMS, CUSTOMER, True, "سفارش {number} لغو شد. برای پیگیری با ما تماس بگیرید."),
     DefaultRule(ORDER_CANCELLED, EMAIL, CUSTOMER, True, subject="سفارش {number} لغو شد"),
     DefaultRule(OTP, SMS, CUSTOMER, True, "کد ورود شما به {store}: {code}\nاین کد تا {minutes} دقیقه معتبر است."),
+    DefaultRule(STAFF_OTP, SMS, STAFF, True, "کد ورود پنل مدیریت {store}: {code}\nاعتبار: {minutes} دقیقه. این کد را به کسی ندهید."),
+    DefaultRule(LOW_STOCK, SMS, STAFF, True, "موجودی «{product}» ({size}) به {stock} عدد رسید."),
+    DefaultRule(LOW_STOCK, EMAIL, STAFF, True, "موجودی «{product}» ({size}) به {stock} عدد رسید.\n{product_url}",
+                subject="موجودی کم: {product} ({size})"),
+    DefaultRule(BACK_IN_STOCK, SMS, CUSTOMER, True, "«{product}» ({size}) در {store} دوباره موجود شد:\n{product_url}"),
+    DefaultRule(CART_REMINDER, SMS, CUSTOMER, True,
+                "{name} عزیز، {items} در سبد خرید شما در {store} منتظر است. ادامه خرید:\n{cart_url}"),
+    DefaultRule(CAMPAIGN, SMS, CUSTOMER, True, "{message}"),
+    DefaultRule(GIFT_CARD, SMS, CUSTOMER, True,
+                "کارت هدیه {amount} از طرف {sender} در {store}\nکد: {code}\n{message}\n{shop_url}"),
 ]

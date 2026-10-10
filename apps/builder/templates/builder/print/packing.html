@@ -1,0 +1,39 @@
+{% extends "builder/print/base.html" %}
+{% block pages %}
+{% for o in orders %}
+<section class="page packing" data-order="{{ o.number }}">
+  <header class="doc-head">
+    {% include "builder/print/_seller.html" %}
+    <div class="doc-title">
+      <h1>برگه بسته‌بندی</h1>
+      <span>شماره سفارش: <bdi>{{ o.number }}</bdi></span>
+      <span>{{ o.created_at|jdate:"%Y/%m/%d، %H:%M" }}</span>
+    </div>
+  </header>
+  <div class="party"><div><b>گیرنده:</b> {{ o.full_name }} — {{ o.province }}، {{ o.city }}{% if o.shipping_method_name %} · {{ o.shipping_method_name }}{% endif %}</div></div>
+  <table class="items check">
+    <thead><tr><th class="box"></th><th>کالا</th><th>تعداد</th></tr></thead>
+    <tbody>
+      {% for item in o.items.all %}
+      <tr><td class="box">☐</td><td>{{ item.product_name }}{% if item.size_ml %} ({{ item.size_ml|fa }} میل){% endif %}</td><td class="qty">{{ item.quantity|fa }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% if o.is_gift %}
+  <div class="pack-note">
+    <b>بسته‌بندی:</b> {{ o.get_packaging_display }}
+    {% if o.packaging_note %}<br><b>توضیح مشتری:</b> {{ o.packaging_note|linebreaksbr }}{% endif %}
+    {% if o.hide_prices %}<br><b>⚠ فاکتور قیمت داخل بسته قرار نگیرد.</b>{% endif %}
+  </div>
+  {% endif %}
+  {% if o.note %}<p class="muted"><b>توضیحات سفارش:</b> {{ o.note }}</p>{% endif %}
+  {% if o.gift_message %}
+  <div class="gift-card" aria-label="کارت هدیه">
+    <span class="cut">✂ کارت هدیه — جدا کنید و داخل بسته بگذارید</span>
+    <p class="message">{{ o.gift_message|linebreaksbr }}</p>
+    {% if o.gift_from %}<p class="from">از طرف {{ o.gift_from }}</p>{% endif %}
+  </div>
+  {% endif %}
+</section>
+{% endfor %}
+{% endblock %}

@@ -166,3 +166,70 @@ def send_otp(store, phone, code, minutes):
     entry.body = "(کد ورود — برای امنیت ذخیره نمی‌شود)"
     entry.save()
     return entry.status == NotificationLog.SENT
+
+
+# ---------- رویدادهای غیرسفارشی (موجودی، یادآوری سبد، پیامک گروهی، کارت هدیه) ----------
+
+def notify_event(store, event, context, *, phone="", email="", audiences=(E.CUSTOMER, E.STAFF)):
+    """ارسال همه پیام‌های فعال یک رویداد غیرسفارشی؛ مشتری با phone/email و مدیران از تنظیمات اطلاع‌رسانی.
+
+    خروجی: فهرست NotificationLog (هر ارسال یک ردیف؛ خطای سرویس فقط ثبت می‌شود).
+    """
+    conf = settings_for(store)
+    context = {"store": store.name, **context}
+    logs = []
+    for rule in rules_for(store, event):
+        if rule.audience not in audiences:
+            continue
+        if rule.audience == E.STAFF:
+            targets = conf.staff_phone_list if rule.channel == E.SMS else conf.staff_email_list
+        else:
+            targets = [phone] if rule.channel == E.SMS and phone else [email] if rule.channel == E.EMAIL and email else []
+        enabled = conf.sms_enabled if rule.channel == E.SMS else conf.email_enabled
+        for to in targets:
+            entry = NotificationLog(store=store, event=event, channel=rule.channel, recipient=to)
+            if not enabled:
+                entry.status, entry.error = NotificationLog.SKIPPED, "این کانال در تنظیمات اطلاع‌رسانی خاموش است."
+            else:
+                try:
+                    if rule.channel == E.SMS:
+                        entry.provider, entry.message_id, entry.body = _deliver_sms(rule, to, context)
+                    else:
+                        entry.provider, entry.message_id, entry.body = _deliver_simple_email(rule, to, context)
+                    entry.status = NotificationLog.SENT
+                except Exception as exc:  # سرویس پیامک/SMTP
+                    log.warning("Notification %s/%s to %s failed: %s", event, rule.channel, to, exc)
+                    entry.status, entry.error = NotificationLog.FAILED, str(exc)[:300] or exc.__class__.__name__
+            entry.save()
+            logs.append(entry)
+    return logs
+
+
+def _deliver_simple_email(rule, to, context):
+    subject = E.render_text(rule.subject, context) or context["store"]
+    body = E.render_text(rule.text, context) or subject
+    text = render_to_string("emails/simple.txt", {**context, "subject": subject, "body": body})
+    html = render_to_string("emails/simple.html", {**context, "subject": subject, "body": body})
+    message = EmailMultiAlternatives(subject, text, settings.DEFAULT_FROM_EMAIL, [to])
+    message.attach_alternative(html, "text/html")
+    message.send()
+    return "email", "", subject
+
+
+def send_sms_text(store, event, phone, text):
+    """یک پیامک متنی آزاد (پیامک گروهی کارزار)؛ خروجی NotificationLog."""
+    conf = settings_for(store)
+    entry = NotificationLog(store=store, event=event, channel=E.SMS, recipient=phone, body=text)
+    if not conf.sms_enabled:
+        entry.status, entry.error = NotificationLog.SKIPPED, "پیامک در تنظیمات اطلاع‌رسانی خاموش است."
+    else:
+        provider = get_provider()
+        try:
+            if provider is None:
+                raise SMSError("سرویس پیامک تنظیم نشده است (SMS_PROVIDER).")
+            entry.provider, entry.message_id = provider.code, provider.send(phone, text).message_id
+            entry.status = NotificationLog.SENT
+        except SMSError as exc:
+            entry.status, entry.error = NotificationLog.FAILED, str(exc)[:300]
+    entry.save()
+    return entry

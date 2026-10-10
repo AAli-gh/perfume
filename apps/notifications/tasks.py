@@ -18,3 +18,11 @@ def notify_order_task(self, order_id, event):
         if not self.request.is_eager:
             raise self.retry()
     return sum(entry.status == NotificationLog.SENT for entry in logs)
+
+
+@shared_task(acks_late=True)
+def stock_alert_task(variant_id, event):
+    """موجودی کم ← پیام به مدیران؛ موجود شد ← پیامک به همه درخواست‌های باز «خبرم کن» آن حجم."""
+    from .stock import alert_low_stock, notify_back_in_stock
+
+    return alert_low_stock(variant_id) if event == "low_stock" else notify_back_in_stock(variant_id)

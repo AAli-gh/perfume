@@ -21,7 +21,7 @@ from apps.themes import services as theme_services
 from apps.themes import tokens as T
 
 from . import forms as F
-from . import preview
+from . import ops, preview
 from . import services as builder
 from .access import (
     PUBLISH_PERM, REPORTS_PERM, SECTION_ADD_PERM, SECTION_CHANGE_PERM, SECTION_DELETE_PERM, THEME_PERM, studio_required,
@@ -67,6 +67,7 @@ def dashboard(request):
     page = page_services.ensure_home_page(request.store)
     status = PageSection.Status.DRAFT if page.has_draft else PageSection.Status.PUBLISHED
     return render(request, "builder/dashboard.html", {
+        "ops": ops.summary(request.store) if request.user.has_perm(REPORTS_PERM) else None,
         "theme_settings": theme_services.draft_settings(request.store, create=False)
         or theme_services.ensure_store_theme(request.store),
         "home": page,

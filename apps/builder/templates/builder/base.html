@@ -30,6 +30,12 @@
     <aside class="min-w-0">
       <nav class="studio-nav" aria-label="بخش‌های استودیو">
         <a href="{% url 'builder:dashboard' %}" {% if nav == 'dashboard' %}aria-current="page"{% endif %}>{% icon "diamond" "!w-4 !h-4" %} پیشخوان</a>
+        {% if perms.orders.view_order %}
+        <a href="{% url 'builder:orders' %}" {% if nav == 'orders' %}aria-current="page"{% endif %}>{% icon "bag" "!w-4 !h-4" %} سفارش‌ها</a>
+        {% endif %}
+        {% if perms.catalog.change_product %}
+        <a href="{% url 'builder:stock' %}" {% if nav == 'stock' %}aria-current="page"{% endif %}>{% icon "truck" "!w-4 !h-4" %} موجودی</a>
+        {% endif %}
         {% if perms.themes.change_themesettings %}
         <a href="{% url 'builder:theme' %}" {% if nav == 'theme' %}aria-current="page"{% endif %}>{% icon "flame" "!w-4 !h-4" %} ظاهر و پوسته</a>
         {% endif %}

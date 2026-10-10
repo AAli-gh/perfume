@@ -85,6 +85,11 @@ class StoreSettings(models.Model):
         "مهلت پرداخت آنلاین (دقیقه)", default=30,
         help_text="بعد از این مدت سفارش پرداخت‌نشده لغو و موجودی آن آزاد می‌شود",
     )
+    low_stock_threshold = models.PositiveSmallIntegerField(
+        "آستانه موجودی کم", default=3,
+        help_text="وقتی موجودی یک حجم به این عدد (یا کمتر) برسد، به مدیران خبر داده می‌شود. "
+                  "برای هر حجم می‌توانید آستانه جدا بگذارید.",
+    )
     bank_card_number = models.CharField("شماره کارت (کارت به کارت)", max_length=30, blank=True)
     bank_card_holder = models.CharField("نام صاحب کارت", max_length=100, blank=True)
     # ---------- سئو ----------

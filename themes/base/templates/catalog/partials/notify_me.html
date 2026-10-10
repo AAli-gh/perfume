@@ -1,0 +1,18 @@
+{# «موجود شد خبرم کن» برای حجم‌های ناموجود #}
+<div id="notify-me" class="mt-5 rounded border border-line bg-panel/50 p-4">
+  {% if done %}
+    <p class="alert alert-ok !mb-0" role="status">ثبت شد. به محض موجود شدن «{{ product.name }}» با پیامک خبرتان می‌کنیم.</p>
+  {% else %}
+    <p class="mb-3 flex items-center gap-2 text-cream">{% icon "phone" "!h-5 !w-5 text-gold" %} {% if product.in_stock %}حجم دلخواهتان ناموجود است؟{% else %}این محصول فعلاً ناموجود است.{% endif %} موجود شد خبرتان می‌کنیم</p>
+    <form class="flex flex-wrap items-end gap-2" method="post" action="{% url 'catalog:notify_me' product.slug %}"
+          hx-post="{% url 'catalog:notify_me' product.slug %}" hx-target="#notify-me" hx-swap="outerHTML">
+      {% csrf_token %}
+      {% if notify_form.variants|length > 1 %}<div class="field min-w-[7rem]"><label for="{{ notify_form.variant.id_for_label }}">{{ notify_form.variant.label }}</label>{{ notify_form.variant }}</div>{% else %}{{ notify_form.variant }}{% endif %}
+      <div class="field min-w-[10rem] flex-1 {% if notify_form.phone.errors %}has-error{% endif %}">
+        <label for="{{ notify_form.phone.id_for_label }}">{{ notify_form.phone.label }}</label>{{ notify_form.phone }}
+        {% for e in notify_form.phone.errors %}<span class="field-error">{{ e }}</span>{% endfor %}
+      </div>
+      <button class="btn htmx-dim" type="submit">خبرم کن</button>
+    </form>
+  {% endif %}
+</div>

@@ -3,7 +3,7 @@ from django.contrib import admin
 from django.utils.html import format_html
 
 from .models import (
-    Attribute, AttributeValue, Brand, Category, Collection, FragranceNote, Product, ProductImage, ProductNote,
+    Attribute, AttributeValue, BackInStockRequest, Brand, Category, Collection, FragranceNote, Product, ProductImage, ProductNote,
     ProductVariant, ScentFamily, StockMovement, Tag,
 )
 from . import inventory
@@ -143,3 +143,12 @@ class StockMovementAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+
+@admin.register(BackInStockRequest)
+class BackInStockRequestAdmin(admin.ModelAdmin):
+    list_display = ["variant", "phone", "created_at", "notified_at"]
+    list_filter = [("notified_at", admin.EmptyFieldListFilter)]
+    search_fields = ["phone", "variant__product__name"]
+    raw_id_fields = ["variant", "user"]
+    readonly_fields = ["created_at", "notified_at"]

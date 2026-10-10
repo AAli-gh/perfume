@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import views
+from . import ops_views, views
 
 app_name = "builder"
 urlpatterns = [
@@ -23,5 +23,10 @@ urlpatterns = [
     path("discard/", views.discard, name="discard"),
     path("history/", views.history, name="history"),
     path("reports/", views.sales_report, name="reports"),
+    path("orders/", ops_views.orders, name="orders"),
+    path("orders/print/", ops_views.print_orders, name="print_orders"),
+    path("orders/status/", ops_views.orders_status, name="orders_status"),
+    path("orders/tracking/", ops_views.tracking, name="tracking"),
+    path("stock/", ops_views.stock, name="stock"),
     path("history/<int:number>/restore/", views.restore, name="restore"),
 ]

@@ -1,13 +1,14 @@
 from django.core.paginator import Paginator
 from django.http import Http404
 from django.shortcuts import render
+from django.views.decorators.http import require_POST
 
 from apps.core.ratelimit import ratelimit
 
-from . import selectors
+from . import selectors, services
 from .history import remember_view
 from .recommend import similar_products
-from .forms import ShopFilterForm
+from .forms import BackInStockForm, ShopFilterForm
 from .models import Category, Collection, Product
 
 PER_PAGE = 8
@@ -120,14 +121,40 @@ def product_detail(request, slug):
     except Product.DoesNotExist:
         raise Http404 from None
     remember_view(request, product)
+    variants = list(product.variants.all())
     return render(request, "catalog/product.html", {
         "product": product,
+        "notify_form": _notify_form(request, variants),
         "gallery": selectors.product_gallery(product),
-        "variants": list(product.variants.all()),
+        "variants": variants,
         "related": (selectors.related_products(product) if product.is_gift_box
                     else similar_products(product) or selectors.related_products(product)),
         "gift_boxes": [] if product.is_gift_box else selectors.gift_boxes(request.store)[:4],
     })
+
+
+def _notify_form(request, variants, data=None):
+    sold_out = [v for v in variants if v.stock <= 0]
+    if not sold_out:
+        return None
+    phone = getattr(request.user, "phone", "") if request.user.is_authenticated else ""
+    return BackInStockForm(data, variants=sold_out, initial={"phone": phone})
+
+
+@require_POST
+@ratelimit("back-in-stock", "10/10m")
+def notify_me(request, slug):
+    """HTMX: ثبت «موجود شد خبرم کن» برای یک حجم ناموجود."""
+    try:
+        product = selectors.product_detail(request.store, slug)
+    except Product.DoesNotExist:
+        raise Http404 from None
+    form = _notify_form(request, list(product.variants.all()), request.POST)
+    done = False
+    if form is not None and form.is_valid():
+        services.request_back_in_stock(form.cleaned_data["variant"], form.cleaned_data["phone"], request.user)
+        done = True
+    return render(request, "catalog/partials/notify_me.html", {"product": product, "notify_form": form, "done": done})
 
 
 def gift_boxes(request):

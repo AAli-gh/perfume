@@ -1,0 +1,21 @@
+{% load static %}<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>{{ title }} | {{ SITE.name }}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700&display=swap">
+  <link rel="stylesheet" href="{% static 'css/print.css' %}">
+  <script src="{% static 'js/print.js' %}" defer></script>
+</head>
+<body class="doc-{{ doc }}">
+  <div class="toolbar no-print">
+    <strong>{{ title }} — {{ orders|length }} سفارش</strong>
+    <button type="button" data-print>چاپ</button>
+    <span class="hint">در پنجره چاپ، «سربرگ و پانویس» مرورگر را خاموش کنید.</span>
+  </div>
+  {% block pages %}{% endblock %}
+</body>
+</html>
