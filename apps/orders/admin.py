@@ -43,6 +43,7 @@ class OrderAdmin(JalaliAdminMixin, admin.ModelAdmin):
     search_fields = ["number", "first_name", "last_name", "phone", "email", "payments__ref_id", "tracking_code"]
     readonly_fields = [
         "number", "store", "user", "subtotal", "discount", "shipping", "total", "coupon_code",
+        "points_used", "points_amount", "gift_card_code", "gift_card_amount",
         "paid_at", "created_at", "reserved_until", "inventory_released", "shipping_method_name", "shipped_at",
     ]
     inlines = [OrderItemInline, HistoryInline]
@@ -54,7 +55,8 @@ class OrderAdmin(JalaliAdminMixin, admin.ModelAdmin):
     fieldsets = (
         (None, {"fields": ("number", "store", "user", "status", "payment_method", "created_at")}),
         ("گیرنده", {"fields": ("first_name", "last_name", "phone", "email", "province", "city", "address", "postal_code", "note")}),
-        ("مبالغ", {"fields": ("subtotal", "discount", "coupon_code", "shipping", "total")}),
+        ("مبالغ", {"fields": ("subtotal", "discount", "coupon_code", "shipping", "points_used", "points_amount",
+                             "gift_card_code", "gift_card_amount", "total")}),
         ("ارسال", {"fields": ("shipping_method_name", "tracking_code", "shipped_at")}),
         ("بسته‌بندی هدیه", {"fields": ("packaging", "packaging_note", "gift_message", "gift_from", "hide_prices")}),
         ("پرداخت", {"fields": ("paid_at", "reserved_until", "inventory_released")}),

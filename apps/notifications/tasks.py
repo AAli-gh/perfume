@@ -63,3 +63,26 @@ def notify_return_task(request_id, status):
                "order_url": order.store.base_url + reverse("orders:detail", args=[order.number])}
     audiences = (E.CUSTOMER, E.STAFF) if status == ReturnRequest.Status.REQUESTED and req.by_customer else (E.CUSTOMER,)
     return len(notify_event(order.store, E.RETURN_UPDATE, context, phone=order.phone, audiences=audiences))
+
+
+@shared_task(acks_late=True)
+def gift_card_sms_task(card_ids, phone=""):
+    """پیامک کد کارت هدیه به گیرنده (یا خریدار)."""
+    from apps.discounts.credits import format_code
+    from apps.discounts.models import GiftCard
+    from apps.core.templatetags.majd import jdate, toman
+
+    from . import events as E
+    from .services import notify_event
+
+    sent = 0
+    for card in GiftCard.objects.select_related("store").filter(pk__in=card_ids):
+        to = phone or card.recipient_phone
+        if not to:
+            continue
+        context = {"name": card.recipient_name, "code": format_code(card.code), "amount": toman(card.initial_amount),
+                   "sender": card.sender_name or card.store.name, "message": card.message,
+                   "expires": jdate(card.expires_at) if card.expires_at else "بدون انقضا",
+                   "shop_url": card.store.base_url + "/shop/"}
+        sent += len(notify_event(card.store, E.GIFT_CARD, context, phone=to, audiences=(E.CUSTOMER,)))
+    return sent

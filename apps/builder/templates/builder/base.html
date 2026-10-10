@@ -40,6 +40,7 @@
         <a href="{% url 'builder:stock' %}" {% if nav == 'stock' %}aria-current="page"{% endif %}>{% icon "truck" "!w-4 !h-4" %} موجودی</a>
         <a href="{% url 'builder:products' %}" {% if nav == 'products' %}aria-current="page"{% endif %}>{% icon "grid" "!w-4 !h-4" %} اکسل و قیمت‌ها</a>
         <a href="{% url 'builder:sales' %}" {% if nav == 'sales' %}aria-current="page"{% endif %}>{% icon "flame" "!w-4 !h-4" %} حراج زمان‌دار</a>
+        <a href="{% url 'builder:gift_cards' %}" {% if nav == 'gift_cards' %}aria-current="page"{% endif %}>{% icon "gift" "!w-4 !h-4" %} کارت هدیه</a>
         {% endif %}
         {% if perms.accounts.view_user %}
         <a href="{% url 'builder:customers' %}" {% if nav == 'customers' %}aria-current="page"{% endif %}>{% icon "user" "!w-4 !h-4" %} مشتریان</a>

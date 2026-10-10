@@ -10,7 +10,9 @@ from django.db import transaction
 from django.utils import timezone
 
 from apps.catalog import inventory
+from apps.discounts import credits
 
+from . import giftcards
 from .models import Order, OrderStatusHistory
 from .signals import order_status_changed
 
@@ -63,6 +65,16 @@ def transition(order, to_status, *, by=None, note=""):
         inventory.release(stock_lines(locked), locked.number, by, note or "لغو سفارش")
         locked.inventory_released = True
         fields.append("inventory_released")
+    if to_status == S.CANCELLED:
+        credits.restore_for_order(locked)  # کارت هدیه و امتیاز خرج‌شده برمی‌گردد
+        giftcards.void_purchased(locked)
+    paid_now = to_status == S.PAID or (to_status == S.DELIVERED and locked.payment_method == Order.PaymentMethod.COD)
+    if paid_now and not locked.gift_cards_issued:
+        giftcards.issue_purchased(locked)
+        locked.gift_cards_issued = True
+        fields.append("gift_cards_issued")
+    if to_status == S.DELIVERED:
+        transaction.on_commit(lambda: credits.earn_for_order(locked))
     locked.save(update_fields=fields)
     OrderStatusHistory.objects.create(order=locked, from_status=current, to_status=to_status, changed_by=by, note=note)
     transaction.on_commit(lambda: order_status_changed.send(

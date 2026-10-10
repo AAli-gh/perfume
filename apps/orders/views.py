@@ -4,11 +4,14 @@ from django.views.decorators.http import require_POST
 
 from apps.cart.cart import Cart, CartLine
 
+from apps.discounts import credits
+
 from .forms import PROVINCES, CheckoutForm
-from . import returns
+from . import giftcards, returns
 from .models import Order, ReturnRequest
 from .selectors import get_owned_order, remember_order
 from .services import CouponUnavailable, OutOfStock, create_order
+from .workflow import transition
 from apps.core.forms import en_digits
 from apps.core.ratelimit import ratelimit
 
@@ -21,7 +24,7 @@ def checkout(request):
         messages.error(request, "سبد خرید شما خالی است.")
         return redirect("cart:detail")
 
-    form = CheckoutForm(request.POST, store=request.store, cart=cart)
+    form = CheckoutForm(request.POST, store=request.store, cart=cart, user=request.user)
     if not form.is_valid():
         context = {"cart": cart, "form": form, "form_error": True, **_quote_context(cart, form)}
         return render(request, "cart/detail.html", context, status=422)
@@ -37,6 +40,10 @@ def checkout(request):
 
     cart.clear()
     remember_order(request, order)
+    if order.total == 0:  # تمام مبلغ با کارت هدیه/امتیاز پرداخت شد
+        transition(order, Order.Status.PAID, by=None, note="پرداخت کامل با کارت هدیه یا امتیاز")
+        messages.success(request, "سفارش شما ثبت و با اعتبار شما پرداخت شد.")
+        return redirect(order)
     if order.payment_method == Order.PaymentMethod.ONLINE:
         return redirect("payments:start", number=order.number)
     messages.success(request, "سفارش شما با موفقیت ثبت شد.")
@@ -51,15 +58,19 @@ def _quote_context(cart, form):
     if province not in PROVINCES:
         province = ""
     extra = [CartLine(box, 1)] if (box := form.chosen_gift_box()) else []
-    return {"quote": cart.quote(method, province, extra), "shipping_label": method.name if method else "",
-            "extra_lines": extra}
+    quote = cart.quote(method, province, extra)
+    preview = credits.compute(cart.store, quote.total, card=form.chosen_gift_card(),
+                              use_points=bool(form.data.get("use_points")) and "use_points" in form.fields,
+                              user=form.user)
+    return {"quote": quote, "shipping_label": method.name if method else "", "extra_lines": extra,
+            "credits": preview if preview.gift_amount or preview.points_amount else None}
 
 
 @require_POST
 def quote(request):
     """HTMX: به‌روزرسانی خلاصه سفارش با تغییر استان یا روش ارسال."""
     cart = Cart(request)
-    form = CheckoutForm(request.POST, store=request.store, cart=cart)
+    form = CheckoutForm(request.POST, store=request.store, cart=cart, user=request.user)
     context = {"cart": cart, "summary_id": "checkout-summary", **_quote_context(cart, form)}
     return render(request, "cart/partials/summary.html", context)
 
@@ -72,6 +83,7 @@ def detail(request, number):
         "return_reasons": [c for c in ReturnRequest.Reason.choices if c[0] != ReturnRequest.Reason.OUT_OF_STOCK],
         "return_deadline": returns.return_deadline(order) if can_return else None,
         "return_requests": order.returns.prefetch_related("items__order_item"),
+        "purchased_cards": list(giftcards.cards_for(order)) if order.gift_cards_issued else [],
     })
 
 

@@ -191,6 +191,10 @@ def gift_boxes(store):
     return listable_products(store).gift_boxes().order_by("min_price", "pk")
 
 
+def gift_cards(store):
+    return listable_products(store).filter(kind=Kind.GIFT_CARD).order_by("min_price", "pk")
+
+
 def gift_box_variants(store):
     """حجم/مدل‌های موجود باکس‌های هدیه برای انتخاب در تسویه حساب."""
     return (ProductVariant.objects.filter(product__store=store, product__is_active=True, product__kind=Kind.GIFT_BOX,

@@ -305,6 +305,15 @@ class Product(StoreOwned, SeoFields):
     def is_gift_box(self):
         return self.kind == Kind.GIFT_BOX
 
+    @property
+    def is_gift_card(self):
+        return self.kind == Kind.GIFT_CARD
+
+    @property
+    def is_accessory(self):
+        """باکس یا کارت هدیه: حجم ندارد، در مقایسه و عطریاب نمی‌آید."""
+        return self.kind != Kind.PERFUME
+
     def clean(self):
         from django.core.exceptions import ValidationError
 

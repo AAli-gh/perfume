@@ -29,6 +29,8 @@
     <tfoot>
       <tr><td colspan="4">جمع جزء</td><td>{{ o.subtotal|toman }}</td></tr>
       {% if o.discount %}<tr><td colspan="4">تخفیف{% if o.coupon_code %} ({{ o.coupon_code }}){% endif %}</td><td>− {{ o.discount|toman }}</td></tr>{% endif %}
+      {% if o.points_amount %}<tr><td colspan="4">امتیاز باشگاه</td><td>− {{ o.points_amount|toman }}</td></tr>{% endif %}
+      {% if o.gift_card_amount %}<tr><td colspan="4">پرداخت با کارت هدیه</td><td>− {{ o.gift_card_amount|toman }}</td></tr>{% endif %}
       <tr><td colspan="4">هزینه ارسال</td><td>{% if o.shipping %}{{ o.shipping|toman }}{% else %}رایگان{% endif %}</td></tr>
       <tr class="grand"><td colspan="4">مبلغ نهایی</td><td>{{ o.total|toman }}</td></tr>
     </tfoot>

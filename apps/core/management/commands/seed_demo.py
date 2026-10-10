@@ -77,6 +77,7 @@ PRODUCTS = [
      "عود مخملی نسخه‌ای نرم و مدرن از عود است؛ تمشک و رز، تندی عود را لطیف کرده‌اند تا رایحه‌ای مخملی و دلنشین به دست آید."),
 ]
 # باکس‌های هدیه: slug, نام، گنجایش (تعداد شیشه)، قیمت، موجودی، تصویر، توضیح
+GIFT_CARD_AMOUNTS = [1_000_000, 2_000_000, 5_000_000]  # هر مبلغ یک حجم (size_ml فقط برای یکتایی)
 GIFT_BOXES = [
     ("box-classic", "باکس هدیه کلاسیک", 1, 350_000, 40, "box-classic.jpg",
      "باکس مشکی مات با روبان طلایی و بستر مخملی؛ مناسب یک شیشه عطر. کارت پیام هدیه همراه باکس است."),
@@ -279,6 +280,18 @@ class Command(BaseCommand):
             record_initial(ProductVariant.objects.create(product=box, size_ml=0, price=price, stock=stock))
             boxes += 1
 
+        if not Product.objects.for_store(store).filter(slug="gift-card").exists():
+            card = Product(slug="gift-card", name="کارت هدیه عطر", brand=house, kind=Kind.GIFT_CARD,
+                           short_description="هدیه‌ای که گیرنده خودش انتخاب می‌کند.",
+                           description="کارت هدیه دیجیتال با مانده قابل خرج در چند خرید. کد کارت پس از پرداخت با "
+                                       "پیامک ارسال می‌شود.")
+            attach(card.image, "gift-card.jpg")
+            card.save()
+            for amount in GIFT_CARD_AMOUNTS:
+                record_initial(ProductVariant.objects.create(product=card, size_ml=amount // 100_000, price=amount,
+                                                             stock=100_000))
+            boxes += 1
+
         cats = {k: Category.objects.for_store(store).get_or_create(slug=k, defaults={"name": v})[0] for k, v in CATEGORIES.items()}
         posts = 0
         for slug, title, cat, img, days_ago, excerpt, body in POSTS:
@@ -293,4 +306,4 @@ class Command(BaseCommand):
         for code, percent, max_discount in COUPONS:
             Coupon.objects.for_store(store).get_or_create(code=code, defaults={"percent": percent, "max_discount": max_discount})
 
-        self.stdout.write(self.style.SUCCESS(f"{created} محصول، {boxes} باکس هدیه و {posts} مقاله در «{store.name}» ساخته شد."))
+        self.stdout.write(self.style.SUCCESS(f"{created} محصول، {boxes} باکس و کارت هدیه و {posts} مقاله در «{store.name}» ساخته شد."))

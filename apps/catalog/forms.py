@@ -46,7 +46,7 @@ class BackInStockForm(StyledFormMixin, forms.Form):
     def __init__(self, *args, variants=(), **kwargs):
         super().__init__(*args, **kwargs)
         self.variants = {v.pk: v for v in variants}
-        self.fields["variant"].choices = [(v.pk, "باکس" if v.product.is_gift_box else f"{v.size_ml} میل")
+        self.fields["variant"].choices = [(v.pk, f"{v.price:,} تومان" if v.product.is_accessory else f"{v.size_ml} میل")
                                           for v in variants]
         if len(self.variants) == 1:
             self.fields["variant"].widget = forms.HiddenInput()

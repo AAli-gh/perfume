@@ -129,3 +129,28 @@ class CampaignForm(StyledFormMixin, forms.Form):
         if not data.get("with_coupon") and "{code}" in data.get("message", ""):
             self.add_error("message", "متن {code} دارد ولی کد تخفیفی ساخته نمی‌شود.")
         return data
+
+
+class GiftCardForm(StyledFormMixin, forms.Form):
+    amount = LocalizedDecimalField(label="مبلغ (تومان)", min_value=Decimal(10_000), max_digits=12, decimal_places=0,
+                                   widget=forms.TextInput(attrs={"inputmode": "numeric", "dir": "ltr"}))
+    count = forms.IntegerField(label="تعداد کارت", min_value=1, max_value=200, initial=1)
+    recipient_name = forms.CharField(label="نام گیرنده", max_length=80, required=False)
+    recipient_phone = forms.CharField(label="موبایل گیرنده (برای پیامک کد)", max_length=11, required=False,
+                                      widget=forms.TextInput(attrs={"dir": "ltr", "inputmode": "numeric"}))
+    sender_name = forms.CharField(label="از طرف", max_length=80, required=False)
+    message = forms.CharField(label="پیام", max_length=200, required=False)
+    expires_at = JalaliDateTimeField(label="انقضا", required=False, end_of_day=True, help_text="خالی = بدون انقضا")
+
+    def clean_recipient_phone(self):
+        from apps.core.validators import iran_mobile_validator
+
+        phone = en_digits(self.cleaned_data.get("recipient_phone", ""))
+        if phone:
+            iran_mobile_validator(phone)
+        return phone
+
+
+class PointsAdjustForm(StyledFormMixin, forms.Form):
+    points = forms.IntegerField(label="امتیاز (منفی برای کسر)", min_value=-1_000_000, max_value=1_000_000)
+    note = forms.CharField(label="علت", max_length=200)

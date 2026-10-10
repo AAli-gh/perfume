@@ -11,7 +11,7 @@ from .services import notify_event
 
 def variant_context(variant):
     product = variant.product
-    size = "باکس هدیه" if product.is_gift_box else f"{variant.size_ml} میل"
+    size = product.get_kind_display() if product.is_accessory else f"{variant.size_ml} میل"
     return {"product": product.name, "size": size, "stock": variant.stock,
             "product_url": product.store.base_url + product.get_absolute_url()}
 

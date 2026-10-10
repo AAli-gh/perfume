@@ -15,9 +15,11 @@ from django.utils import timezone
 
 from apps.catalog import inventory
 from apps.catalog.models import StockMovement
+from apps.discounts import credits
+from apps.discounts.models import GiftCard
 
 from .models import Order, OrderItem, OrderStatusHistory, ReturnItem, ReturnRequest
-from .signals import return_updated
+from .signals import gift_cards_issued, return_updated
 
 R = ReturnRequest
 S = Order.Status
@@ -156,6 +158,12 @@ def refund(req, *, amount, method, reference="", user=None, note=""):
         raise ReturnError("مبلغ بازپرداخت نامعتبر است.")
     req.refund_amount, req.refund_method, req.refund_reference = amount, method, reference[:100]
     req.refunded_at = timezone.now()
+    if method == R.RefundMethod.CREDIT and amount:
+        card = credits.issue_card(req.order.store, amount, source=GiftCard.Source.REFUND,
+                                  order_number=req.order.number, recipient_name=req.order.first_name,
+                                  recipient_phone=req.order.phone, message="اعتبار بازپرداخت مرجوعی")
+        req.refund_reference = card.code
+        transaction.on_commit(lambda: gift_cards_issued.send(sender=GiftCard, order=req.order, cards=[card]))
     return _set_status(req, R.Status.REFUNDED, user, note)
 
 

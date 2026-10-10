@@ -12,3 +12,6 @@ order_status_changed = Signal()
 
 # درخواست مرجوعی/لغو بخشی ایجاد یا وضعیتش عوض شد (request=ReturnRequest)
 return_updated = Signal()
+
+# کارت‌های هدیه خریداری‌شده صادر شدند (order، cards=[GiftCard])
+gift_cards_issued = Signal()

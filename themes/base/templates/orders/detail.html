@@ -23,6 +23,8 @@
     <dl class="mt-4 grid gap-1 text-[.95rem]">
       <div class="flex justify-between"><dt>جمع جزء</dt><dd>{{ order.subtotal|toman }}</dd></div>
       {% if order.discount %}<div class="flex justify-between text-success"><dt>تخفیف ({{ order.coupon_code }})</dt><dd>− {{ order.discount|toman }}</dd></div>{% endif %}
+      {% if order.points_amount %}<div class="flex justify-between text-success"><dt>امتیاز باشگاه ({{ order.points_used|fa }})</dt><dd>− {{ order.points_amount|toman }}</dd></div>{% endif %}
+      {% if order.gift_card_amount %}<div class="flex justify-between text-success"><dt>کارت هدیه</dt><dd>− {{ order.gift_card_amount|toman }}</dd></div>{% endif %}
       <div class="flex justify-between"><dt>هزینه ارسال{% if order.shipping_method_name %} <small class="text-muted">({{ order.shipping_method_name }})</small>{% endif %}</dt><dd>{% if order.shipping %}{{ order.shipping|toman }}{% else %}رایگان{% endif %}</dd></div>
       {% if order.tracking_code %}<div class="flex justify-between"><dt>کد رهگیری مرسوله</dt><dd dir="ltr">{% if order.tracking_url %}<a class="text-gold underline" href="{{ order.tracking_url }}" target="_blank" rel="noopener noreferrer">{{ order.tracking_code }}</a>{% else %}{{ order.tracking_code }}{% endif %}</dd></div>{% endif %}
       <div class="mt-2 flex justify-between border-t border-line pt-3 text-lg text-gold"><dt>مبلغ نهایی</dt><dd>{{ order.total|toman }}</dd></div>
@@ -41,6 +43,13 @@
     </div>
     {% endif %}
 
+    {% if purchased_cards %}
+    <div class="mt-4 rounded border border-copper/40 bg-copper/[.06] p-4 text-sm leading-7" id="purchased-cards">
+      <strong class="text-cream">کارت‌های هدیه شما:</strong>
+      {% for g in purchased_cards %}<span class="block">کد <bdi class="font-mono text-gold" dir="ltr">{{ g.code|slice:":4" }}-{{ g.code|slice:"4:8" }}-{{ g.code|slice:"8:" }}</bdi> — {{ g.initial_amount|toman }}{% if g.balance != g.initial_amount %} (مانده {{ g.balance|toman }}){% endif %}{% if not g.is_active %} · غیرفعال{% endif %}</span>{% endfor %}
+      <small class="text-muted">کد را برای گیرنده بفرستید؛ در صفحه ثبت سفارش، بخش «کد کارت هدیه» وارد می‌شود.</small>
+    </div>
+    {% endif %}
     {% for r in return_requests %}
     <div class="mt-4 rounded border border-line p-4 text-sm leading-7" data-return="{{ r.pk }}">
       <strong class="text-cream">{{ r.get_kind_display }}:</strong> {{ r.get_status_display }}

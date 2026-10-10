@@ -12,7 +12,8 @@ from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
 from django.db import transaction
-from django.db.models import Count, Exists, OuterRef, Q
+from django.contrib.auth import get_user_model
+from django.db.models import Count, Exists, OuterRef, Q, Sum
 from django.http import Http404, HttpResponse
 from django.shortcuts import redirect, render
 from django.utils import timezone
@@ -22,13 +23,15 @@ from apps.catalog import bulk, inventory, search_log
 from apps.catalog import sales as sale_service
 from apps.catalog.models import PriceChangeBatch, ProductVariant, SaleCampaign, StockMovement, sale_active
 from apps.core import spreadsheet
+from apps.discounts import credits
+from apps.discounts.models import GiftCard, LoyaltyEntry
 from apps.core.audit import record
 from apps.core.forms import en_digits
 from apps.cart.models import SavedCart
 from apps.notifications import campaigns
 from apps.notifications.services import settings_for as notification_settings
 from apps.notifications.models import Campaign
-from apps.notifications.tasks import send_campaign_task
+from apps.notifications.tasks import gift_card_sms_task, send_campaign_task
 from apps.orders import customers as customers_service
 from apps.orders import returns
 from apps.orders.models import Order, ReturnRequest
@@ -36,7 +39,9 @@ from apps.orders.workflow import InvalidTransition, transition
 
 from . import ops
 from .access import CAMPAIGN_PERM, CUSTOMERS_PERM, ORDERS_PERM, PRODUCTS_PERM, REPORTS_PERM, studio_required
-from .ops_forms import CampaignForm, CustomerProfileForm, ImportForm, PriceChangeForm, SaleForm
+from .ops_forms import (
+    CampaignForm, CustomerProfileForm, GiftCardForm, ImportForm, PointsAdjustForm, PriceChangeForm, SaleForm,
+)
 
 S = Order.Status
 ORDER_TABS = [
@@ -435,8 +440,13 @@ def customer_detail(request, phone):
             messages.success(request, "یادداشت مشتری ذخیره شد.")
             return redirect("builder:customer", phone=phone)
     orders = Order.objects.for_store(request.store).filter(phone=phone).order_by("-created_at")[:50]
+    account = None
+    if info["user_id"] and credits.loyalty_config(request.store):
+        account = (credits.LoyaltyAccount.objects.for_store(request.store).filter(user_id=info["user_id"])
+                   .prefetch_related("entries").first())
     return render(request, "builder/ops/customer.html", {
         "nav": "customers", "c": info, "profile": profile, "form": form, "orders": orders, "can_edit": can_edit,
+        "loyalty": credits.loyalty_config(request.store), "account": account, "points_form": PointsAdjustForm(),
     })
 
 
@@ -610,3 +620,65 @@ def order_adjust(request, pk):
         "nav": "returns", "order": order, "mode": mode, "available": returns.available(order),
         "reasons": ReturnRequest.Reason.choices,
     })
+
+
+# ---------- کارت هدیه ----------
+
+@studio_required(PRODUCTS_PERM)
+def gift_cards(request):
+    form = GiftCardForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        d = form.cleaned_data
+        cards = [credits.issue_card(request.store, int(d["amount"]), expires_at=d["expires_at"],
+                                    recipient_name=d["recipient_name"], recipient_phone=d["recipient_phone"],
+                                    sender_name=d["sender_name"] or request.store.name, message=d["message"])
+                 for _ in range(d["count"])]
+        record("studio.gift_card_issue", request, target=f"{len(cards)} × {int(d['amount']):,}")
+        if d["recipient_phone"]:
+            ids = [c.pk for c in cards]
+            transaction.on_commit(lambda: gift_card_sms_task.delay(ids))
+        messages.success(request, f"{len(cards)} کارت هدیه صادر شد: " + "، ".join(credits.format_code(c.code)
+                                                                              for c in cards[:10]))
+        return redirect("builder:gift_cards")
+    search = credits.normalize_code(request.GET.get("s", ""))
+    cards = GiftCard.objects.for_store(request.store)
+    if search:
+        cards = cards.filter(code__contains=search)
+    page = Paginator(cards, 30).get_page(request.GET.get("page"))
+    totals = GiftCard.objects.for_store(request.store).filter(is_active=True).aggregate(balance=Sum("balance"))
+    return render(request, "builder/ops/gift_cards.html", {
+        "nav": "gift_cards", "form": form, "page": page, "search": request.GET.get("s", ""),
+        "outstanding": totals["balance"] or 0,
+    }, status=422 if request.method == "POST" else 200)
+
+
+@studio_required(PRODUCTS_PERM)
+@require_POST
+def gift_card_toggle(request, pk):
+    card = GiftCard.objects.for_store(request.store).filter(pk=pk).first()
+    if card is None:
+        raise Http404
+    card.is_active = not card.is_active
+    card.save(update_fields=["is_active"])
+    record("studio.gift_card_toggle", request, target=card.code)
+    messages.success(request, f"کارت {credits.format_code(card.code)} {'فعال' if card.is_active else 'غیرفعال'} شد.")
+    return redirect("builder:gift_cards")
+
+
+@studio_required(CUSTOMERS_PERM)
+@require_POST
+def customer_points(request, phone):
+    if not request.user.has_perm("accounts.change_user"):
+        raise PermissionDenied
+    user = Order.objects.for_store(request.store).filter(phone=phone, user__isnull=False).values_list(
+        "user", flat=True).first()
+    form = PointsAdjustForm(request.POST)
+    if user is None or not form.is_valid():
+        messages.error(request, "مشتری عضو نیست یا مقدار نامعتبر است.")
+        return redirect("builder:customer", phone=phone)
+    account_user = get_user_model().objects.get(pk=user)
+    changed = credits.add_points(request.store, account_user, form.cleaned_data["points"], LoyaltyEntry.Reason.MANUAL,
+                                 note=form.cleaned_data["note"], by=request.user)
+    record("studio.points_adjust", request, target=f"{phone} {changed:+}")
+    messages.success(request, f"{changed:+,} امتیاز ثبت شد.")
+    return redirect("builder:customer", phone=phone)

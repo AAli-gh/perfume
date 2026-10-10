@@ -9,7 +9,9 @@
 {% endfor %}
 جمع جزء: {{ order.subtotal|toman }}{% if order.discount %}
 تخفیف: {{ order.discount|toman }}{% endif %}
-هزینه ارسال: {% if order.shipping %}{{ order.shipping|toman }}{% else %}رایگان{% endif %}
+{% if order.points_amount %}امتیاز باشگاه: −{{ order.points_amount|toman }}
+{% endif %}{% if order.gift_card_amount %}کارت هدیه: −{{ order.gift_card_amount|toman }}
+{% endif %}هزینه ارسال: {% if order.shipping %}{{ order.shipping|toman }}{% else %}رایگان{% endif %}
 مبلغ نهایی: {{ total }}
 {% if tracking_code %}
 روش ارسال: {{ shipping_method }}

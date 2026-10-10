@@ -9,6 +9,14 @@
     <li class="panel flex gap-3 p-4">{% icon "bag" "!h-6 !w-6 shrink-0 text-gold" %}<span><strong class="block text-cream">۲. نحوه بسته‌بندی</strong>عطرها داخل باکس چیده شوند، باکس جدا بیاید یا توضیح بدهید چطور می‌خواهید.</span></li>
     <li class="panel flex gap-3 p-4">{% icon "mail" "!h-6 !w-6 shrink-0 text-gold" %}<span><strong class="block text-cream">۳. پیام کارت هدیه</strong>متن کارت را بنویسید؛ می‌توانید فاکتور قیمت را هم حذف کنید.</span></li>
   </ol>
+  {% if cards %}
+  <h2 class="mb-4 text-[1.6rem]">کارت هدیه</h2>
+  <p class="mb-5 text-muted">مطمئن نیستید چه عطری؟ کارت هدیه بفرستید تا خودش انتخاب کند. کد کارت پس از پرداخت با پیامک ارسال می‌شود.</p>
+  <div class="mb-12 grid grid-cols-2 gap-4 md:grid-cols-3" data-gift-cards>
+    {% for p in cards %}{% include "components/product_card.html" %}{% endfor %}
+  </div>
+  <h2 class="mb-4 text-[1.6rem]">باکس‌های هدیه</h2>
+  {% endif %}
   <div class="grid grid-cols-2 gap-4 md:grid-cols-3">
     {% for p in boxes %}{% include "components/product_card.html" %}{% empty %}<p class="col-span-full text-muted">فعلاً باکس هدیه‌ای موجود نیست.</p>{% endfor %}
   </div>

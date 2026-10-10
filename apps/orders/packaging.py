@@ -24,6 +24,8 @@ def contents(lines):
     perfumes = boxes = capacity = 0
     for line in lines:
         product = line.variant.product
+        if product.is_gift_card:
+            continue  # کارت هدیه فیزیکی نیست
         if product.is_gift_box:
             boxes += line.quantity
             capacity += line.quantity * (product.gift_capacity or 0)

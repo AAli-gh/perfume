@@ -16,5 +16,5 @@ def checkout_form(context):
     if isinstance(form, CheckoutForm):
         return form
     request = context["request"]
-    return CheckoutForm(initial=checkout_initial(request.user), store=getattr(request, "store", None),
+    return CheckoutForm(initial=checkout_initial(request.user), store=getattr(request, "store", None), user=request.user,
                         cart=context.get("cart") or Cart(request))

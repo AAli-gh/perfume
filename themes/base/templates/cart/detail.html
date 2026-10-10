@@ -13,7 +13,7 @@
     {% if form.non_field_errors %}<p class="alert alert-err mb-4">{{ form.non_field_errors|join:" " }}</p>{% endif %}
     {% if form_error %}<p class="alert alert-err mb-4">لطفاً خطاهای فرم را برطرف کنید.</p>{% endif %}
     <form class="grid items-start gap-7 lg:grid-cols-[1.2fr_1fr]" method="post" action="{% url 'orders:checkout' %}" novalidate
-          hx-post="{% url 'orders:quote' %}" hx-trigger="change from:#id_province, change from:[name=shipping_method], change from:[name=packaging], change from:[name=gift_box]"
+          hx-post="{% url 'orders:quote' %}" hx-trigger="change from:#id_province, change from:[name=shipping_method], change from:[name=packaging], change from:[name=gift_box], change from:[name=use_points], change delay:400ms from:[name=gift_card]"
           hx-target="#checkout-summary" hx-swap="outerHTML">
       {% csrf_token %}
       <div class="grid min-w-0 gap-7">
@@ -48,6 +48,10 @@
             {% for e in form.shipping_method.errors %}<span class="field-error">{{ e }}</span>{% endfor %}
           </fieldset>
           {% endif %}
+          <div class="my-4 grid gap-2" data-credits>
+            {% include "components/field.html" with field=form.gift_card %}
+            {% if form.use_points %}<label class="check">{{ form.use_points }} {{ form.use_points.label }}</label>{% endif %}
+          </div>
           <fieldset class="my-4 grid gap-2">
             <legend class="mb-2 text-[.95rem]">روش پرداخت</legend>
             {% for radio in form.payment_method %}

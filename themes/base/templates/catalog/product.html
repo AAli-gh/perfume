@@ -45,7 +45,12 @@
         {% endwith %}
         <p>{{ product.short_description }}</p>
 
-        {% if product.is_gift_box %}
+        {% if product.is_gift_card %}
+        <ul class="my-6 grid gap-2 rounded border border-line bg-panel/60 p-4 text-[.95rem]">
+          <li class="flex items-center gap-2">{% icon "gift" "!h-5 !w-5 text-gold" %} کد کارت پس از پرداخت با پیامک برای شما ارسال و در صفحه سفارش نمایش داده می‌شود.</li>
+          <li class="flex items-center gap-2">{% icon "check" "!h-5 !w-5 text-success" %} مانده کارت در چند خرید قابل استفاده است؛ کد را برای عزیزتان بفرستید.</li>
+        </ul>
+        {% elif product.is_gift_box %}
         <ul class="my-6 grid gap-2 rounded border border-line bg-panel/60 p-4 text-[.95rem]">
           <li class="flex items-center gap-2">{% icon "gift" "!h-5 !w-5 text-gold" %} گنجایش: <strong class="text-cream">{{ product.gift_capacity|fa }} شیشه عطر</strong></li>
           <li class="flex items-center gap-2">{% icon "check" "!h-5 !w-5 text-success" %} هنگام ثبت سفارش انتخاب کنید عطرها داخل باکس چیده شوند یا باکس جدا ارسال شود</li>
@@ -60,14 +65,14 @@
         {% endif %}
 
         <div class="grid gap-[18px] border-t border-line pt-5">
-          <div class="flex flex-wrap items-center gap-4{% if product.is_gift_box and variants|length < 2 %} hidden{% endif %}">
-            <span class="min-w-[60px]">{% if product.is_gift_box %}مدل{% else %}حجم{% endif %}</span>
+          <div class="flex flex-wrap items-center gap-4{% if product.is_accessory and variants|length < 2 %} hidden{% endif %}">
+            <span class="min-w-[60px]">{% if product.is_gift_card %}مبلغ{% elif product.is_gift_box %}مدل{% else %}حجم{% endif %}</span>
             <div class="flex gap-2">
               {% for v in variants %}
                 <label class="cursor-pointer">
                   <input type="radio" name="variant" value="{{ v.pk }}" class="peer sr-only" data-price="{{ v.current_price|toman }}" data-regular="{% if v.on_sale %}{{ v.price|toman }}{% endif %}" data-off="{% if v.on_sale %}{{ v.discount_percent|fa }}٪ تخفیف{% endif %}"
                          {% if v == product.default_variant %}checked{% endif %} {% if not v.stock %}disabled{% endif %}>
-                  <span class="block rounded border border-line px-4 py-1.5 text-muted peer-checked:border-copper peer-checked:bg-copper/10 peer-checked:text-gold peer-disabled:line-through peer-disabled:opacity-40 peer-focus-visible:ring-2 peer-focus-visible:ring-copper">{% if product.is_gift_box %}{{ v.current_price|toman }}{% else %}{{ v.size_ml|fa }} میل{% endif %}</span>
+                  <span class="block rounded border border-line px-4 py-1.5 text-muted peer-checked:border-copper peer-checked:bg-copper/10 peer-checked:text-gold peer-disabled:line-through peer-disabled:opacity-40 peer-focus-visible:ring-2 peer-focus-visible:ring-copper">{% if product.is_accessory %}{{ v.current_price|toman }}{% else %}{{ v.size_ml|fa }} میل{% endif %}</span>
                 </label>
               {% endfor %}
             </div>
@@ -96,7 +101,7 @@
         </div>
       </form>
       {% if notify_form %}{% include "catalog/partials/notify_me.html" %}{% endif %}
-      <div class="mt-3 grid gap-2 {% if not product.is_gift_box %}sm:grid-cols-2{% endif %}">{% wishlist_button product %}{% if not product.is_gift_box %}{% compare_button product %}{% endif %}</div>
+      <div class="mt-3 grid gap-2 {% if not product.is_accessory %}sm:grid-cols-2{% endif %}">{% wishlist_button product %}{% if not product.is_accessory %}{% compare_button product %}{% endif %}</div>
       {% if gift_boxes %}
       <div class="mt-5 rounded border border-line bg-panel/50 p-4">
         <p class="mb-3 flex items-center gap-2 text-cream">{% icon "gift" "!h-5 !w-5 text-gold" %} می‌خواهید هدیه بدهید؟ این عطر را داخل باکس هدیه بفرستید</p>

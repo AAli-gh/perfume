@@ -9,6 +9,8 @@ from apps.core.stores import get_current_store
 from apps.catalog.selectors import gift_box_variants
 from apps.shipping.selectors import active_methods
 
+from apps.discounts import credits
+
 from .integration import online_payment_available
 
 from . import packaging as gift
@@ -63,8 +65,22 @@ class CheckoutForm(StyledFormMixin, forms.ModelForm):
             "gift_from": forms.TextInput(attrs={"placeholder": "نام شما روی کارت"}),
         }
 
-    def __init__(self, *args, store=None, cart=None, **kwargs):
+    gift_card = forms.CharField(label="کد کارت هدیه", max_length=30, required=False,
+                                widget=forms.TextInput(attrs={"dir": "ltr", "autocomplete": "off",
+                                                              "placeholder": "XXXX-XXXX-XX"}))
+    use_points = forms.BooleanField(label="استفاده از امتیاز باشگاه مشتریان", required=False)
+
+    def __init__(self, *args, store=None, cart=None, user=None, **kwargs):
         super().__init__(*args, **kwargs)
+        self.store_obj = store or get_current_store()
+        self.user = user
+        self.points = credits.points_balance(self.store_obj, user) if credits.loyalty_config(self.store_obj) else 0
+        config = credits.loyalty_config(self.store_obj)
+        if not config or self.points < config.loyalty_min_redeem:
+            del self.fields["use_points"]
+        else:
+            self.fields["use_points"].label = (f"استفاده از {self.points:,} امتیاز باشگاه "
+                                               f"(تا {self.points * config.loyalty_point_value:,} تومان)")
         self.cart_lines = list(cart) if cart is not None else []
         self.cart_contents = gift.contents(self.cart_lines)
         choices = list(Order.PaymentMethod.choices)
@@ -98,6 +114,21 @@ class CheckoutForm(StyledFormMixin, forms.ModelForm):
         if not self.gift_boxes or self.data.get("packaging", Order.Packaging.NONE) == Order.Packaging.NONE:
             return None
         return self.fields["gift_box"].variants.get(self.data.get("gift_box", ""))
+
+    def clean_gift_card(self):
+        code = self.cleaned_data.get("gift_card", "")
+        if not code.strip():
+            return ""
+        card = credits.find_card(self.store_obj, code)
+        error = "کارت هدیه پیدا نشد." if card is None else card.check_usable()
+        if error:
+            raise forms.ValidationError(error)
+        return card.code
+
+    def chosen_gift_card(self):
+        """کارت هدیه داده‌های خام فرم برای پیش‌نمایش خلاصه سفارش (بدون خطا)."""
+        card = credits.find_card(self.store_obj, self.data.get("gift_card", ""))
+        return card if card is not None and not card.check_usable() else None
 
     def clean(self):
         data = super().clean()

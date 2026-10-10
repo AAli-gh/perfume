@@ -19,6 +19,19 @@
     </table>
   </section>
   <section class="studio-preview">
+    {% if loyalty and c.user_id %}
+    <h2 class="mb-2 text-lg">باشگاه مشتریان</h2>
+    <p class="text-sm">مانده: <b class="text-gold" data-points>{{ account.points|default:0|fa }} امتیاز</b> (ارزش {% widthratio account.points|default:0 1 loyalty.loyalty_point_value as worth %}{{ worth|toman }})</p>
+    {% if account %}<ul class="mb-3 grid list-none gap-1 p-0 text-xs text-muted">{% for e in account.entries.all|slice:":8" %}<li>{{ e.created_at|jdate:"%d %B" }} · {{ e.get_reason_display }} {% if e.points > 0 %}+{% endif %}{{ e.points|fa }}{% if e.order_number %} · <bdi>{{ e.order_number }}</bdi>{% endif %}{% if e.note %} · {{ e.note }}{% endif %}</li>{% endfor %}</ul>{% endif %}
+    {% if can_edit %}
+    <form method="post" action="{% url 'builder:customer_points' c.phone %}" class="mb-5 flex flex-wrap items-end gap-2">
+      {% csrf_token %}
+      <div class="field !w-32">{{ points_form.points.label_tag }}{{ points_form.points }}</div>
+      <div class="field flex-1">{{ points_form.note.label_tag }}{{ points_form.note }}</div>
+      <button class="btn btn-sm" type="submit">ثبت</button>
+    </form>
+    {% endif %}
+    {% endif %}
     <h2 class="mb-3 text-lg">یادداشت داخلی و برچسب</h2>
     {% if can_edit %}
     <form method="post" class="grid gap-3">

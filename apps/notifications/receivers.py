@@ -3,10 +3,10 @@
 from django.dispatch import receiver
 
 from apps.catalog.events import back_in_stock, stock_low
-from apps.orders.signals import order_placed, order_status_changed, return_updated
+from apps.orders.signals import gift_cards_issued, order_placed, order_status_changed, return_updated
 
 from . import events as E
-from .tasks import notify_order_task, notify_return_task, stock_alert_task
+from .tasks import gift_card_sms_task, notify_order_task, notify_return_task, stock_alert_task
 
 
 @receiver(order_placed)
@@ -34,3 +34,8 @@ def _back_in_stock(sender, variant_id, **kwargs):
 @receiver(return_updated)
 def _return_updated(sender, request, **kwargs):
     notify_return_task.delay(request.pk, request.status)
+
+
+@receiver(gift_cards_issued)
+def _gift_cards_issued(sender, order, cards, **kwargs):
+    gift_card_sms_task.delay([card.pk for card in cards])

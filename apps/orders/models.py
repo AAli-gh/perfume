@@ -51,8 +51,13 @@ class Order(StoreOwned):
     subtotal = models.PositiveIntegerField("جمع جزء", default=0)
     discount = models.PositiveIntegerField("تخفیف", default=0)
     shipping = models.PositiveIntegerField("هزینه ارسال", default=0)
-    total = models.PositiveIntegerField("مبلغ نهایی", default=0)
+    total = models.PositiveIntegerField("مبلغ نهایی", default=0, help_text="مبلغ قابل پرداخت (بعد از کارت هدیه و امتیاز)")
     coupon_code = models.CharField("کد تخفیف", max_length=30, blank=True)
+    gift_card_code = models.CharField("کارت هدیه", max_length=20, blank=True)
+    gift_card_amount = models.PositiveIntegerField("پرداخت با کارت هدیه", default=0)
+    points_used = models.PositiveIntegerField("امتیاز خرج‌شده", default=0)
+    points_amount = models.PositiveIntegerField("تخفیف امتیاز باشگاه", default=0)
+    gift_cards_issued = models.BooleanField("کارت هدیه خریداری‌شده صادر شد", default=False, editable=False)
 
     shipping_method = models.ForeignKey(
         "shipping.ShippingMethod", on_delete=models.SET_NULL, null=True, blank=True, related_name="+",

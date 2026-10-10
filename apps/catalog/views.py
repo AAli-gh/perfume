@@ -129,9 +129,9 @@ def product_detail(request, slug):
         "notify_form": _notify_form(request, variants),
         "gallery": selectors.product_gallery(product),
         "variants": variants,
-        "related": (selectors.related_products(product) if product.is_gift_box
+        "related": (selectors.related_products(product) if product.is_accessory
                     else similar_products(product) or selectors.related_products(product)),
-        "gift_boxes": [] if product.is_gift_box else selectors.gift_boxes(request.store)[:4],
+        "gift_boxes": [] if product.is_accessory else selectors.gift_boxes(request.store)[:4],
     })
 
 
@@ -160,4 +160,5 @@ def notify_me(request, slug):
 
 
 def gift_boxes(request):
-    return render(request, "catalog/gift_boxes.html", {"boxes": selectors.gift_boxes(request.store)})
+    return render(request, "catalog/gift_boxes.html", {"boxes": selectors.gift_boxes(request.store),
+                                                       "cards": selectors.gift_cards(request.store)})
