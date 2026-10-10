@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% load seo majd %}
+{% block seo %}{% seo_head title="تأیید ورود کارکنان" noindex=True %}{% endblock %}
+{% block content %}
+<div class="grid min-h-[calc(100vh-72px)] place-items-center py-12">
+  <div class="w-[min(100%-32px,440px)]">
+    <h1 class="mb-2 text-[2rem]">تأیید دومرحله‌ای</h1>
+    {% if not phone %}
+      <p class="alert alert-err">ورود دومرحله‌ای برای کارکنان روشن است ولی موبایل حساب شما ثبت نشده. از مدیر فروشگاه بخواهید موبایل شما را در پنل مدیریت ← کاربران ثبت کند.</p>
+    {% else %}
+      <p class="mb-5 text-muted">برای ورود به پنل مدیریت و استودیو، کد ۶ رقمی پیامک‌شده به موبایل <bdi dir="ltr">‎…{{ phone|slice:"-4:"|fa }}</bdi> را وارد کنید.</p>
+      {% if sent %}
+      <form class="grid gap-4" method="post" novalidate>
+        {% csrf_token %}<input type="hidden" name="next" value="{{ next }}">
+        <div class="field"><label for="code">کد تأیید</label><input id="code" class="input" name="code" inputmode="numeric" autocomplete="one-time-code" dir="ltr" maxlength="6" autofocus></div>
+        <button class="btn btn-lg w-full" type="submit" name="action" value="verify">تأیید و ورود</button>
+      </form>
+      {% endif %}
+      <form method="post" class="mt-3">
+        {% csrf_token %}<input type="hidden" name="next" value="{{ next }}">
+        <button class="{% if sent %}text-sm text-muted underline hover:text-gold{% else %}btn btn-lg w-full{% endif %}" type="submit" name="action" value="send">{% if sent %}ارسال دوباره کد{% else %}ارسال کد به موبایل{% endif %}</button>
+      </form>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

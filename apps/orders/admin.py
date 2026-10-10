@@ -1,5 +1,7 @@
 from django.contrib import admin
 
+from apps.core.jalali import JalaliAdminMixin, to_jalali_text
+
 from django import forms
 
 from .models import CustomerProfile, ReturnItem, ReturnRequest, Order, OrderItem, OrderStatusHistory
@@ -34,8 +36,8 @@ class OrderItemInline(admin.TabularInline):
 
 
 @admin.register(Order)
-class OrderAdmin(admin.ModelAdmin):
-    list_display = ["number", "full_name", "phone", "total", "payment_method", "status", "created_at"]
+class OrderAdmin(JalaliAdminMixin, admin.ModelAdmin):
+    list_display = ["number", "full_name", "phone", "total", "payment_method", "status", "created_jalali"]
     list_filter = ["store", "status", "payment_method", "packaging", "created_at"]
     list_editable = ["status"]
     search_fields = ["number", "first_name", "last_name", "phone", "email", "payments__ref_id", "tracking_code"]
@@ -44,6 +46,10 @@ class OrderAdmin(admin.ModelAdmin):
         "paid_at", "created_at", "reserved_until", "inventory_released", "shipping_method_name", "shipped_at",
     ]
     inlines = [OrderItemInline, HistoryInline]
+
+    @admin.display(description="تاریخ ثبت", ordering="created_at")
+    def created_jalali(self, obj):
+        return to_jalali_text(obj.created_at)
     date_hierarchy = "created_at"
     fieldsets = (
         (None, {"fields": ("number", "store", "user", "status", "payment_method", "created_at")}),

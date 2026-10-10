@@ -150,13 +150,13 @@ def _send_once(rule, order, to, context, enabled):
         return entry
 
 
-def send_otp(store, phone, code, minutes):
+def send_otp(store, phone, code, minutes, event=E.OTP):
     """پیامک کد ورود (همگام؛ کاربر منتظر کد است). خروجی: True در صورت ارسال."""
-    rule = next(iter(rules_for(store, E.OTP)), None)
+    rule = next(iter(rules_for(store, event)), None)
     if rule is None or not settings_for(store).sms_enabled:
         return False
     context = {"store": store.name, "code": code, "minutes": minutes}
-    entry = NotificationLog(store=store, event=E.OTP, channel=E.SMS, recipient=phone)
+    entry = NotificationLog(store=store, event=event, channel=E.SMS, recipient=phone)
     try:
         entry.provider, entry.message_id, _ = _deliver_sms(rule, phone, context)
         entry.status = NotificationLog.SENT

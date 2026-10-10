@@ -66,6 +66,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "apps.core.stores.StoreMiddleware",
+    "apps.notifications.staff_2fa.StaffTwoFactorMiddleware",  # ورود دومرحله‌ای کارکنان (اگر روشن باشد)
     "apps.builder.preview.PreviewMiddleware",  # حالت پیش‌نمایش پیش‌نویس (قبل از ThemeMiddleware)
     "apps.themes.runtime.ThemeMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
