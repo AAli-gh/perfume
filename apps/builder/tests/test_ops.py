@@ -144,3 +144,14 @@ def test_stock_page_requires_product_permission(client, store):
     client.force_login(user)
     assert client.get(reverse("builder:stock")).status_code == 403
     assert ProductVariant.objects.count() == 0
+
+
+def test_section_list_explains_why_section_is_hidden(client, store, staff):
+    from apps.pages import services as page_services
+
+    staff.user_permissions.add(Permission.objects.get(codename="change_pagesection"),
+                               Permission.objects.get(codename="add_pagesection"))
+    page = page_services.ensure_home_page(store)
+    client.post(reverse("builder:section_add", args=[page.pk]), {"type": "faq"})
+    body = client.get(reverse("builder:page", args=[page.pk])).content.decode()
+    assert "فعلاً در سایت دیده نمی‌شود" in body and "پرسش" in body

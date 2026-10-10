@@ -35,6 +35,8 @@ class SectionType:
     form_class = SectionForm
     full_bleed = False  # بخش تمام‌عرض (مثل هیرو) فاصله عمودی معمول را نمی‌گیرد
     uses_image = False
+    hidden_hint = ""  # وقتی is_visible نادرست است، در استودیو به مدیر گفته می‌شود چرا بخش در سایت دیده نمی‌شود
+    audience_note = ""  # بخش‌هایی که برای هر بازدیدکننده متفاوت‌اند
 
     @property
     def template(self):

@@ -10,7 +10,7 @@ from .forms import PROVINCES, CheckoutForm
 from . import giftcards, returns
 from .models import Order, ReturnRequest
 from .selectors import get_owned_order, remember_order
-from .services import CouponUnavailable, OutOfStock, create_order
+from .services import CouponUnavailable, GiftCardUnavailable, OutOfStock, create_order
 from .workflow import transition
 from apps.core.forms import en_digits
 from apps.core.ratelimit import ratelimit
@@ -32,6 +32,9 @@ def checkout(request):
         order = create_order(cart, form, request.user)
     except OutOfStock as exc:
         messages.error(request, "موجودی این کالاها کافی نیست: " + "، ".join(exc.names))
+        return redirect("cart:detail")
+    except GiftCardUnavailable as exc:
+        messages.error(request, f"{exc} سفارش ثبت نشد؛ کد کارت را بررسی و دوباره ثبت کنید.")
         return redirect("cart:detail")
     except CouponUnavailable as exc:
         cart.remove_coupon()

@@ -63,6 +63,7 @@ class FeaturesForm(SectionForm):
 @register
 class FeaturesSection(SectionType):
     key, label, icon, form_class = "features", "ویژگی‌ها و مزایا", "shield-check", FeaturesForm
+    hidden_hint = "هنوز هیچ ویژگی‌ای وارد نشده است."
 
     def is_visible(self, context):
         return bool(context["items"])
@@ -80,6 +81,7 @@ class ProductListForm(SectionForm):
 @register
 class BestSellersSection(SectionType):
     key, label, icon, form_class = "best_sellers", "پرفروش‌ترین‌ها", "flame", ProductListForm
+    hidden_hint = "هنوز محصول فعالی برای نمایش نیست."
 
     def get_context(self, settings, *, request, section=None):
         return {**settings, "products": catalog.best_sellers(request.store, limit=settings["limit"])}
@@ -95,6 +97,7 @@ class FeaturedForm(ProductListForm):
 @register
 class FeaturedProductsSection(SectionType):
     key, label, icon, form_class = "featured_products", "محصولات ویژه", "crown", FeaturedForm
+    hidden_hint = "هیچ محصولی «ویژه» نشده است (پنل مدیریت ← محصولات ← تیک «ویژه»)."
     template = "sections/best_sellers.html"  # همان چیدمان اسلایدر
 
     def get_context(self, settings, *, request, section=None):
@@ -118,6 +121,7 @@ class CollectionsForm(SectionForm):
 @register
 class CollectionsSection(SectionType):
     key, label, icon, form_class = "collections", "کالکشن‌ها", "grid", CollectionsForm
+    hidden_hint = "هنوز کالکشنی ساخته نشده است (پنل مدیریت ← کالکشن‌ها)."
 
     def get_context(self, settings, *, request, section=None):
         if settings["show_count"]:
@@ -138,6 +142,7 @@ class CategoriesForm(SectionForm):
 @register
 class CategoriesSection(SectionType):
     key, label, icon, form_class = "categories", "دسته‌بندی‌ها", "list", CategoriesForm
+    hidden_hint = "هنوز دسته فعالی ساخته نشده است (پنل مدیریت ← دسته‌بندی‌ها)."
 
     def get_context(self, settings, *, request, section=None):
         roots = Category.objects.for_store(request.store).filter(parent=None, is_active=True)
@@ -178,6 +183,7 @@ class TestimonialsForm(SectionForm):
 @register
 class TestimonialsSection(SectionType):
     key, label, icon, form_class = "testimonials", "نظرات مشتریان", "user", TestimonialsForm
+    hidden_hint = "نظر تأییدشده‌ای برای نمایش نیست."
 
     def get_context(self, settings, *, request, section=None):
         reviews = (
@@ -202,6 +208,7 @@ class BlogForm(SectionForm):
 @register
 class BlogSection(SectionType):
     key, label, icon, form_class = "blog", "مقالات مجله", "list", BlogForm
+    hidden_hint = "مقاله منتشرشده‌ای نیست."
 
     def get_context(self, settings, *, request, section=None):
         posts = Post.objects.for_store(request.store).published().select_related("category")
@@ -237,6 +244,7 @@ class FaqForm(SectionForm):
 @register
 class FaqSection(SectionType):
     key, label, icon, form_class = "faq", "پرسش‌های متداول", "alert", FaqForm
+    hidden_hint = "هنوز هیچ پرسش و پاسخی اضافه نشده است."
 
     def is_visible(self, context):
         return bool(context["items"])
@@ -268,6 +276,8 @@ class ForYouSection(SectionType):
     """بر اساس خریدها، علاقه‌مندی‌ها و عطرهای دیده‌شده هر بازدیدکننده؛ برای بازدیدکننده جدید پنهان است."""
 
     key, label, icon, form_class = "for_you", "پیشنهاد برای شما (شخصی)", "crown", ForYouForm
+    hidden_hint = "شما هنوز سابقه بازدید یا خریدی ندارید؛ برای مشتریانی که سابقه دارند نمایش داده می‌شود."
+    audience_note = "برای هر بازدیدکننده متفاوت است؛ بازدیدکننده جدید آن را نمی‌بیند."
 
     def get_context(self, settings, *, request, section=None):
         from apps.discovery.taste import recommendations_for
@@ -291,6 +301,7 @@ class GiftBoxesForm(SectionForm):
 @register
 class GiftBoxesSection(SectionType):
     key, label, icon, form_class = "gift_boxes", "باکس‌های هدیه", "gift", GiftBoxesForm
+    hidden_hint = "باکس هدیه فعالی نیست."
     template = "sections/best_sellers.html"  # همان چیدمان اسلایدر
 
     def get_context(self, settings, *, request, section=None):

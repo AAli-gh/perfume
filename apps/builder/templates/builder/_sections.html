@@ -10,6 +10,8 @@
         <span class="block text-cream">{% if row.type %}{{ row.type.label }}{% else %}نوع ناشناخته ({{ s.type }}){% endif %}
           {% if not s.is_enabled %}<span class="ms-1 rounded-sm border border-line px-1.5 text-xs text-muted">غیرفعال</span>{% endif %}</span>
         {% if row.summary %}<span class="block truncate text-sm text-muted">{{ row.summary }}</span>{% endif %}
+        {% if row.hidden_reason %}<span class="mt-0.5 block text-xs text-gold" data-hidden-reason>⚠ فعلاً در سایت دیده نمی‌شود: {{ row.hidden_reason }}</span>
+        {% elif row.type.audience_note %}<span class="mt-0.5 block text-xs text-muted">{{ row.type.audience_note }}</span>{% endif %}
       </span>
       <span class="flex w-full shrink-0 items-center justify-end gap-1 sm:w-auto">
         <form method="post" action="{% url 'builder:section_move' page.pk s.pk %}" hx-post="{% url 'builder:section_move' page.pk s.pk %}" hx-target="#sections" hx-swap="outerHTML">{% csrf_token %}

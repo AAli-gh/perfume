@@ -179,7 +179,7 @@ def _store_section(request, page_pk, pk):
     )
 
 
-def _section_rows(page):
+def _section_rows(page, request=None):
     rows = []
     for section in page_services.page_sections(page, PageSection.Status.DRAFT):
         section_type = section.section_type
@@ -189,15 +189,28 @@ def _section_rows(page):
             "type": section_type,
             "summary": title[0] if title else "",
             "editable": section_type is not None,
+            "hidden_reason": _hidden_reason(section, section_type, request) if section.is_enabled else "",
         })
     return rows
+
+
+def _hidden_reason(section, section_type, request):
+    """چرا یک بخش فعال در سایت دیده نمی‌شود (مثلاً پرسش‌های متداول بدون پرسش)."""
+    if section_type is None or request is None or not section_type.hidden_hint:
+        return ""
+    try:
+        context = section_type.get_context(section_type.clean_settings(section.settings), request=request,
+                                           section=section)
+    except Exception:  # noqa: BLE001 — تنظیمات خراب: در سایت هم رندر نمی‌شود
+        return "تنظیمات این بخش نامعتبر است؛ آن را ویرایش و ذخیره کنید."
+    return "" if section_type.is_visible(context) else section_type.hidden_hint
 
 
 def _editor_context(request, page):
     user = request.user
     return {
         "page": page,
-        "rows": _section_rows(page),
+        "rows": _section_rows(page, request),
         "add_form": F.AddSectionForm(),
         "can_add": user.has_perm(SECTION_ADD_PERM),
         "can_delete": user.has_perm(SECTION_DELETE_PERM),

@@ -162,3 +162,23 @@ def test_studio_issue_gift_cards_and_adjust_points(client, store, club, shopper)
     assert credits.points_balance(store, shopper) == 120
     page = client.get(reverse("builder:customer", args=["09123334455"]))
     assert page.context["account"].points == 120
+
+
+def test_card_spent_between_quote_and_checkout_blocks_order(client, store, club, shopper, monkeypatch):
+    card = credits.issue_card(store, 500_000)
+    add(client)
+    from apps.orders import forms as order_forms
+
+    original = order_forms.CheckoutForm.clean_gift_card
+
+    def spend_then_validate(self):
+        code = original(self)
+        GiftCard.objects.filter(pk=card.pk).update(balance=0)  # هم‌زمان در سفارش دیگری خرج شد
+        return code
+
+    monkeypatch.setattr(order_forms.CheckoutForm, "clean_gift_card", spend_then_validate)
+    response = client.post(reverse("orders:checkout"), {**VALID, "gift_card": card.code})
+    assert response.status_code == 302 and not Order.objects.exists()
+    assert any("کارت هدیه" in str(m) for m in response.wsgi_request._messages)
+    card.refresh_from_db()
+    assert card.balance == 0 and not card.transactions.filter(amount__lt=0).exists()

@@ -18,7 +18,11 @@ from apps.discounts.services import record_usage
 from .models import Order, OrderItem
 from .signals import order_placed
 
-__all__ = ["CouponUnavailable", "OutOfStock", "create_order"]
+__all__ = ["CouponUnavailable", "GiftCardUnavailable", "OutOfStock", "create_order"]
+
+
+class GiftCardUnavailable(Exception):
+    """کارت هدیه بین نمایش سبد و ثبت سفارش خرج یا غیرفعال شد (تراکنش برگشت می‌خورد)."""
 
 
 class CouponUnavailable(Exception):
@@ -74,6 +78,8 @@ def create_order(cart, form, user=None):
     order.coupon_code = coupon.code if coupon else ""
     used = credits.redeem(cart.store, order, card_code=form.cleaned_data.get("gift_card", ""),
                           use_points=form.cleaned_data.get("use_points", False), user=order.user, total=pricing.total)
+    if form.cleaned_data.get("gift_card") and used.gift_card is None and pricing.total:
+        raise GiftCardUnavailable(used.error or "مانده کارت هدیه دیگر قابل استفاده نیست.")
     order.gift_card_code = used.gift_card.code if used.gift_card else ""
     order.gift_card_amount, order.points_used, order.points_amount = used.gift_amount, used.points, used.points_amount
     order.total = used.payable
