@@ -57,6 +57,19 @@
 <tr><td align="center" valign="top"><img src="screenshots/m-compare.jpg" alt="مقایسه در موبایل"><br><sub>مقایسه در موبایل</sub></td><td align="center" valign="top"><img src="screenshots/m-finder.jpg" alt="عطریاب در موبایل"><br><sub>عطریاب در موبایل</sub></td></tr>
 </table>
 
+## عملیات فروشگاه (استودیو)
+
+ابزارهای کار روزانه مدیر ([backoffice.md](backoffice.md)).
+
+<table>
+<tr><td align="center" valign="top"><img src="screenshots/studio-ops-dashboard.jpg" alt="پیشخوان: کارهای امروز"><br><sub>پیشخوان: کارهای امروز</sub></td><td align="center" valign="top"><img src="screenshots/studio-ops-orders.jpg" alt="سفارش‌ها: چاپ گروهی و رهگیری"><br><sub>سفارش‌ها: چاپ گروهی و رهگیری</sub></td></tr>
+<tr><td align="center" valign="top"><img src="screenshots/studio-ops-invoice.jpg" alt="فاکتور (بدون قیمت به درخواست مشتری)"><br><sub>فاکتور (بدون قیمت به درخواست مشتری)</sub></td><td align="center" valign="top"><img src="screenshots/studio-ops-packing.jpg" alt="برگه بسته‌بندی با کارت هدیه"><br><sub>برگه بسته‌بندی با کارت هدیه</sub></td></tr>
+<tr><td align="center" valign="top"><img src="screenshots/studio-ops-labels.jpg" alt="برچسب ارسال"><br><sub>برچسب ارسال</sub></td><td align="center" valign="top"><img src="screenshots/studio-ops-stock.jpg" alt="موجودی رو به اتمام"><br><sub>موجودی رو به اتمام</sub></td></tr>
+<tr><td align="center" valign="top"><img src="screenshots/studio-ops-products.jpg" alt="Excel و تغییر گروهی قیمت"><br><sub>Excel و تغییر گروهی قیمت</sub></td><td align="center" valign="top"><img src="screenshots/studio-ops-sales.jpg" alt="حراج زمان‌دار"><br><sub>حراج زمان‌دار</sub></td></tr>
+<tr><td align="center" valign="top"><img src="screenshots/studio-ops-customers.jpg" alt="مشتریان و گروه‌ها"><br><sub>مشتریان و گروه‌ها</sub></td><td align="center" valign="top"><img src="screenshots/studio-ops-searches.jpg" alt="مشتریان دنبال چه‌اند"><br><sub>مشتریان دنبال چه‌اند</sub></td></tr>
+<tr><td align="center" valign="top"><img src="screenshots/studio-ops-giftcards.jpg" alt="کارت هدیه"><br><sub>کارت هدیه</sub></td></tr>
+</table>
+
 ## جستجوی هوشمند
 
 «عطر خنک زیر سه تومن»: برداشت از عبارت، پیشنهاد زنده و نزدیک‌ترین نتایج ([smart-search.md](smart-search.md)).
