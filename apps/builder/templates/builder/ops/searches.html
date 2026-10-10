@@ -1,0 +1,42 @@
+{% extends "builder/base.html" %}
+{% block title %}مشتریان دنبال چه‌اند{% endblock %}
+{% block content %}
+<div class="mb-5 flex flex-wrap items-end justify-between gap-3">
+  <div>
+    <h1 class="mb-1 text-[1.7rem]">مشتریان دنبال چه‌اند</h1>
+    <p class="m-0 text-sm text-muted">جستجوهای سایت بر اساس «برداشت» جستجوی هوشمند گروه‌بندی شده‌اند؛ «خنک زیر سه تومن» و «عطر خنک تا ۳ میلیون» یک خواسته‌اند. برای خرید کالای بعدی از «تقاضای بی‌پاسخ» استفاده کنید.</p>
+  </div>
+  <nav class="studio-tabs !border-0" aria-label="بازه">{% for d, label in periods %}<a href="?days={{ d }}" {% if d == days %}aria-current="page"{% endif %}>{{ label }}</a>{% endfor %}</nav>
+</div>
+<div class="mb-5 grid gap-3 sm:grid-cols-3">
+  <div class="studio-preview"><p class="m-0 text-sm text-muted">جستجو</p><p class="m-0 mt-1 text-2xl text-gold">{{ report.total|fa }}</p></div>
+  <div class="studio-preview"><p class="m-0 text-sm text-muted">بازدیدکننده</p><p class="m-0 mt-1 text-2xl text-gold">{{ report.people|fa }}</p></div>
+  <div class="studio-preview"><p class="m-0 text-sm text-muted">بدون نتیجه دقیق</p><p class="m-0 mt-1 text-2xl {% if report.missed_total %}text-danger{% else %}text-gold{% endif %}">{{ report.missed_total|fa }}</p></div>
+</div>
+<div class="grid gap-5 xl:grid-cols-2">
+  <section class="studio-preview" aria-labelledby="unmet">
+    <h2 id="unmet" class="mb-1 text-lg">تقاضای بی‌پاسخ</h2>
+    <p class="mb-3 text-xs text-muted">مشتری این‌ها را خواست و عطر دقیقش را نداشتید (نزدیک‌ترین گزینه یا هیچ نشان داده شد).</p>
+    {% if report.unmet %}
+    <ul class="m-0 grid list-none gap-2 p-0 text-sm" data-unmet>
+      {% for g in report.unmet %}
+      <li class="border-t border-line pt-2"><b class="text-cream">{{ g.people|fa }} نفر</b> «{{ g.intent }}» خواستند و نداشتید <small class="block text-xs text-muted">{{ g.missed|fa }} جستجوی بی‌نتیجه · نمونه: «{{ g.sample }}» · آخرین: {{ g.last|jdate:"%d %B" }} · <a href="{% url 'catalog:shop' %}?q={{ g.sample|urlencode }}" target="_blank">امتحان</a></small></li>
+      {% endfor %}
+    </ul>
+    {% else %}<p class="m-0 text-sm text-muted">در این بازه همه جستجوها نتیجه دقیق داشتند.</p>{% endif %}
+  </section>
+  <section class="studio-preview" aria-labelledby="top">
+    <h2 id="top" class="mb-3 text-lg">پرتکرارترین خواسته‌ها</h2>
+    {% if report.top %}
+    <table class="w-full text-right text-sm">
+      <thead class="text-muted"><tr><th class="p-1.5 font-normal">خواسته</th><th class="p-1.5 font-normal">نفر</th><th class="p-1.5 font-normal">جستجو</th><th class="p-1.5 font-normal">میانگین نتیجه</th></tr></thead>
+      <tbody>{% for g in report.top %}<tr class="border-t border-line"><td class="p-1.5">{{ g.intent }}</td><td class="p-1.5">{{ g.people|fa }}</td><td class="p-1.5">{{ g.searches|fa }}</td><td class="p-1.5 {% if g.missed %}text-danger{% endif %}">{{ g.avg_results|floatformat:0|fa }}</td></tr>{% endfor %}</tbody>
+    </table>
+    {% else %}<p class="m-0 text-sm text-muted">هنوز جستجویی ثبت نشده است.</p>{% endif %}
+  </section>
+</div>
+<section class="studio-preview mt-5" aria-labelledby="recent">
+  <h2 id="recent" class="mb-3 text-lg">آخرین جستجوها</h2>
+  <ul class="m-0 flex list-none flex-wrap gap-2 p-0 text-sm">{% for log in report.recent %}<li class="chip {% if not log.exact %}!border-danger/60{% endif %}" title="{{ log.intent }} — {{ log.results|fa }} نتیجه">{{ log.raw }}</li>{% endfor %}</ul>
+</section>
+{% endblock %}

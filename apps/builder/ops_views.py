@@ -18,7 +18,7 @@ from django.shortcuts import redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
-from apps.catalog import bulk, inventory
+from apps.catalog import bulk, inventory, search_log
 from apps.catalog import sales as sale_service
 from apps.catalog.models import PriceChangeBatch, ProductVariant, SaleCampaign, StockMovement, sale_active
 from apps.core import spreadsheet
@@ -491,4 +491,22 @@ def abandoned_carts(request):
     conf = notification_settings(request.store)
     return render(request, "builder/ops/carts.html", {
         "nav": "orders", "carts": carts, "total_value": sum(c.value for c in carts), "conf": conf,
+    })
+
+
+# ---------- گزارش جستجوها ----------
+
+SEARCH_PERIODS = {1: "امروز", 7: "۷ روز", 30: "۳۰ روز", 90: "۹۰ روز"}
+
+
+@studio_required(REPORTS_PERM)
+def searches(request):
+    try:
+        days = int(request.GET.get("days", 7))
+    except ValueError:
+        days = 7
+    days = days if days in SEARCH_PERIODS else 7
+    return render(request, "builder/ops/searches.html", {
+        "nav": "searches", "days": days, "periods": SEARCH_PERIODS.items(),
+        "report": search_log.report(request.store, days),
     })

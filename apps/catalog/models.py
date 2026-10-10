@@ -551,3 +551,27 @@ class PriceChangeBatch(StoreOwned):
     @property
     def count(self):
         return len(self.changes)
+
+
+class SearchLog(StoreOwned):
+    """هر جستجوی مشتری در فروشگاه (برای گزارش «مشتریان دنبال چه هستند» و تقاضای بی‌پاسخ)."""
+
+    query = models.CharField("عبارت (نرمال‌شده)", max_length=200, db_index=True)
+    raw = models.CharField("عبارت", max_length=200)
+    intent = models.CharField("برداشت", max_length=300, db_index=True,
+                              help_text="شرط‌های فهمیده‌شده (مثلاً «خنک و تازه · قیمت تا ۳ میلیون تومان») یا خود عبارت")
+    results = models.PositiveIntegerField("تعداد نتیجه", default=0)
+    exact = models.BooleanField("نتیجه دقیق", default=True)
+    relaxed = models.CharField("شرط کنارگذاشته", max_length=200, blank=True)
+    visitor = models.CharField("بازدیدکننده", max_length=40, blank=True, help_text="هش نشست؛ برای شمارش افراد")
+    created_at = models.DateTimeField("زمان", auto_now_add=True, db_index=True)
+
+    objects = StoreQuerySet.as_manager()
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "جستجوی مشتری"
+        verbose_name_plural = "جستجوهای مشتریان"
+
+    def __str__(self):
+        return self.raw

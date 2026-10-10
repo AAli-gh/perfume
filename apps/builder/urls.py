@@ -29,6 +29,7 @@ urlpatterns = [
     path("orders/tracking/", ops_views.tracking, name="tracking"),
     path("orders/abandoned/", ops_views.abandoned_carts, name="abandoned_carts"),
     path("stock/", ops_views.stock, name="stock"),
+    path("searches/", ops_views.searches, name="searches"),
     path("products/", ops_views.products, name="products"),
     path("products/export/", ops_views.products_export, name="products_export"),
     path("products/import/", ops_views.products_import, name="products_import"),

@@ -5,7 +5,7 @@ from django.views.decorators.http import require_POST
 
 from apps.core.ratelimit import ratelimit
 
-from . import selectors, services
+from . import search_log, selectors, services
 from .history import remember_view
 from .recommend import similar_products
 from .forms import BackInStockForm, ShopFilterForm
@@ -51,6 +51,8 @@ def shop(request, *, landing=None):
     if (data.get("collection") and collection is None) or (data.get("category") and category is None):
         products = products.none()
     page = Paginator(products, PER_PAGE).get_page(request.GET.get("page"))
+    if filters.q and page.number == 1:
+        search_log.record_search(request, filters.q, search, page.paginator.count)
 
     context = {
         "form": form,

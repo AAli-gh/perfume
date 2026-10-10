@@ -3,7 +3,7 @@ from django.contrib import admin
 from django.utils.html import format_html
 
 from .models import (
-    Attribute, AttributeValue, BackInStockRequest, Brand, Category, PriceChangeBatch, SaleCampaign, Collection, FragranceNote, Product, ProductImage, ProductNote,
+    Attribute, AttributeValue, BackInStockRequest, Brand, Category, PriceChangeBatch, SaleCampaign, SearchLog, Collection, FragranceNote, Product, ProductImage, ProductNote,
     ProductVariant, ScentFamily, StockMovement, Tag,
 )
 from . import inventory
@@ -168,6 +168,17 @@ class PriceChangeBatchAdmin(admin.ModelAdmin):
     list_display = ["description", "created_at", "created_by", "reverted_at"]
     list_filter = ["store"]
     readonly_fields = ["store", "description", "changes", "created_by", "created_at", "reverted_at"]
+
+    def has_add_permission(self, request):
+        return False
+
+
+@admin.register(SearchLog)
+class SearchLogAdmin(admin.ModelAdmin):
+    list_display = ["raw", "intent", "results", "exact", "created_at"]
+    list_filter = ["store", "exact"]
+    search_fields = ["raw", "intent"]
+    readonly_fields = [f.name for f in SearchLog._meta.fields]
 
     def has_add_permission(self, request):
         return False
