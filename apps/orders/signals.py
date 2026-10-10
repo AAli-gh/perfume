@@ -9,3 +9,6 @@ from django.dispatch import Signal
 
 order_placed = Signal()
 order_status_changed = Signal()
+
+# درخواست مرجوعی/لغو بخشی ایجاد یا وضعیتش عوض شد (request=ReturnRequest)
+return_updated = Signal()

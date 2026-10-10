@@ -18,6 +18,7 @@ BACK_IN_STOCK = "back_in_stock"
 CART_REMINDER = "cart_reminder"
 CAMPAIGN = "campaign"
 GIFT_CARD = "gift_card"
+RETURN_UPDATE = "return_update"
 
 EVENT_CHOICES = [
     (ORDER_PLACED, "ثبت سفارش"),
@@ -33,6 +34,7 @@ EVENT_CHOICES = [
     (CART_REMINDER, "یادآوری سبد خرید رهاشده"),
     (CAMPAIGN, "پیامک گروهی به مشتریان"),
     (GIFT_CARD, "ارسال کارت هدیه"),
+    (RETURN_UPDATE, "مرجوعی و لغو بخشی"),
 ]
 
 # وضعیت جدید سفارش ← رویداد
@@ -55,6 +57,7 @@ NON_ORDER_EVENTS = {
     CART_REMINDER: ("store", "name", "items", "total", "cart_url"),
     CAMPAIGN: ("store", "name", "code", "percent", "message", "shop_url"),
     GIFT_CARD: ("store", "name", "code", "amount", "sender", "message", "expires", "shop_url"),
+    RETURN_UPDATE: ("store", "name", "number", "kind", "status", "amount", "order_url"),
 }
 EVENT_VARS = {event: ORDER_VARS for event, _ in EVENT_CHOICES if event not in NON_ORDER_EVENTS}
 EVENT_VARS.update(NON_ORDER_EVENTS)
@@ -124,6 +127,9 @@ DEFAULT_RULES = [
     DefaultRule(CART_REMINDER, SMS, CUSTOMER, True,
                 "{name} عزیز، {items} در سبد خرید شما در {store} منتظر است. ادامه خرید:\n{cart_url}"),
     DefaultRule(CAMPAIGN, SMS, CUSTOMER, True, "{message}"),
+    DefaultRule(RETURN_UPDATE, SMS, CUSTOMER, True,
+                "{name} عزیز، {kind} سفارش {number}: {status}. مبلغ: {amount}\n{order_url}"),
+    DefaultRule(RETURN_UPDATE, SMS, STAFF, True, "{kind} جدید برای سفارش {number} — {amount}"),
     DefaultRule(GIFT_CARD, SMS, CUSTOMER, True,
                 "کارت هدیه {amount} از طرف {sender} در {store}\nکد: {code}\n{message}\n{shop_url}"),
 ]

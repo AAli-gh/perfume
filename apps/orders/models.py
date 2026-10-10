@@ -126,6 +126,8 @@ class OrderItem(models.Model):
     size_ml = models.PositiveSmallIntegerField("حجم")
     unit_price = models.PositiveIntegerField("قیمت واحد")
     quantity = models.PositiveSmallIntegerField("تعداد")
+    returned_quantity = models.PositiveSmallIntegerField(
+        "مرجوع/لغوشده", default=0, editable=False, help_text="تعدادی که لغو بخشی یا مرجوعی (دریافت‌شده) شده است")
 
     class Meta:
         verbose_name = "قلم سفارش"
@@ -137,6 +139,10 @@ class OrderItem(models.Model):
     @property
     def line_total(self):
         return self.unit_price * self.quantity
+
+    @property
+    def returnable_quantity(self):
+        return self.quantity - self.returned_quantity
 
 
 class OrderStatusHistory(models.Model):
@@ -181,3 +187,75 @@ class CustomerProfile(StoreOwned):
     @property
     def tag_list(self):
         return [t.strip() for t in self.tags.replace("،", ",").split(",") if t.strip()]
+
+
+class ReturnRequest(models.Model):
+    """مرجوعی (پس از ارسال) یا لغو بخشی از سفارش (پیش از ارسال)."""
+
+    class Kind(models.TextChoices):
+        RETURN = "return", "مرجوعی"
+        CANCEL = "cancel", "لغو بخشی از سفارش"
+
+    class Status(models.TextChoices):
+        REQUESTED = "requested", "در انتظار بررسی"
+        APPROVED = "approved", "تأییدشده؛ منتظر دریافت کالا"
+        RECEIVED = "received", "کالا دریافت شد؛ منتظر بازپرداخت"
+        REFUNDED = "refunded", "بازپرداخت شد"
+        REJECTED = "rejected", "ردشده"
+        CLOSED = "closed", "انجام شد"
+
+    class Reason(models.TextChoices):
+        DAMAGED = "damaged", "آسیب‌دیده یا شکسته"
+        WRONG = "wrong", "کالای اشتباه ارسال شده"
+        NOT_AS_DESCRIBED = "not_as_described", "با توضیحات مطابقت ندارد"
+        CHANGED_MIND = "changed_mind", "منصرف شدم"
+        OUT_OF_STOCK = "out_of_stock", "ناموجودی در انبار (لغو توسط فروشگاه)"
+        OTHER = "other", "سایر"
+
+    class RefundMethod(models.TextChoices):
+        CARD = "card", "واریز به کارت مشتری"
+        GATEWAY = "gateway", "برگشت از درگاه پرداخت"
+        CASH = "cash", "نقدی / هنگام تحویل کسر شد"
+        CREDIT = "credit", "اعتبار خرید (کارت هدیه)"
+
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="returns", verbose_name="سفارش")
+    kind = models.CharField("نوع", max_length=10, choices=Kind.choices, default=Kind.RETURN)
+    status = models.CharField("وضعیت", max_length=12, choices=Status.choices, default=Status.REQUESTED)
+    reason = models.CharField("علت", max_length=20, choices=Reason.choices)
+    description = models.TextField("توضیح مشتری", max_length=1000, blank=True)
+    by_customer = models.BooleanField("ثبت توسط مشتری", default=False)
+    refund_amount = models.PositiveIntegerField("مبلغ بازپرداخت", default=0)
+    refund_method = models.CharField("روش بازپرداخت", max_length=10, choices=RefundMethod.choices, blank=True)
+    refund_reference = models.CharField("کد پیگیری بازپرداخت", max_length=100, blank=True)
+    staff_note = models.TextField("یادداشت کارکنان", blank=True)
+    restocked = models.BooleanField("به انبار برگشت", default=False, editable=False)
+    handled_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+                                   related_name="+", verbose_name="رسیدگی توسط")
+    created_at = models.DateTimeField("زمان ثبت", auto_now_add=True)
+    updated_at = models.DateTimeField("آخرین تغییر", auto_now=True)
+    refunded_at = models.DateTimeField("زمان بازپرداخت", null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "مرجوعی / لغو بخشی"
+        verbose_name_plural = "مرجوعی‌ها و لغوهای بخشی"
+
+    def __str__(self):
+        return f"{self.get_kind_display()} {self.order.number}"
+
+    @property
+    def is_open(self):
+        return self.status in (self.Status.REQUESTED, self.Status.APPROVED, self.Status.RECEIVED)
+
+
+class ReturnItem(models.Model):
+    request = models.ForeignKey(ReturnRequest, on_delete=models.CASCADE, related_name="items", verbose_name="درخواست")
+    order_item = models.ForeignKey(OrderItem, on_delete=models.CASCADE, related_name="+", verbose_name="قلم سفارش")
+    quantity = models.PositiveSmallIntegerField("تعداد")
+
+    class Meta:
+        verbose_name = "قلم مرجوعی"
+        verbose_name_plural = "اقلام مرجوعی"
+
+    def __str__(self):
+        return f"{self.order_item.product_name} × {self.quantity}"

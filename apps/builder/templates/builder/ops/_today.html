@@ -29,6 +29,7 @@
 
 <div class="mb-5 flex flex-wrap gap-2 text-sm">
   <a class="chip !px-3 !py-1 {% if ops.pending_reviews %}chip-strong{% endif %}" href="{% url 'admin:reviews_review_changelist' %}?is_approved__exact=0">نظر منتظر تأیید: {{ ops.pending_reviews|fa }}</a>
+  <a class="chip !px-3 !py-1 {% if ops.open_returns %}chip-strong{% endif %}" href="{% url 'builder:returns' %}">مرجوعی باز: {{ ops.open_returns|fa }}</a>
   <a class="chip !px-3 !py-1 {% if ops.unread_messages %}chip-strong{% endif %}" href="{% url 'admin:pages_contactmessage_changelist' %}?is_read__exact=0">پیام خوانده‌نشده: {{ ops.unread_messages|fa }}</a>
   {% if perms.catalog.change_product %}
   <a class="chip !px-3 !py-1 {% if ops.low_stock_count %}chip-strong{% endif %}" href="{% url 'builder:stock' %}">رو به اتمام: {{ ops.low_stock_count|fa }}{% if ops.out_of_stock %} (ناموجود {{ ops.out_of_stock|fa }}){% endif %}</a>

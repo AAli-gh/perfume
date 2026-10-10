@@ -58,6 +58,15 @@ def release(lines, reference, user=None, note=""):
 
 
 @transaction.atomic
+def restock(lines, reference, user=None, note="", reason=StockMovement.Reason.RETURNED):
+    """برگشت کالا به انبار (مرجوعی دریافت‌شده یا لغو بخشی از سفارش)."""
+    lock_variants(line.variant_id for line in lines)
+    for line in lines:
+        if line.quantity > 0:
+            _apply(line.variant_id, line.quantity, reason, reference, user, note)
+
+
+@transaction.atomic
 def set_stock(variant, new_stock, user=None, note="", reason=StockMovement.Reason.ADJUSTMENT):
     """تنظیم دستی موجودی (مثلاً از پنل مدیریت) همراه با ثبت اختلاف در دفتر موجودی."""
     current = ProductVariant.objects.select_for_update().get(pk=variant.pk).stock

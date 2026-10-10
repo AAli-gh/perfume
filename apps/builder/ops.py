@@ -14,7 +14,7 @@ from django.db.models.functions import Coalesce
 from django.utils import timezone
 
 from apps.catalog.models import BackInStockRequest, ProductVariant
-from apps.orders.models import Order
+from apps.orders.models import Order, ReturnRequest
 from apps.orders.reports import change, sales_filter
 from apps.pages.models import ContactMessage
 from apps.reviews.models import Review
@@ -99,6 +99,8 @@ def summary(store):
         "out_of_stock": low.filter(stock=0).count(),
         "waiting_requests": BackInStockRequest.objects.filter(variant__product__store=store,
                                                               notified_at__isnull=True).count(),
+        "open_returns": ReturnRequest.objects.filter(order__store=store, status__in=[
+            ReturnRequest.Status.REQUESTED, ReturnRequest.Status.APPROVED, ReturnRequest.Status.RECEIVED]).count(),
         "pending_reviews": Review.objects.filter(product__store=store, is_approved=False).count(),
         "unread_messages": ContactMessage.objects.for_store(store).filter(is_read=False).count(),
     }

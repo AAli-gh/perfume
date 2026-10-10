@@ -51,7 +51,7 @@
         <td class="p-1.5">{{ o.get_status_display }}<small class="block text-xs text-muted">{{ o.get_payment_method_display }}</small></td>
         <td class="p-1.5">{{ o.shipping_method_name|default:"—" }}{% if o.tracking_code %}<small class="block text-xs text-muted" dir="ltr">{{ o.tracking_code }}</small>{% endif %}</td>
         <td class="p-1.5">{{ o.total|toman }}</td>
-        <td class="p-1.5 text-xs"><a href="{% url 'builder:print_orders' %}?doc=invoice&ids={{ o.pk }}" target="_blank">فاکتور</a> · <a href="{% url 'builder:print_orders' %}?doc=packing&ids={{ o.pk }}" target="_blank">بسته‌بندی</a></td>
+        <td class="p-1.5 text-xs"><a href="{% url 'builder:print_orders' %}?doc=invoice&ids={{ o.pk }}" target="_blank">فاکتور</a> · <a href="{% url 'builder:print_orders' %}?doc=packing&ids={{ o.pk }}" target="_blank">بسته‌بندی</a>{% if perms.orders.change_order and o.status != "cancelled" %} · <a href="{% url 'builder:order_adjust' o.pk %}">{% if o.status == "shipped" or o.status == "delivered" %}مرجوعی{% else %}لغو بخشی{% endif %}</a>{% endif %}</td>
       </tr>
       {% endfor %}
     </tbody>

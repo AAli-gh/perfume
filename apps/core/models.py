@@ -90,6 +90,9 @@ class StoreSettings(models.Model):
         help_text="وقتی موجودی یک حجم به این عدد (یا کمتر) برسد، به مدیران خبر داده می‌شود. "
                   "برای هر حجم می‌توانید آستانه جدا بگذارید.",
     )
+    return_days = models.PositiveSmallIntegerField(
+        "مهلت درخواست مرجوعی (روز)", default=7, help_text="از زمان ارسال سفارش؛ ۰ یعنی مشتری خودش نمی‌تواند درخواست بدهد",
+    )
     bank_card_number = models.CharField("شماره کارت (کارت به کارت)", max_length=30, blank=True)
     bank_card_holder = models.CharField("نام صاحب کارت", max_length=100, blank=True)
     # ---------- سئو ----------

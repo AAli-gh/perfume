@@ -41,6 +41,30 @@
     </div>
     {% endif %}
 
+    {% for r in return_requests %}
+    <div class="mt-4 rounded border border-line p-4 text-sm leading-7" data-return="{{ r.pk }}">
+      <strong class="text-cream">{{ r.get_kind_display }}:</strong> {{ r.get_status_display }}
+      <span class="text-muted">— {% for ri in r.items.all %}{{ ri.order_item.product_name }} × {{ ri.quantity|fa }}{% if not forloop.last %}، {% endif %}{% endfor %}</span>
+      {% if r.refund_amount %}<br><span class="text-muted">مبلغ بازپرداخت:</span> {{ r.refund_amount|toman }}{% if r.refund_reference %} · کد پیگیری <bdi>{{ r.refund_reference }}</bdi>{% endif %}{% endif %}
+    </div>
+    {% endfor %}
+    {% if can_return %}
+    <details class="mt-4 rounded border border-line p-4 text-sm" data-return-form>
+      <summary class="cursor-pointer text-gold">درخواست مرجوعی</summary>
+      <form method="post" action="{% url 'orders:request_return' order.number %}" class="mt-3 grid gap-3">
+        {% csrf_token %}
+        <p class="m-0 text-muted">تا {{ return_deadline|jdate:"%d %B" }} می‌توانید درخواست بدهید. کالا باید در بسته‌بندی اصلی باشد.</p>
+        {% for item, max in returnable.items %}
+        <label class="flex items-center justify-between gap-3"><span>{{ item.product_name }}{% if item.size_ml %} ({{ item.size_ml|fa }} میل){% endif %}</span>
+          <input class="input !w-20 !py-1" type="number" min="0" max="{{ max }}" value="0" name="qty-{{ item.pk }}" aria-label="تعداد مرجوعی {{ item.product_name }}"></label>
+        {% endfor %}
+        <select class="input" name="reason" required aria-label="علت مرجوعی"><option value="">علت مرجوعی…</option>{% for value, label in return_reasons %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select>
+        <textarea class="input" name="description" rows="3" maxlength="1000" placeholder="توضیح (اختیاری)"></textarea>
+        <button class="btn btn-sm justify-self-start" type="submit">ثبت درخواست مرجوعی</button>
+      </form>
+    </details>
+    {% endif %}
+
     {% if order.status == "pending" %}
       <div class="mt-6 text-center">
         {% if order.payment_method == "online" %}

@@ -2,7 +2,7 @@ from django.contrib import admin
 
 from django import forms
 
-from .models import CustomerProfile, Order, OrderItem, OrderStatusHistory
+from .models import CustomerProfile, ReturnItem, ReturnRequest, Order, OrderItem, OrderStatusHistory
 from .workflow import allowed_transitions, can_transition, transition
 
 
@@ -82,3 +82,23 @@ class CustomerProfileAdmin(admin.ModelAdmin):
     list_filter = ["store"]
     search_fields = ["phone", "tags", "note"]
     readonly_fields = ["updated_by", "updated_at"]
+
+
+class ReturnItemInline(admin.TabularInline):
+    model = ReturnItem
+    extra = 0
+    readonly_fields = ["order_item", "quantity"]
+    can_delete = False
+
+
+@admin.register(ReturnRequest)
+class ReturnRequestAdmin(admin.ModelAdmin):
+    list_display = ["order", "kind", "status", "reason", "refund_amount", "created_at"]
+    list_filter = ["kind", "status", "reason"]
+    search_fields = ["order__number", "order__phone"]
+    readonly_fields = ["order", "kind", "status", "reason", "description", "by_customer", "refund_amount",
+                       "refund_method", "refund_reference", "restocked", "handled_by", "created_at", "refunded_at"]
+    inlines = [ReturnItemInline]
+
+    def has_add_permission(self, request):
+        return False  # از استودیو ← سفارش‌ها ← مرجوعی / لغو بخشی (برگشت موجودی و مبلغ از سرویس)

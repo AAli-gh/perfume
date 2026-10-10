@@ -30,7 +30,8 @@ from apps.notifications.services import settings_for as notification_settings
 from apps.notifications.models import Campaign
 from apps.notifications.tasks import send_campaign_task
 from apps.orders import customers as customers_service
-from apps.orders.models import Order
+from apps.orders import returns
+from apps.orders.models import Order, ReturnRequest
 from apps.orders.workflow import InvalidTransition, transition
 
 from . import ops
@@ -509,4 +510,103 @@ def searches(request):
     return render(request, "builder/ops/searches.html", {
         "nav": "searches", "days": days, "periods": SEARCH_PERIODS.items(),
         "report": search_log.report(request.store, days),
+    })
+
+
+# ---------- مرجوعی و لغو بخشی ----------
+
+def _qty_from_post(order, data):
+    out = {}
+    for item in order.items.all():
+        try:
+            qty = int(en_digits(data.get(f"qty-{item.pk}", "0")) or 0)
+        except ValueError:
+            qty = 0
+        if qty > 0:
+            out[item] = qty
+    return out
+
+
+@studio_required(REPORTS_PERM)
+def returns_list(request):
+    show = request.GET.get("show", "open")
+    qs = ReturnRequest.objects.filter(order__store=request.store).select_related("order").prefetch_related(
+        "items__order_item")
+    if show == "open":
+        qs = qs.filter(status__in=[ReturnRequest.Status.REQUESTED, ReturnRequest.Status.APPROVED,
+                                   ReturnRequest.Status.RECEIVED])
+    page = Paginator(qs, 30).get_page(request.GET.get("page"))
+    return render(request, "builder/ops/returns.html", {"nav": "returns", "page": page, "show": show})
+
+
+@studio_required(REPORTS_PERM)
+def return_detail(request, pk):
+    req = (ReturnRequest.objects.filter(order__store=request.store, pk=pk).select_related("order", "handled_by")
+           .prefetch_related("items__order_item").first())
+    if req is None:
+        raise Http404
+    if request.method == "POST":
+        if not request.user.has_perm(ORDERS_PERM):
+            raise PermissionDenied
+        action, note = request.POST.get("action"), request.POST.get("note", "").strip()[:500]
+        try:
+            if action == "approve":
+                returns.approve(req, request.user, note)
+            elif action == "reject":
+                returns.reject(req, request.user, note)
+            elif action == "receive":
+                returns.receive(req, request.user, restock=request.POST.get("restock") == "on", note=note)
+            elif action == "refund":
+                amount = int(en_digits(request.POST.get("amount", "0")).replace(",", "").replace("٬", "") or 0)
+                method = request.POST.get("method", "")
+                if method not in dict(ReturnRequest.RefundMethod.choices):
+                    raise returns.ReturnError("روش بازپرداخت را انتخاب کنید.")
+                returns.refund(req, amount=amount, method=method, reference=request.POST.get("reference", "").strip(),
+                               user=request.user, note=note)
+            else:
+                raise Http404
+        except (returns.ReturnError, ValueError) as exc:
+            messages.error(request, str(exc) if isinstance(exc, returns.ReturnError) else "مبلغ نامعتبر است.")
+            return redirect("builder:return", pk=pk)
+        record(f"studio.return_{action}", request, target=req.order.number)
+        messages.success(request, "ثبت شد؛ وضعیت با پیامک به مشتری اطلاع داده می‌شود.")
+        return redirect("builder:return", pk=pk)
+    return render(request, "builder/ops/return_detail.html", {
+        "nav": "returns", "r": req, "methods": ReturnRequest.RefundMethod.choices,
+    })
+
+
+@studio_required(ORDERS_PERM)
+def order_adjust(request, pk):
+    """لغو بخشی (پیش از ارسال) یا ثبت مرجوعی از طرف مشتری (پس از ارسال)."""
+    order = Order.objects.for_store(request.store).filter(pk=pk).first()
+    if order is None:
+        raise Http404
+    mode = "cancel" if order.status in returns.CANCELLABLE else "return" if order.status in returns.RETURNABLE else None
+    if mode is None:
+        messages.error(request, "برای سفارش لغوشده امکان لغو بخشی یا مرجوعی نیست.")
+        return redirect("builder:orders")
+    if request.method == "POST":
+        reason = request.POST.get("reason", "")
+        if reason not in dict(ReturnRequest.Reason.choices):
+            messages.error(request, "علت را انتخاب کنید.")
+            return redirect("builder:order_adjust", pk=pk)
+        try:
+            quantities = _qty_from_post(order, request.POST)
+            note = request.POST.get("note", "").strip()
+            if mode == "cancel":
+                req = returns.partial_cancel(order, quantities, reason=reason, user=request.user, note=note)
+            else:
+                req = returns.request_return(order, quantities, reason=reason, description=note, by_customer=False,
+                                             user=request.user)
+        except returns.ReturnError as exc:
+            messages.error(request, str(exc))
+            return redirect("builder:order_adjust", pk=pk)
+        record(f"studio.{mode}_items", request, target=order.number)
+        messages.success(request, "لغو بخشی ثبت شد و کالاها به انبار برگشت." if mode == "cancel"
+                         else "درخواست مرجوعی ثبت شد.")
+        return redirect("builder:return", pk=req.pk)
+    return render(request, "builder/ops/order_adjust.html", {
+        "nav": "returns", "order": order, "mode": mode, "available": returns.available(order),
+        "reasons": ReturnRequest.Reason.choices,
     })

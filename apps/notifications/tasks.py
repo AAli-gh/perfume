@@ -42,3 +42,24 @@ def send_cart_reminders_task():
     from .cart_reminders import send_reminders
 
     return sum(send_reminders(store) for store in Store.objects.all())
+
+
+@shared_task(acks_late=True)
+def notify_return_task(request_id, status):
+    """پیامک وضعیت مرجوعی به مشتری؛ «درخواست جدید» (ثبت مشتری) به مدیران هم خبر داده می‌شود."""
+    from apps.core.templatetags.majd import toman
+    from apps.orders.models import ReturnRequest
+    from django.urls import reverse
+
+    from . import events as E
+    from .services import notify_event
+
+    req = ReturnRequest.objects.select_related("order__store").filter(pk=request_id).first()
+    if req is None or req.status != status:
+        return 0
+    order = req.order
+    context = {"name": order.first_name, "number": order.number, "kind": req.get_kind_display(),
+               "status": req.get_status_display(), "amount": toman(req.refund_amount),
+               "order_url": order.store.base_url + reverse("orders:detail", args=[order.number])}
+    audiences = (E.CUSTOMER, E.STAFF) if status == ReturnRequest.Status.REQUESTED and req.by_customer else (E.CUSTOMER,)
+    return len(notify_event(order.store, E.RETURN_UPDATE, context, phone=order.phone, audiences=audiences))
