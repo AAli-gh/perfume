@@ -2,7 +2,7 @@ from django.contrib import admin
 
 from django import forms
 
-from .models import Order, OrderItem, OrderStatusHistory
+from .models import CustomerProfile, Order, OrderItem, OrderStatusHistory
 from .workflow import allowed_transitions, can_transition, transition
 
 
@@ -74,3 +74,11 @@ class OrderAdmin(admin.ModelAdmin):
     @admin.display(description="نام گیرنده")
     def full_name(self, obj):
         return obj.full_name
+
+
+@admin.register(CustomerProfile)
+class CustomerProfileAdmin(admin.ModelAdmin):
+    list_display = ["phone", "tags", "updated_at", "updated_by"]
+    list_filter = ["store"]
+    search_fields = ["phone", "tags", "note"]
+    readonly_fields = ["updated_by", "updated_at"]

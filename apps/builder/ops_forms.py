@@ -94,3 +94,38 @@ class SaleForm(PriceChangeForm):
         if end and end <= (start or timezone.now()):
             self.add_error("ends_at", "پایان حراج باید بعد از شروع (و در آینده) باشد.")
         return data
+
+
+class CustomerProfileForm(StyledFormMixin, forms.Form):
+    tags = forms.CharField(label="برچسب‌ها", max_length=200, required=False,
+                           help_text="با کاما جدا کنید؛ مثلاً همکار، عمده، بدقول")
+    note = forms.CharField(label="یادداشت داخلی", required=False, widget=forms.Textarea(attrs={"rows": 4}),
+                           help_text="فقط کارکنان می‌بینند")
+
+
+class CampaignForm(StyledFormMixin, forms.Form):
+    name = forms.CharField(label="عنوان (برای گزارش)", max_length=100)
+    message = forms.CharField(
+        label="متن پیامک", max_length=500, widget=forms.Textarea(attrs={"rows": 4}),
+        initial="{name} عزیز، دلمان برایتان تنگ شده! با کد {code} تا {percent}٪ تخفیف از {store} خرید کنید:\n{shop_url}",
+        help_text="متغیرها: {name} نام مشتری، {store}، {code} و {percent} کد تخفیف، {shop_url} نشانی فروشگاه")
+    with_coupon = forms.BooleanField(label="ساخت کد تخفیف برای این پیامک", required=False, initial=True)
+    percent = forms.IntegerField(label="درصد تخفیف", min_value=1, max_value=90, initial=10, required=False)
+    days = forms.IntegerField(label="مدت اعتبار (روز)", min_value=1, max_value=365, initial=7, required=False)
+    opt_out = forms.BooleanField(label="افزودن «لغو۱۱» به انتهای پیام (الزام پیامک تبلیغاتی)", required=False,
+                                 initial=True)
+    confirm = forms.BooleanField(label="متن را بررسی کردم؛ ارسال شود", required=True)
+
+    def clean(self):
+        from apps.notifications import events as E
+
+        data = super().clean()
+        try:
+            E.validate_text(E.CAMPAIGN, data.get("message", ""))
+        except forms.ValidationError as exc:
+            self.add_error("message", exc)
+        if data.get("with_coupon") and not data.get("percent"):
+            self.add_error("percent", "درصد تخفیف را وارد کنید.")
+        if not data.get("with_coupon") and "{code}" in data.get("message", ""):
+            self.add_error("message", "متن {code} دارد ولی کد تخفیفی ساخته نمی‌شود.")
+        return data

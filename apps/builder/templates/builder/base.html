@@ -40,6 +40,9 @@
         <a href="{% url 'builder:products' %}" {% if nav == 'products' %}aria-current="page"{% endif %}>{% icon "grid" "!w-4 !h-4" %} اکسل و قیمت‌ها</a>
         <a href="{% url 'builder:sales' %}" {% if nav == 'sales' %}aria-current="page"{% endif %}>{% icon "flame" "!w-4 !h-4" %} حراج زمان‌دار</a>
         {% endif %}
+        {% if perms.accounts.view_user %}
+        <a href="{% url 'builder:customers' %}" {% if nav == 'customers' %}aria-current="page"{% endif %}>{% icon "user" "!w-4 !h-4" %} مشتریان</a>
+        {% endif %}
         {% if perms.themes.change_themesettings %}
         <a href="{% url 'builder:theme' %}" {% if nav == 'theme' %}aria-current="page"{% endif %}>{% icon "flame" "!w-4 !h-4" %} ظاهر و پوسته</a>
         {% endif %}

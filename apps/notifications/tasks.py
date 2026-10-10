@@ -26,3 +26,10 @@ def stock_alert_task(variant_id, event):
     from .stock import alert_low_stock, notify_back_in_stock
 
     return alert_low_stock(variant_id) if event == "low_stock" else notify_back_in_stock(variant_id)
+
+
+@shared_task(acks_late=True, time_limit=3600)
+def send_campaign_task(campaign_id):
+    from .campaigns import send_campaign
+
+    send_campaign(campaign_id)

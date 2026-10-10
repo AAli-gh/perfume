@@ -156,3 +156,28 @@ class OrderStatusHistory(models.Model):
 
     def __str__(self):
         return f"{self.order}: {self.get_from_status_display()} ← {self.get_to_status_display()}"
+
+
+class CustomerProfile(StoreOwned):
+    """یادداشت داخلی و برچسب‌های یک مشتری (بر اساس موبایل؛ برای مهمان‌ها هم کار می‌کند)."""
+
+    phone = models.CharField("موبایل", max_length=11, validators=[phone_validator])
+    tags = models.CharField("برچسب‌ها", max_length=200, blank=True, help_text="با کاما جدا کنید؛ مثلاً همکار، عمده")
+    note = models.TextField("یادداشت داخلی", blank=True, help_text="فقط کارکنان می‌بینند")
+    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+                                   related_name="+", verbose_name="آخرین ویرایش توسط")
+    updated_at = models.DateTimeField("آخرین ویرایش", auto_now=True)
+
+    objects = StoreQuerySet.as_manager()
+
+    class Meta:
+        verbose_name = "پرونده مشتری"
+        verbose_name_plural = "پرونده مشتریان"
+        constraints = [models.UniqueConstraint(fields=["store", "phone"], name="orders_customer_profile_unique")]
+
+    def __str__(self):
+        return self.phone
+
+    @property
+    def tag_list(self):
+        return [t.strip() for t in self.tags.replace("،", ",").split(",") if t.strip()]

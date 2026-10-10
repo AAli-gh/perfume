@@ -1,0 +1,54 @@
+{% extends "builder/base.html" %}
+{% block title %}مشتریان{% endblock %}
+{% block content %}
+<div class="mb-4 flex flex-wrap items-end justify-between gap-3">
+  <div>
+    <h1 class="mb-1 text-[1.7rem]">مشتریان</h1>
+    <p class="m-0 text-sm text-muted">هر شماره موبایل یک مشتری است (عضو یا مهمان). مبلغ‌ها فقط خریدهای واقعی‌اند (لغوشده و آنلاینِ پرداخت‌نشده حساب نمی‌شوند).</p>
+  </div>
+  {% if perms.notifications.add_campaign %}
+  <div class="flex gap-2">
+    <a class="btn btn-sm" href="{% url 'builder:campaign_new' %}?{{ request.GET.urlencode }}">پیامک به این گروه ({{ total|fa }})</a>
+    <a class="btn btn-ghost btn-sm" href="{% url 'builder:campaigns' %}">پیامک‌های قبلی</a>
+  </div>
+  {% endif %}
+</div>
+<nav class="studio-tabs mb-3" aria-label="گروه مشتریان">
+  {% for key, label in segments %}<a href="?seg={{ key }}" {% if key == filters.segment %}aria-current="page"{% endif %}>{{ label }}</a>{% endfor %}
+</nav>
+<form method="get" class="mb-4 flex flex-wrap items-end gap-2 text-sm">
+  <input type="hidden" name="seg" value="{{ filters.segment }}">
+  <label class="grid gap-1">جستجو<input class="input !py-1.5" type="search" name="s" value="{{ filters.search }}" placeholder="نام یا موبایل"></label>
+  <label class="grid gap-1">برچسب<input class="input !w-32 !py-1.5" name="tag" value="{{ filters.tag }}" placeholder="مثلاً همکار"></label>
+  {% if filters.segment == "vip" %}<label class="grid gap-1">حداقل خرید VIP (تومان)<input class="input !w-40 !py-1.5" dir="ltr" name="vip" value="{{ filters.vip_threshold }}"></label>{% endif %}
+  <label class="grid gap-1">مرتب‌سازی<select class="input !w-auto !py-1.5" name="sort">
+    <option value="spent" {% if filters.sort == "spent" %}selected{% endif %}>بیشترین خرید</option>
+    <option value="orders" {% if filters.sort == "orders" %}selected{% endif %}>بیشترین سفارش</option>
+    <option value="recent" {% if filters.sort == "recent" %}selected{% endif %}>آخرین خرید</option>
+    <option value="old" {% if filters.sort == "old" %}selected{% endif %}>قدیمی‌ترین خرید</option>
+  </select></label>
+  <button class="btn btn-sm" type="submit">اعمال</button>
+</form>
+<p class="mb-2 text-sm text-muted">{{ audience }}: {{ total|fa }} مشتری</p>
+{% if rows %}
+<div class="studio-preview overflow-x-auto">
+  <table class="w-full min-w-[720px] text-right text-sm">
+    <thead class="text-muted"><tr><th class="p-1.5 font-normal">مشتری</th><th class="p-1.5 font-normal">سفارش</th><th class="p-1.5 font-normal">مجموع خرید</th><th class="p-1.5 font-normal">آخرین خرید</th><th class="p-1.5 font-normal">برچسب و یادداشت</th></tr></thead>
+    <tbody>
+      {% for c in rows %}
+      <tr class="border-t border-line">
+        <td class="p-1.5"><a href="{% url 'builder:customer' c.phone %}">{{ c.first_name }} {{ c.last_name }}</a><small class="block text-xs text-muted" dir="ltr">{{ c.phone|fa }}{% if c.user_id %} · عضو{% endif %}</small></td>
+        <td class="p-1.5">{{ c.orders|fa }}</td>
+        <td class="p-1.5">{{ c.spent|toman }}</td>
+        <td class="p-1.5">{{ c.last|jdate }}</td>
+        <td class="p-1.5">{% for t in c.profile.tag_list %}<span class="chip">{{ t }}</span>{% endfor %}{% if c.profile.note %}<small class="block max-w-[16rem] truncate text-xs text-muted">{{ c.profile.note }}</small>{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% include "components/pagination.html" %}
+{% else %}
+<p class="rounded border border-dashed border-line p-8 text-center text-muted">مشتری‌ای در این گروه نیست.</p>
+{% endif %}
+{% endblock %}

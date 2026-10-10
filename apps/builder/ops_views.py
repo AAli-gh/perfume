@@ -9,7 +9,9 @@ import secrets
 
 from django.contrib import messages
 from django.core.cache import cache
+from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
+from django.db import transaction
 from django.db.models import Count, Q
 from django.http import Http404, HttpResponse
 from django.shortcuts import redirect, render
@@ -22,12 +24,16 @@ from apps.catalog.models import PriceChangeBatch, ProductVariant, SaleCampaign, 
 from apps.core import spreadsheet
 from apps.core.audit import record
 from apps.core.forms import en_digits
+from apps.notifications import campaigns
+from apps.notifications.models import Campaign
+from apps.notifications.tasks import send_campaign_task
+from apps.orders import customers as customers_service
 from apps.orders.models import Order
 from apps.orders.workflow import InvalidTransition, transition
 
 from . import ops
-from .ops_forms import ImportForm, PriceChangeForm, SaleForm
-from .access import ORDERS_PERM, PRODUCTS_PERM, REPORTS_PERM, studio_required
+from .access import CAMPAIGN_PERM, CUSTOMERS_PERM, ORDERS_PERM, PRODUCTS_PERM, REPORTS_PERM, studio_required
+from .ops_forms import CampaignForm, CustomerProfileForm, ImportForm, PriceChangeForm, SaleForm
 
 S = Order.Status
 ORDER_TABS = [
@@ -366,3 +372,101 @@ def sale_end(request, pk):
     record("studio.sale_end", request, target=campaign.name)
     messages.success(request, f"حراج «{campaign.name}» پایان یافت؛ قیمت {count} حجم به حالت عادی برگشت.")
     return redirect("builder:sales")
+
+
+# ---------- مشتریان و پیامک گروهی ----------
+
+def _customer_filters(request):
+    try:
+        vip = max(0, int(en_digits(request.GET.get("vip", "")) or 20_000_000))
+    except ValueError:
+        vip = 20_000_000
+    segment = request.GET.get("seg", "all")
+    return customers_service.CustomerFilters(
+        segment=segment if segment in dict(customers_service.SEGMENTS) else "all",
+        search=en_digits(request.GET.get("s", "")).strip()[:50], tag=request.GET.get("tag", "").strip()[:50],
+        vip_threshold=vip, sort=request.GET.get("sort", "spent"))
+
+
+def _audience_label(filters):
+    label = dict(customers_service.SEGMENTS)[filters.segment]
+    if filters.segment == "vip":
+        label += f" (خرید ≥ {filters.vip_threshold:,} تومان)"
+    if filters.tag:
+        label += f"، برچسب «{filters.tag}»"
+    if filters.search:
+        label += f"، جستجوی «{filters.search}»"
+    return label
+
+
+@studio_required(CUSTOMERS_PERM)
+def customers(request):
+    filters = _customer_filters(request)
+    qs = customers_service.customers(request.store, filters)
+    page = Paginator(qs, 50).get_page(request.GET.get("page"))
+    rows = list(page.object_list)
+    profiles = customers_service.profiles(request.store, [r["phone"] for r in rows])
+    for row in rows:
+        row["profile"] = profiles.get(row["phone"])
+    return render(request, "builder/ops/customers.html", {
+        "nav": "customers", "page": page, "rows": rows, "filters": filters, "segments": customers_service.SEGMENTS,
+        "total": page.paginator.count, "audience": _audience_label(filters),
+    })
+
+
+@studio_required(CUSTOMERS_PERM)
+def customer_detail(request, phone):
+    info = customers_service.customer(request.store, phone)
+    if info is None:
+        raise Http404
+    profile = customers_service.profile_for(request.store, phone)
+    can_edit = request.user.has_perm("accounts.change_user")
+    form = CustomerProfileForm(request.POST or None, initial={"tags": profile.tags if profile else "",
+                                                              "note": profile.note if profile else ""})
+    if request.method == "POST":
+        if not can_edit:
+            raise PermissionDenied
+        if form.is_valid():
+            customers_service.save_profile(request.store, phone, note=form.cleaned_data["note"],
+                                           tags=form.cleaned_data["tags"], user=request.user)
+            messages.success(request, "یادداشت مشتری ذخیره شد.")
+            return redirect("builder:customer", phone=phone)
+    orders = Order.objects.for_store(request.store).filter(phone=phone).order_by("-created_at")[:50]
+    return render(request, "builder/ops/customer.html", {
+        "nav": "customers", "c": info, "profile": profile, "form": form, "orders": orders, "can_edit": can_edit,
+    })
+
+
+@studio_required(CUSTOMERS_PERM, CAMPAIGN_PERM)
+def campaign_new(request):
+    """پیامک گروهی به همان گروهی که در فهرست مشتریان فیلتر شده است."""
+    filters = _customer_filters(request)
+    recipients = [(r["phone"], r["first_name"]) for r in customers_service.customers(request.store, filters)]
+    form = CampaignForm(request.POST or None)
+    if request.method == "POST" and form.is_valid() and recipients:
+        d = form.cleaned_data
+        coupon = campaigns.make_coupon(request.store, percent=d["percent"], days=d["days"] or 7,
+                                       uses=len(recipients)) if d["with_coupon"] else None
+        campaign = campaigns.create_campaign(request.store, name=d["name"], message=d["message"],
+                                             recipients=recipients, audience=_audience_label(filters), coupon=coupon,
+                                             opt_out=d["opt_out"], user=request.user)
+        record("studio.sms_campaign", request, target=f"{campaign.name} → {campaign.total}")
+        transaction.on_commit(lambda: send_campaign_task.delay(campaign.pk))
+        messages.success(request, f"پیامک «{campaign.name}» برای {campaign.total} مشتری در صف ارسال قرار گرفت."
+                                  + (f" کد تخفیف: {coupon.code}" if coupon else ""))
+        return redirect("builder:campaigns")
+    sample = None
+    if recipients and form.is_bound and form.is_valid():
+        sample = campaigns.render(form.cleaned_data["message"], store=request.store, name=recipients[0][1])
+    return render(request, "builder/ops/campaign_new.html", {
+        "nav": "customers", "form": form, "count": len(recipients), "audience": _audience_label(filters),
+        "query": request.GET.urlencode(), "sample": sample,
+    }, status=422 if request.method == "POST" else 200)
+
+
+@studio_required(CUSTOMERS_PERM, CAMPAIGN_PERM)
+def campaigns_list(request):
+    return render(request, "builder/ops/campaigns.html", {
+        "nav": "customers",
+        "campaigns": Campaign.objects.filter(store=request.store).select_related("created_by")[:50],
+    })
