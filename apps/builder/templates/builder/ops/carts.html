@@ -1,0 +1,26 @@
+{% extends "builder/base.html" %}
+{% block title %}سبدهای رهاشده{% endblock %}
+{% block content %}
+<a class="text-sm" href="{% url 'builder:orders' %}">← سفارش‌ها</a>
+<h1 class="mb-1 mt-2 text-[1.7rem]">سبدهای رهاشده</h1>
+<p class="mb-4 text-sm text-muted">مشتریان واردشده‌ای که سبدشان را پر کرده‌اند ولی سفارشی ثبت نکرده‌اند — ارزش کل {{ total_value|toman }}.
+  {% if conf.cart_reminder_enabled %}{{ conf.cart_reminder_hours|fa }} ساعت بعد از آخرین تغییر سبد، یک پیامک یادآوری خودکار می‌رود.{% else %}یادآوری پیامکی خاموش است (پنل مدیریت ← تنظیمات اطلاع‌رسانی).{% endif %}</p>
+{% if carts %}
+<div class="studio-preview overflow-x-auto">
+  <table class="w-full min-w-[640px] text-right text-sm">
+    <thead class="text-muted"><tr><th class="p-1.5 font-normal">مشتری</th><th class="p-1.5 font-normal">اقلام</th><th class="p-1.5 font-normal">ارزش</th><th class="p-1.5 font-normal">آخرین تغییر</th><th class="p-1.5 font-normal">یادآوری</th></tr></thead>
+    <tbody>
+      {% for c in carts %}
+      <tr class="border-t border-line">
+        <td class="p-1.5">{{ c.user.get_full_name|default:c.user.display_name }}<small class="block text-xs text-muted" dir="ltr">{{ c.user.phone|fa|default:"بدون موبایل" }}</small></td>
+        <td class="p-1.5">{% for v, q in c.lines %}<span class="block">{{ v.product.name }}{% if v.size_ml %} ({{ v.size_ml|fa }} میل){% endif %} × {{ q|fa }}</span>{% endfor %}</td>
+        <td class="p-1.5">{{ c.value|toman }}</td>
+        <td class="p-1.5">{{ c.updated_at|jdate:"%d %B، %H:%M" }}</td>
+        <td class="p-1.5">{% if c.reminded_at %}{{ c.reminded_at|jdate:"%d %B، %H:%M" }}{% else %}<span class="text-muted">هنوز نه</span>{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}<p class="rounded border border-dashed border-line p-8 text-center text-muted">سبد رهاشده‌ای نیست.</p>{% endif %}
+{% endblock %}

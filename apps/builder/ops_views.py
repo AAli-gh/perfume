@@ -12,7 +12,7 @@ from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
 from django.db import transaction
-from django.db.models import Count, Q
+from django.db.models import Count, Exists, OuterRef, Q
 from django.http import Http404, HttpResponse
 from django.shortcuts import redirect, render
 from django.utils import timezone
@@ -24,7 +24,9 @@ from apps.catalog.models import PriceChangeBatch, ProductVariant, SaleCampaign, 
 from apps.core import spreadsheet
 from apps.core.audit import record
 from apps.core.forms import en_digits
+from apps.cart.models import SavedCart
 from apps.notifications import campaigns
+from apps.notifications.services import settings_for as notification_settings
 from apps.notifications.models import Campaign
 from apps.notifications.tasks import send_campaign_task
 from apps.orders import customers as customers_service
@@ -469,4 +471,24 @@ def campaigns_list(request):
     return render(request, "builder/ops/campaigns.html", {
         "nav": "customers",
         "campaigns": Campaign.objects.filter(store=request.store).select_related("created_by")[:50],
+    })
+
+
+# ---------- سبدهای رهاشده ----------
+
+@studio_required(REPORTS_PERM)
+def abandoned_carts(request):
+    """سبدهای مشتریان واردشده که پر شده‌اند ولی سفارشی بعد از آخرین تغییرشان ثبت نشده است."""
+    carts = list(SavedCart.objects.for_store(request.store).exclude(items={})
+                 .exclude(Exists(Order.objects.filter(store=request.store, user=OuterRef("user"),
+                                                      created_at__gte=OuterRef("updated_at"))))
+                 .select_related("user")[:100])
+    variants = {str(v.pk): v for v in ProductVariant.objects.filter(
+        pk__in={k for c in carts for k in c.items}).select_related("product")}
+    for cart in carts:
+        cart.lines = [(variants[k], int(q)) for k, q in cart.items.items() if k in variants]
+        cart.value = sum(v.current_price * q for v, q in cart.lines)
+    conf = notification_settings(request.store)
+    return render(request, "builder/ops/carts.html", {
+        "nav": "orders", "carts": carts, "total_value": sum(c.value for c in carts), "conf": conf,
     })

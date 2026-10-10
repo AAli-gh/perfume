@@ -21,6 +21,17 @@ class NotificationSettings(models.Model):
                                     help_text="برای پیامک «سفارش جدید»؛ چند شماره را با کاما جدا کنید")
     staff_emails = models.CharField("ایمیل مدیران", max_length=300, blank=True,
                                     help_text="برای ایمیل «سفارش جدید»؛ چند ایمیل را با کاما جدا کنید")
+    cart_reminder_enabled = models.BooleanField(
+        "یادآوری سبد رهاشده", default=True,
+        help_text="به مشتری واردشده‌ای که سبدش را پر کرده ولی سفارش نداده، یک پیامک یادآوری می‌رود",
+    )
+    cart_reminder_hours = models.PositiveSmallIntegerField(
+        "یادآوری پس از (ساعت)", default=3, help_text="چند ساعت بعد از آخرین تغییر سبد",
+    )
+    staff_2fa_enabled = models.BooleanField(
+        "ورود دومرحله‌ای کارکنان", default=False,
+        help_text="کارکنان بعد از رمز عبور، کد پیامکی به موبایل حسابشان می‌گیرند (موبایل کارمند باید ثبت شده باشد)",
+    )
     otp_login_enabled = models.BooleanField(
         "ورود با کد پیامکی", default=False,
         help_text="مشتری با شماره موبایل و کد یک‌بارمصرف وارد می‌شود (نیاز به سرویس پیامک فعال)",

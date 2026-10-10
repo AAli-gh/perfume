@@ -33,3 +33,12 @@ def send_campaign_task(campaign_id):
     from .campaigns import send_campaign
 
     send_campaign(campaign_id)
+
+
+@shared_task
+def send_cart_reminders_task():
+    from apps.core.models import Store
+
+    from .cart_reminders import send_reminders
+
+    return sum(send_reminders(store) for store in Store.objects.all())

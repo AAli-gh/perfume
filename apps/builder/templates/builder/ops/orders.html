@@ -4,7 +4,7 @@
 <div class="mb-4 flex flex-wrap items-end justify-between gap-3">
   <div>
     <h1 class="mb-1 text-[1.7rem]">سفارش‌ها</h1>
-    <p class="m-0 text-sm text-muted">سفارش‌ها را انتخاب کنید و با یک کلیک فاکتور، برگه بسته‌بندی یا برچسب ارسال همه را چاپ کنید.</p>
+    <p class="m-0 text-sm text-muted"><a href="{% url 'builder:abandoned_carts' %}">سبدهای رهاشده ←</a> · سفارش‌ها را انتخاب کنید و با یک کلیک فاکتور، برگه بسته‌بندی یا برچسب ارسال همه را چاپ کنید.</p>
   </div>
   <form method="get" class="flex gap-2" role="search">
     <input type="hidden" name="q" value="{{ tab }}">

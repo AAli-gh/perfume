@@ -172,6 +172,7 @@ CELERY_TIMEZONE = TIME_ZONE
 CELERY_BEAT_SCHEDULE = {
     "release-expired-reservations": {"task": "apps.orders.tasks.release_expired_reservations", "schedule": 300.0},
     "prune-audit-log": {"task": "apps.core.tasks.prune_audit_log", "schedule": 86400.0},
+    "cart-reminders": {"task": "apps.notifications.tasks.send_cart_reminders_task", "schedule": 1800.0},
 }
 
 # ---------- پیامک (apps/notifications) ----------

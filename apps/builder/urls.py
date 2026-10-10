@@ -27,6 +27,7 @@ urlpatterns = [
     path("orders/print/", ops_views.print_orders, name="print_orders"),
     path("orders/status/", ops_views.orders_status, name="orders_status"),
     path("orders/tracking/", ops_views.tracking, name="tracking"),
+    path("orders/abandoned/", ops_views.abandoned_carts, name="abandoned_carts"),
     path("stock/", ops_views.stock, name="stock"),
     path("products/", ops_views.products, name="products"),
     path("products/export/", ops_views.products_export, name="products_export"),

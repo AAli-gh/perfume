@@ -36,10 +36,41 @@ class CartLine:
         return self.unit_price * self.quantity
 
 
+def persist(store, user, data):
+    """سبد مشتری واردشده در پایگاه داده هم نگه داشته می‌شود (یادآوری سبد رهاشده، دستگاه دیگر)."""
+    if user is None or not user.is_authenticated or store is None:
+        return
+    from .models import SavedCart
+
+    saved = SavedCart.objects.filter(store=store, user=user).first()
+    if saved is None:
+        if data:
+            SavedCart.objects.create(store=store, user=user, items=dict(data))
+        return
+    if saved.items != data:
+        saved.items, saved.reminded_at = dict(data), None  # سبد عوض شد ← یادآوری بعدی دوباره مجاز
+        saved.save(update_fields=["items", "reminded_at", "updated_at"])
+
+
+def restore(request, user):
+    """بعد از ورود: سبد ذخیره‌شده با سبد فعلی نشست ادغام می‌شود (تعداد بیشتر هر قلم)."""
+    from .models import SavedCart
+
+    store = getattr(request, "store", None) or get_current_store()
+    saved = SavedCart.objects.filter(store=store, user=user).first()
+    current = dict(request.session.get(SESSION_KEY) or {})
+    if saved and saved.items:
+        for key, qty in saved.items.items():
+            current[key] = max(current.get(key, 0), int(qty))
+    request.session[SESSION_KEY] = current
+    persist(store, user, current)
+
+
 class Cart:
     def __init__(self, request):
         self.store = getattr(request, "store", None) or get_current_store()
         self.session = request.session
+        self.user = getattr(request, "user", None)
         self._data = self.session.get(SESSION_KEY) or {}
         self._lines = None
         self._pricing = None
@@ -50,6 +81,7 @@ class Cart:
         self.session.modified = True
         self._lines = None
         self._pricing = None
+        persist(self.store, self.user, self._data)
 
     def add(self, variant, quantity=1):
         """افزودن به سبد؛ کالای ناموجود اضافه نمی‌شود (خروجی False)."""
