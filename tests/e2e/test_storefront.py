@@ -82,6 +82,9 @@ def test_review_contact_and_blog_filters(site, page):
 
 def test_register_wishlist_and_search(site, page):
     page.goto(f"{site}/account/login/")
+    expect(page.locator("#id_first_name")).to_have_count(0)  # ورود و ثبت‌نام دو صفحه جدا هستند
+    page.click("text=ثبت‌نام کنید")
+    page.wait_for_url("**/account/register/")
     page.fill("#id_first_name", "مهسا")
     page.fill("#id_last_name", "احمدی")
     page.fill('form[action$="register/"] #id_email', "mahsa@example.com")

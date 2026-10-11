@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load seo static %}
+{% block seo %}{% seo_head title="ثبت‌نام" %}{% endblock %}
+{% block content %}
+<div class="relative grid min-h-[calc(100vh-72px)] place-items-center overflow-hidden py-12">
+  <div class="absolute inset-0 bg-no-repeat opacity-30 blur-[2px]" style="background-image:url('{% static 'img/auth-bg.jpg' %}'),url('{% static 'img/hero-shop.jpg' %}');background-position:left center,right bottom;background-size:auto 100%,auto 70%"></div>
+  <form class="relative grid w-[min(100%-32px,440px)] content-start gap-4" method="post" action="{% url 'accounts:register' %}" novalidate>
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ next }}">
+    <h1 class="mb-1 text-[2rem] lg:text-[2.8rem]">ساخت حساب کاربری</h1>
+    {% if form.non_field_errors %}<p class="alert alert-err m-0">{{ form.non_field_errors|join:" " }}</p>{% endif %}
+    <div class="grid gap-4 sm:grid-cols-2">
+      {% include "components/field.html" with field=form.first_name %}
+      {% include "components/field.html" with field=form.last_name %}
+    </div>
+    {% include "components/field.html" with field=form.email %}
+    {% include "components/field.html" with field=form.password1 %}
+    {% include "components/field.html" with field=form.password2 %}
+    <button class="btn btn-lg w-full" type="submit">ثبت‌نام</button>
+    <p class="m-0 border-t border-line pt-4 text-center text-[.95rem] text-muted">قبلاً ثبت‌نام کرده‌اید؟
+      <a href="{% url 'accounts:login' %}{% if next %}?next={{ next|urlencode }}{% endif %}">وارد شوید</a></p>
+  </form>
+</div>
+{% endblock %}

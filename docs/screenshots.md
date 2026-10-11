@@ -12,7 +12,8 @@
 <tr><td align="center" valign="top"><img src="screenshots/collections.jpg" alt="کالکشن‌ها"><br><sub>کالکشن‌ها</sub></td><td align="center" valign="top"><img src="screenshots/collection-detail.jpg" alt="صفحه اختصاصی کالکشن"><br><sub>صفحه اختصاصی کالکشن</sub></td></tr>
 <tr><td align="center" valign="top"><img src="screenshots/blog.jpg" alt="مجله"><br><sub>مجله</sub></td><td align="center" valign="top"><img src="screenshots/blog-post.jpg" alt="مقاله"><br><sub>مقاله</sub></td></tr>
 <tr><td align="center" valign="top"><img src="screenshots/about.jpg" alt="درباره ما"><br><sub>درباره ما</sub></td><td align="center" valign="top"><img src="screenshots/contact.jpg" alt="تماس با ما"><br><sub>تماس با ما</sub></td></tr>
-<tr><td align="center" valign="top"><img src="screenshots/login.jpg" alt="ورود و ثبت‌نام"><br><sub>ورود و ثبت‌نام</sub></td><td align="center" valign="top"><img src="screenshots/404.jpg" alt="صفحه ۴۰۴ با جستجو"><br><sub>صفحه ۴۰۴ با جستجو</sub></td></tr>
+<tr><td align="center" valign="top"><img src="screenshots/login.jpg" alt="ورود"><br><sub>ورود</sub></td><td align="center" valign="top"><img src="screenshots/register.jpg" alt="ثبت‌نام (صفحه جدا)"><br><sub>ثبت‌نام (صفحه جدا)</sub></td></tr>
+<tr><td align="center" valign="top"><img src="screenshots/404.jpg" alt="صفحه ۴۰۴ با جستجو"><br><sub>صفحه ۴۰۴ با جستجو</sub></td><td></td></tr>
 </table>
 
 ## پوسته «استاندارد (Design System)»
