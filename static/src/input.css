@@ -179,6 +179,69 @@
   .reveal.visible { @apply translate-y-0 opacity-100; }
   @media (prefers-reduced-motion: reduce) { .reveal { @apply translate-y-0 opacity-100 transition-none; } }
 
+  /* ---------- سبک رابط «Design System» (توکن components.ui = system) ----------
+     بر اساس Design System فیگما: وزن ۴۰۰/۵۰۰/۶۰۰، دکمه یکدست با حالت‌های hover (تیره‌تر)، فشرده (تیره‌ترین)،
+     فوکوس (حلقه ۴px) و غیرفعال (خاکستری)؛ بج‌ها و چیپ‌های گرد؛ کارت‌ها و پنل‌های سفید با سایه سبک. */
+  [data-ui="system"] body { @apply font-normal leading-[1.8]; }
+  [data-ui="system"] :is(h1, h2, h3, h4) { @apply font-semibold leading-snug tracking-[-.01em] text-cream; }
+  [data-ui="system"] :focus-visible { outline: 2px solid rgb(var(--color-primary)); outline-offset: 2px; }
+  [data-ui="system"] .btn {
+    @apply rounded font-medium hover:brightness-100 active:translate-y-0;
+    background: rgb(var(--color-primary)); border-color: rgb(var(--color-primary)); color: rgb(var(--color-button-text));
+    box-shadow: 0 1px 2px rgb(var(--color-text-strong) / .06);
+  }
+  [data-ui="system"] .btn:hover { background: rgb(var(--color-primary-dark)); border-color: rgb(var(--color-primary-dark)); color: rgb(var(--color-button-text-hover)); }
+  [data-ui="system"] .btn:active { background: rgb(var(--color-primary-dark)); filter: brightness(.85); }
+  [data-ui="system"] .btn:focus-visible { outline: none; box-shadow: 0 0 0 4px rgb(var(--color-primary) / .3); }
+  [data-ui="system"] .btn:disabled, [data-ui="system"] .btn[aria-disabled="true"] {
+    @apply opacity-100; filter: none;
+    background: rgb(var(--color-border) / .22); border-color: transparent; color: rgb(var(--color-placeholder)); box-shadow: none;
+  }
+  [data-ui="system"][data-button="outline"] .btn:not(.btn-ghost):not(:hover):not(:disabled) { background: transparent; color: rgb(var(--color-primary)); }
+  [data-ui="system"] .btn-ghost { @apply border-line-strong text-cream; background: rgb(var(--color-surface)); }
+  [data-ui="system"] .btn-ghost:hover { @apply border-line-strong text-cream; background: rgb(var(--color-background-2)); }
+  [data-ui="system"] .btn-sm { @apply px-3.5 py-1.5; }
+  [data-ui="system"] .icon-btn { @apply hover:bg-primary/10 hover:text-primary; }
+  [data-ui="system"] .nav-link { @apply font-medium hover:text-primary; }
+  [data-ui="system"] .nav-link.is-active { @apply text-primary; }
+  [data-ui="system"] .nav-link::after { @apply h-0.5 bg-primary; }
+  [data-ui="system"] .footer-list li::before { @apply text-primary; content: "•"; }
+  [data-ui="system"] .footer-social { @apply rounded-full hover:border-primary hover:bg-primary; }
+  [data-ui="system"] .tab-btn { @apply border-0 border-b-2 border-transparent font-medium; }
+  [data-ui="system"] .tab-btn[aria-selected="true"] { @apply border-primary bg-transparent text-primary; }
+
+  [data-ui="system"] .panel { @apply rounded-lg bg-panel; box-shadow: 0 1px 3px rgb(var(--color-text-strong) / .06), 0 1px 2px rgb(var(--color-text-strong) / .04); }
+  [data-ui="system"] .panel-title { @apply text-[1.2rem] font-semibold; }
+  [data-ui="system"] .input { @apply rounded border-line-strong bg-input text-cream focus:border-primary focus:ring-primary/20; }
+  [data-ui="system"] .field > label { @apply font-medium text-cream; }
+  [data-ui="system"] .check input[type="checkbox"] { @apply rounded-[4px] bg-input checked:border-primary checked:bg-primary; }
+  [data-ui="system"] .check input[type="checkbox"]:checked::after { color: rgb(var(--color-button-text)); }
+  [data-ui="system"] .alert { @apply rounded-lg; }
+
+  [data-ui="system"] .product-card { @apply rounded-lg border-line bg-surface hover:border-line hover:shadow-lg; background: rgb(var(--color-surface)); }
+  [data-ui="system"] .product-card .thumb { @apply rounded-t-lg; }
+
+  /* Badge & Chip: گرد، دو سبک «پر» و «دورخط ملایم» */
+  [data-ui="system"] .chip { @apply rounded-full border-primary/30 bg-primary/[.08] px-3 font-medium text-primary-dark; }
+  [data-ui="system"] .chip-shared { @apply border-primary/50 text-primary-dark; }
+  [data-ui="system"] .chip-strong { @apply border-primary bg-primary; color: rgb(var(--color-button-text)); }
+  [data-ui="system"] .search-example { @apply font-medium hover:border-primary hover:bg-primary/[.08] hover:text-primary-dark; }
+  [data-ui="system"] .sale-badge { @apply bg-danger px-2.5; }
+  [data-ui="system"] .match-ring { @apply border-primary text-primary-dark; }
+  [data-ui="system"] .finder-option, [data-ui="system"] .gift-box-option { @apply rounded-lg bg-surface has-[:checked]:border-primary has-[:checked]:bg-primary/[.06]; }
+  [data-ui="system"] .compare-cell.is-best { @apply bg-primary/[.06]; }
+  [data-ui="system"] .compare-group { @apply text-cream; }
+
+  [data-ui="system"] .carousel-btn { @apply border-line-strong bg-surface text-cream shadow-md hover:border-primary hover:bg-primary hover:text-[rgb(var(--color-button-text))]; }
+  [data-ui="system"] .pager a, [data-ui="system"] .pager span { @apply rounded bg-surface font-medium; }
+  [data-ui="system"] .pager a:hover { @apply border-primary text-primary; }
+  [data-ui="system"] .toast { @apply rounded-lg border-line border-s-primary bg-surface; box-shadow: 0 12px 24px rgb(var(--color-text-strong) / .12); }
+  [data-ui="system"] .map-sepia { filter: none; }
+  [data-ui="system"] .page-hero::after { background: linear-gradient(to left, rgb(var(--color-hero)) 0%, rgb(var(--color-hero) / .94) 40%, rgb(var(--color-hero) / .2) 72%, rgb(var(--color-hero) / 0) 100%); }
+  @media (max-width: 640px) {
+    [data-ui="system"] .page-hero::after { background: linear-gradient(to left, rgb(var(--color-hero) / .96) 20%, rgb(var(--color-hero) / .7)); }
+  }
+
   /* ---------- استودیو (سازنده فروشگاه) ---------- */
   .studio-top-link { @apply inline-flex items-center gap-1.5 rounded px-2.5 py-1.5 text-body hover:bg-copper/10 hover:text-gold; }
   .studio-nav { @apply flex gap-1 overflow-x-auto lg:flex-col; }

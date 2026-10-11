@@ -15,6 +15,15 @@
 <tr><td align="center" valign="top"><img src="screenshots/login.jpg" alt="ورود و ثبت‌نام"><br><sub>ورود و ثبت‌نام</sub></td><td align="center" valign="top"><img src="screenshots/404.jpg" alt="صفحه ۴۰۴ با جستجو"><br><sub>صفحه ۴۰۴ با جستجو</sub></td></tr>
 </table>
 
+## پوسته «استاندارد (Design System)»
+
+بر اساس Design System فیگما با پیش‌تنظیم «ایندیگو». فونت‌های گوگل در محیط گرفتن عکس بارگذاری نشده‌اند، پس متن با فونت سیستم دیده می‌شود.
+
+<table>
+<tr><td align="center" valign="top"><img src="screenshots/theme-standard-home.jpg" alt="صفحه اصلی با پوسته استاندارد"><br><sub>صفحه اصلی</sub></td><td align="center" valign="top"><img src="screenshots/theme-standard-product.jpg" alt="صفحه محصول با پوسته استاندارد"><br><sub>صفحه محصول</sub></td></tr>
+<tr><td align="center" valign="top"><img src="screenshots/theme-standard-mobile-search.jpg" alt="جستجوی هوشمند در موبایل" width="300"><br><sub>جستجوی هوشمند (موبایل)</sub></td><td align="center" valign="top"><img src="screenshots/theme-standard-studio.jpg" alt="انتخاب پوسته در استودیو"><br><sub>انتخاب پوسته و پیش‌تنظیم در استودیو</sub></td></tr>
+</table>
+
 ## خرید
 
 سبد با کد تخفیف، تسویه، درگاه آزمایشی و سفارش پرداخت‌شده.

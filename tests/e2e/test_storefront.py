@@ -182,12 +182,13 @@ def test_compare_and_perfume_finder(site, page):
 
     # عطریاب: هشت مرحله با HTMX و سپس نتیجه
     page.goto(f"{site}/finder/")
-    for choice in ["زنانه", "شب و مهمانی", "زمستان", "شرقی", "وانیل", None, "قوی و بسیار ماندگار", "بالاتر هم اشکالی ندارد"]:
+    for step, choice in enumerate(["زنانه", "شب و مهمانی", "زمستان", "شرقی", "وانیل", None, "قوی و بسیار ماندگار",
+                                   "بالاتر هم اشکالی ندارد"]):
+        # تا پاسخ HTMX مرحله قبل جایگزین نشده، روی فرم قدیمی کلیک نشود
+        expect(page.locator("#finder input[name=step]")).to_have_value(str(step))
         if choice:
             page.locator("label.finder-option", has_text=choice).first.click()
         page.click("#finder button[type=submit]")
-        if choice != "بالاتر هم اشکالی ندارد":
-            expect(page.locator("#finder")).to_be_visible()
     page.wait_for_url("**/finder/results/")
     expect(page.locator("h1")).to_contain_text("عطرهای پیشنهادی")
     expect(page.locator(".match-ring").first).to_contain_text("٪")
