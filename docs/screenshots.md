@@ -16,6 +16,15 @@
 <tr><td align="center" valign="top"><img src="screenshots/404.jpg" alt="صفحه ۴۰۴ با جستجو"><br><sub>صفحه ۴۰۴ با جستجو</sub></td><td></td></tr>
 </table>
 
+## حالت شب و روز
+
+دکمه ماه/خورشید هدر بین رنگ‌های اصلی پوسته (شب) و حالت روز جابه‌جا می‌شود. تنظیماتش در استودیو ← ظاهر و پوسته ← شب و روز است.
+
+<table>
+<tr><td align="center" valign="top"><img src="screenshots/mode-day-home.jpg" alt="صفحه اصلی در حالت روز"><br><sub>صفحه اصلی در حالت روز</sub></td><td align="center" valign="top"><img src="screenshots/mode-day-product.jpg" alt="صفحه محصول در حالت روز"><br><sub>صفحه محصول در حالت روز</sub></td></tr>
+<tr><td align="center" valign="top"><img src="screenshots/studio-mode.jpg" alt="تنظیمات شب و روز در استودیو"><br><sub>تنظیمات شب و روز در استودیو</sub></td><td></td></tr>
+</table>
+
 ## پوسته «استاندارد (Design System)»
 
 بر اساس Design System فیگما با پیش‌تنظیم «ایندیگو». فونت‌های گوگل در محیط گرفتن عکس بارگذاری نشده‌اند، پس متن با فونت سیستم دیده می‌شود.

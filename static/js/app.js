@@ -3,7 +3,27 @@
   const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
   const toggle = (el, on) => el && (on ? el.setAttribute("data-open", "") : el.removeAttribute("data-open"));
 
+  function currentMode(btn) {
+    const html = document.documentElement;
+    if (html.dataset.mode) return html.dataset.mode;
+    const system = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    if (btn.dataset.default === "system") return system === btn.dataset.alt && system !== btn.dataset.main ? "alt" : "main";
+    return btn.dataset.default;
+  }
+  function setMode(btn, mode) {
+    const html = document.documentElement;
+    html.dataset.mode = mode;
+    html.dataset.scheme = btn.dataset[mode];
+    btn.setAttribute("aria-pressed", mode === "alt" ? "true" : "false");
+  }
+
   function init(root = document) {
+    // حالت «مطابق دستگاه»: آیکون دکمه را با حالت فعلی هماهنگ کن (رنگ‌ها را media query عوض کرده است)
+    const modeBtn = root.querySelector?.("[data-mode-toggle]");
+    if (modeBtn && !document.documentElement.dataset.mode) {
+      document.documentElement.dataset.scheme = modeBtn.dataset[currentMode(modeBtn)];
+    }
+
     // اسلایدر محصولات (در حالت RTL، حرکت به جلو یعنی اسکرول به سمت چپ)
     $$("[data-carousel]", root).forEach((c) => {
       if (c.dataset.ready) return;
@@ -52,6 +72,15 @@
 
   document.addEventListener("click", (e) => {
     const t = e.target;
+
+    // حالت شب و روز: انتخاب بازدیدکننده در کوکی (سرور هم آن را می‌خواند تا صفحه بعدی بدون پرش رنگ باز شود)
+    const modeBtn = t.closest("[data-mode-toggle]");
+    if (modeBtn) {
+      const next = currentMode(modeBtn) === "alt" ? "main" : "alt";
+      setMode(modeBtn, next);
+      document.cookie = `${modeBtn.dataset.cookie}=${next};path=/;max-age=31536000;samesite=lax`;
+      return;
+    }
 
     // دکمه «بازگشت» صفحه‌های خطا
     if (t.closest("[data-history-back]")) { history.length > 1 ? history.back() : location.assign("/"); return; }

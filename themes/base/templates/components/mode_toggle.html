@@ -1,0 +1,7 @@
+{% load i18n %}{% if mode.toggle %}
+<button type="button" class="icon-btn mode-toggle" data-mode-toggle data-main="{{ mode.main }}" data-alt="{{ mode.alt }}"
+        data-default="{{ mode.default }}" data-cookie="{{ cookie }}"
+        aria-label="{% translate "تغییر حالت شب و روز" %}" title="{% translate "حالت شب / روز" %}">
+  <span class="mode-icon-sun">{% icon "sun" %}</span><span class="mode-icon-moon">{% icon "moon" %}</span>
+</button>
+{% endif %}

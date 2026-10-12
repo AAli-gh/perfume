@@ -97,6 +97,7 @@ TOKEN_AREAS = [
     ("colors", "رنگ‌ها"),
     ("typography,radius,spacing", "فونت، اندازه و فاصله"),
     ("components", "سبک اجزا"),
+    ("mode,colors_alt", "شب و روز"),
 ]
 BRANDING_HEADER_KEYS = {"logo_height", "monogram"}
 

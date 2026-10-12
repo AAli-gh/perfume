@@ -186,3 +186,50 @@ def test_switching_to_design_system_theme(client, store):
     html = client.get("/").content.decode()
     assert 'data-ui="system"' in html and 'data-button="solid"' in html
     assert "--color-primary:78 97 246" in html and "family=Inter:" in html
+
+
+# ---------- حالت شب و روز ----------
+
+def test_alt_palette_is_the_opposite_scheme_and_readable():
+    assert T.scheme_of(T.DEFAULT_TOKENS["colors"]) == "dark" and T.scheme_of(T.DEFAULT_TOKENS["colors_alt"]) == "light"
+    day = T.DAY_COLORS
+    assert set(day) == set(T.COLORS)
+    assert _contrast(day["text"], day["background"]) >= 4.5 and _contrast(day["text-strong"], day["background"]) >= 4.5
+    assert _contrast(day["button-text"], day["button-to"]) >= 4.5 and _contrast(day["muted"], day["background"]) >= 3.0
+    light = read_manifest("luxury")["presets"][4]["tokens"]  # مینیمال روشن ← حالت دوم «شب» با رنگ‌های طلایی
+    assert T.merge(light)["colors_alt"]["background"] == T.COLORS["background"][0]
+
+
+def test_alt_overrides_and_mode_validation():
+    merged = T.merge({"colors_alt": {"background": "#ffffff"}})
+    assert merged["colors_alt"]["background"] == "#ffffff" and merged["colors_alt"]["text"] == T.DAY_COLORS["text"]
+    for bad in ({"colors_alt": {"background": "white"}}, {"colors_alt": {"nope": "#000000"}},
+                {"mode": {"default": "night"}}, {"mode": {"toggle": "yes"}}, {"mode": {"x": 1}}):
+        with pytest.raises(ValidationError):
+            T.validate(bad, partial=True)
+
+
+def test_mode_css_and_initial_mode():
+    css = T.to_css({})
+    assert 'html[data-mode="alt"]{--color-background:250 246 241' in css and "prefers-color-scheme" not in css
+    assert "color-scheme:dark" in css and "color-scheme:light" in css
+    system = {"mode": {"default": "system"}}
+    assert "@media (prefers-color-scheme:light){html:not([data-mode]){" in T.to_css(system)
+    assert 'data-mode="alt"' not in T.to_css({"mode": {"toggle": False}})
+    assert T.initial_mode({}, None) == "main" and T.initial_mode({}, "alt") == "alt"
+    assert T.initial_mode({}, "evil\"") == "main"
+    assert T.initial_mode(system, None) == "" and T.initial_mode(system, "main") == "main"
+    assert T.initial_mode({"mode": {"toggle": False, "default": "alt"}}, "main") == "alt"  # بدون دکمه، کوکی بی‌اثر
+
+
+@pytest.mark.django_db
+def test_page_renders_mode_from_cookie_and_toggle(client, store):
+    html = client.get("/").content.decode()
+    assert 'data-mode="main" data-scheme="dark"' in html and "data-mode-toggle" in html
+    client.cookies[T.MODE_COOKIE] = "alt"
+    assert 'data-mode="alt" data-scheme="light"' in client.get("/").content.decode()
+    ts = ThemeSettings.objects.get(store=store, status="published")
+    ts.overrides = {"mode": {"toggle": False}}
+    ts.save()
+    html = client.get("/").content.decode()
+    assert "data-mode-toggle" not in html and 'data-mode="main"' in html

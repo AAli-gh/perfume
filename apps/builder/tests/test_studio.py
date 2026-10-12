@@ -424,3 +424,24 @@ def test_broken_stored_chrome_falls_back_to_defaults(client, store):
     r = client.get("/")
     body = r.content.decode()
     assert r.status_code == 200 and "javascript:alert" not in body and "کالکشن‌ها" in body
+
+
+def test_mode_panel_saves_to_draft_and_shows_as_change(client, store):
+    from apps.builder import services as builder
+    from apps.themes import tokens as T
+
+    client.force_login(make_user("dn@example.com", superuser=True))
+    url = reverse("builder:theme_panel", args=["mode"])
+    page = client.get(url)
+    assert page.status_code == 200 and "رنگ‌های حالت روز" in page.content.decode()
+    data = {"toggle": "on", "default": "system"}
+    data.update({f"alt__{name}": value for name, value in T.DAY_COLORS.items()})
+    data["alt__background"] = "#FFF8EE"
+    assert client.post(url, data).status_code == 302
+    assert "شب و روز" in builder.pending_changes(store)
+    draft = builder.theme_services.editable_settings(store)
+    assert draft.overrides["mode"] == {"default": "system"} and draft.overrides["colors_alt"] == {"background": "#fff8ee"}
+    assert client.post(url, {**data, "alt__primary": "red"}).status_code == 200  # رنگ نامعتبر
+    client.post(url, {"action": "reset"})
+    draft.refresh_from_db()
+    assert "mode" not in draft.overrides and "colors_alt" not in draft.overrides

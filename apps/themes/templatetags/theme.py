@@ -69,5 +69,19 @@ def theme_head(context):
 
 @register.simple_tag(takes_context=True)
 def theme_attrs(context):
-    """data-button="gradient" data-card="…" … روی تگ <html>."""
-    return mark_safe(T.component_attrs(page_tokens(context)))
+    """data-button="gradient" data-card="…" … و حالت شب/روز (data-mode، data-scheme) روی تگ <html>."""
+    tokens = page_tokens(context)
+    request = context.get("request")
+    mode = T.initial_mode(tokens, request.COOKIES.get(T.MODE_COOKIE) if request is not None else None)
+    attrs = T.component_attrs(tokens)
+    if mode:
+        info = T.mode_info(tokens)
+        attrs += format_html(' data-mode="{}" data-scheme="{}"', mode, info[mode])
+    return mark_safe(attrs)
+
+
+@register.inclusion_tag("components/mode_toggle.html", takes_context=True)
+def mode_toggle(context):
+    """دکمه شب/روز هدر (اگر در استودیو روشن باشد)."""
+    info = T.mode_info(page_tokens(context))
+    return {"mode": info, "cookie": T.MODE_COOKIE}

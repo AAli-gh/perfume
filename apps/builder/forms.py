@@ -79,6 +79,55 @@ class ColorsForm(StudioFormMixin, forms.Form):
         return {color_field_name(name): value for name, value in tokens["colors"].items()}
 
 
+SCHEME_LABELS = {"dark": "حالت شب", "light": "حالت روز"}
+
+
+class ModeForm(StudioFormMixin, forms.Form):
+    """حالت شب و روز: نمایش دکمه، حالت پیش‌فرض و رنگ‌های حالت دوم (مقابل پالت اصلی پوسته)."""
+
+    toggle = forms.BooleanField(label="نمایش دکمه شب/روز در هدر سایت", required=False)
+    default = forms.ChoiceField(label="حالت پیش‌فرض برای بازدیدکننده تازه")
+
+    def __init__(self, *args, main_scheme="dark", **kwargs):
+        super().__init__(*args, **kwargs)
+        alt_scheme = "light" if main_scheme == "dark" else "dark"
+        self.main_label, self.alt_label = SCHEME_LABELS[main_scheme], SCHEME_LABELS[alt_scheme]
+        self.fields["default"].choices = [
+            ("main", f"{self.main_label} (رنگ‌های اصلی پوسته)"), ("alt", self.alt_label),
+            ("system", "مطابق تنظیم دستگاه بازدیدکننده"),
+        ]
+        for name, (_default, label, _group) in T.COLORS.items():
+            self.fields[alt_field_name(name)] = forms.RegexField(
+                regex=T.HEX, label=label, max_length=7, error_messages={"invalid": "رنگ باید به شکل #RRGGBB باشد"},
+                widget=forms.TextInput(attrs={"type": "color", "class": "color-input"}),
+            )
+
+    @staticmethod
+    def form_kwargs(tokens):
+        return {"main_scheme": T.scheme_of(tokens["colors"])}
+
+    def color_groups(self):
+        out = {}
+        for name, (_default, _label, group) in T.COLORS.items():
+            out.setdefault(group, []).append(self[alt_field_name(name)])
+        return list(out.items())
+
+    def to_tokens(self):
+        data = self.cleaned_data
+        return {"mode": {"toggle": data["toggle"], "default": data["default"]},
+                "colors_alt": {name: data[alt_field_name(name)].lower() for name in T.COLORS}}
+
+    @staticmethod
+    def initial_from(tokens):
+        initial = {"toggle": tokens["mode"]["toggle"], "default": tokens["mode"]["default"]}
+        initial.update({alt_field_name(name): value for name, value in tokens["colors_alt"].items()})
+        return initial
+
+
+def alt_field_name(name):
+    return f"alt__{name}"
+
+
 class TypographyForm(StudioFormMixin, forms.Form):
     font_display = forms.ChoiceField(label="فونت تیترها", choices=[(f, f) for f in T.FONTS])
     font_body = forms.ChoiceField(label="فونت متن", choices=[(f, f) for f in T.FONTS])

@@ -46,6 +46,12 @@
   .btn-lg { @apply px-10 py-3 text-lg; }
   .btn-ghost { @apply border-line-strong text-gold-soft hover:bg-copper/10; background: transparent; box-shadow: none; }
 
+  /* دکمه شب/روز: در حالت تیره خورشید (رفتن به روز) و در حالت روشن ماه نمایش داده می‌شود */
+  .mode-toggle .mode-icon-moon, .mode-toggle .mode-icon-sun { display: none; }
+  [data-scheme="dark"] .mode-toggle .mode-icon-sun, [data-scheme="light"] .mode-toggle .mode-icon-moon { display: inline-grid; }
+  html:not([data-scheme]) .mode-toggle .mode-icon-sun { display: inline-grid; }
+  html { transition: background-color .25s ease; }
+
   /* منوی مدیریت در هدر (فقط کارکنان) */
   .staff-menu > summary { list-style: none; }
   .staff-menu > summary::-webkit-details-marker { display: none; }

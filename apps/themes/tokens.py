@@ -51,6 +51,34 @@ COLORS = {
     "glow-3": ("#6e3719", "درخشش پس‌زمینه ۳", "جلوه"),
 }
 
+# ---------- حالت شب و روز ----------
+# پالت اصلی (colors) هر پوسته یک حالت است و colors_alt حالت مقابل آن. اگر پالت اصلی تیره باشد، حالت دوم «روز»
+# است و پیش‌فرضش DAY_COLORS؛ اگر روشن باشد، حالت دوم «شب» است و پیش‌فرضش رنگ‌های «طلایی لوکس».
+DAY_COLORS = {
+    "background": "#faf6f1", "background-2": "#f3ece4", "surface": "#ffffff", "panel": "#ffffff",
+    "media": "#efe7de", "hero": "#f4ece3", "overlay": "#faf6f1", "footer": "#f1e9e0", "input": "#ffffff",
+    "primary": "#b0683a", "primary-dark": "#8a4119", "accent": "#7a4524", "accent-soft": "#93532b",
+    "text-strong": "#2b1d17", "text": "#4a3a33", "muted": "#7d6a60", "placeholder": "#a8968c", "price": "#5a3a2e",
+    "border": "#b08b78", "success": "#4f8a3c", "danger": "#b4483a",
+    "button-from": "#b8673a", "button-to": "#8a4119", "button-border": "#8a4119", "button-text": "#ffffff",
+    "button-text-hover": "#ffffff", "button-highlight": "#ffe2c9", "card-from": "#ffffff", "card-to": "#f6efe8",
+    "glow-1": "#e8c9b8", "glow-2": "#f0d9cc", "glow-3": "#e6d3c3",
+}
+MODE_DEFAULTS = ("main", "alt", "system")  # حالت پیش‌فرض بازدیدکننده تازه: پالت اصلی / حالت دوم / مطابق دستگاه
+MODE_COOKIE = "majd_mode"
+
+
+def _luminance(hex_color):
+    channels = [int(hex_color[i:i + 2], 16) / 255 for i in (1, 3, 5)]
+    channels = [c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4 for c in channels]
+    return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2]
+
+
+def scheme_of(colors):
+    """dark یا light بر اساس روشنایی پس‌زمینه."""
+    return "dark" if _luminance(colors["background"]) < 0.4 else "light"
+
+
 # ---------- فونت‌ها (فقط از این فهرست؛ نام فونت مستقیماً وارد CSS و URL می‌شود) ----------
 FONTS = {
     "Vazirmatn": {"google": "Vazirmatn:wght@300;400;500;700", "stack": '"Vazirmatn", Tahoma, sans-serif'},
@@ -94,22 +122,29 @@ def _defaults():
         "radius": {"sm": 2, "base": 4, "lg": 8},
         "spacing": {"section": 70},
         "components": {k: v[0] for k, v in COMPONENTS.items()},
+        "colors_alt": {},  # فقط رنگ‌های تغییرکرده؛ بقیه از پالت مقابل (merge کامل می‌کند)
+        "mode": {"toggle": True, "default": "main"},
     }
 
 
-DEFAULT_TOKENS = _defaults()
+_RAW_DEFAULTS = _defaults()
 
 
 def merge(*layers):
-    """ترکیب عمیق لایه‌های توکن (لایه بعدی برنده است)."""
-    result = copy.deepcopy(DEFAULT_TOKENS)
+    """ترکیب عمیق لایه‌های توکن (لایه بعدی برنده است). colors_alt در پایان با پالت مقابل کامل می‌شود."""
+    result = copy.deepcopy(_RAW_DEFAULTS)
     for layer in layers:
         for group, values in (layer or {}).items():
             if isinstance(values, dict) and isinstance(result.get(group), dict):
                 result[group].update(values)
             else:
                 result[group] = values
+    counterpart = DAY_COLORS if scheme_of(result["colors"]) == "dark" else _RAW_DEFAULTS["colors"]
+    result["colors_alt"] = {**counterpart, **result["colors_alt"]}
     return result
+
+
+DEFAULT_TOKENS = merge()
 
 
 def validate(tokens, *, partial=False):
@@ -133,6 +168,34 @@ def validate(tokens, *, partial=False):
                 errors[f"colors.{name}"] = "رنگ باید به شکل #RRGGBB باشد"
             else:
                 clean["colors"][name] = value.lower()
+
+    alt = tokens.get("colors_alt", {})
+    if alt:
+        clean["colors_alt"] = {}
+        for name, value in alt.items():
+            if name not in COLORS:
+                errors[f"colors_alt.{name}"] = "رنگ ناشناخته"
+            elif not isinstance(value, str) or not HEX.match(value):
+                errors[f"colors_alt.{name}"] = "رنگ باید به شکل #RRGGBB باشد"
+            else:
+                clean["colors_alt"][name] = value.lower()
+
+    mode = tokens.get("mode", {})
+    if mode:
+        clean["mode"] = {}
+        if "toggle" in mode:
+            if not isinstance(mode["toggle"], bool):
+                errors["mode.toggle"] = "باید true یا false باشد"
+            else:
+                clean["mode"]["toggle"] = mode["toggle"]
+        if "default" in mode:
+            if mode["default"] not in MODE_DEFAULTS:
+                errors["mode.default"] = f"یکی از: {', '.join(MODE_DEFAULTS)}"
+            else:
+                clean["mode"]["default"] = mode["default"]
+        unknown = set(mode) - {"toggle", "default"}
+        if unknown:
+            errors["mode"] = f"کلید ناشناخته: {', '.join(sorted(map(str, unknown)))}"
 
     typo = tokens.get("typography", {})
     if typo:
@@ -187,10 +250,18 @@ def _rgb(hex_color):
     return f"{int(h[0:2], 16)} {int(h[2:4], 16)} {int(h[4:6], 16)}"
 
 
+def _color_vars(colors):
+    return [f"--color-{name}:{_rgb(value)}" for name, value in colors.items()] + [f"color-scheme:{scheme_of(colors)}"]
+
+
 def to_css(tokens):
-    """:root { --color-primary: 196 122 69; … } — رنگ‌ها به‌صورت کانال RGB تا Tailwind بتواند شفافیت (/20) اعمال کند."""
+    """:root { --color-primary: 196 122 69; … } — رنگ‌ها به‌صورت کانال RGB تا Tailwind بتواند شفافیت (/20) اعمال کند.
+
+    حالت شب/روز: html[data-mode="alt"] پالت دوم را جایگزین می‌کند (انتخاب بازدیدکننده در کوکی). اگر پیش‌فرض
+    «مطابق دستگاه» باشد، تا وقتی بازدیدکننده انتخابی نکرده (بدون data-mode) media query تصمیم می‌گیرد.
+    """
     t = merge(validate(tokens, partial=True))
-    lines = [f"--color-{name}:{_rgb(value)}" for name, value in t["colors"].items()]
+    lines = _color_vars(t["colors"])
     lines += [
         f"--font-body:{FONTS[t['typography']['font_body']]['stack']}",
         f"--font-display:{FONTS[t['typography']['font_display']]['stack']}",
@@ -200,7 +271,31 @@ def to_css(tokens):
         f"--radius-lg:{t['radius']['lg']}px",
         f"--space-section:{t['spacing']['section']}px",
     ]
-    return ":root{" + ";".join(lines) + "}"
+    css = ":root{" + ";".join(lines) + "}"
+    mode = t["mode"]
+    if mode["toggle"] or mode["default"] != "main":
+        alt = ";".join(_color_vars(t["colors_alt"]))
+        css += 'html[data-mode="alt"]{' + alt + "}"
+        if mode["default"] == "system" and mode["toggle"]:
+            css += f"@media (prefers-color-scheme:{scheme_of(t['colors_alt'])}){{html:not([data-mode]){{{alt}}}}}"
+    return css
+
+
+def mode_info(tokens):
+    """برای قالب‌ها: حالت اصلی/دوم (dark|light)، پیش‌فرض و نمایش دکمه."""
+    t = merge(validate(tokens, partial=True))
+    return {"main": scheme_of(t["colors"]), "alt": scheme_of(t["colors_alt"]), "default": t["mode"]["default"],
+            "toggle": t["mode"]["toggle"]}
+
+
+def initial_mode(tokens, cookie_value):
+    """data-mode روی <html>: انتخاب بازدیدکننده (کوکی)، وگرنه پیش‌فرض؛ برای «مطابق دستگاه» خالی (media query)."""
+    info = mode_info(tokens)
+    if info["toggle"] and cookie_value in ("main", "alt"):
+        return cookie_value
+    if info["default"] == "system":
+        return "" if info["toggle"] else "main"
+    return info["default"]
 
 
 def component_attrs(tokens):

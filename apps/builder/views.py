@@ -50,6 +50,7 @@ PANELS = [
     ("colors", "رنگ‌ها", "flame"),
     ("typography", "فونت، اندازه و فاصله", "list"),
     ("components", "سبک اجزا", "grid"),
+    ("mode", "شب و روز", "moon"),
     ("branding", "لوگو و فاوآیکون", "crown"),
     ("header", "هدر و منو", "menu"),
     ("footer", "فوتر", "pin"),
@@ -58,6 +59,7 @@ TOKEN_PANELS = {
     "colors": (F.ColorsForm, ["colors"]),
     "typography": (F.TypographyForm, ["typography", "radius", "spacing"]),
     "components": (F.ComponentsForm, ["components"]),
+    "mode": (F.ModeForm, ["mode", "colors_alt"]),
 }
 SWATCHES = ["background", "panel", "primary", "accent", "text"]
 
@@ -119,13 +121,14 @@ def theme_editor(request, panel="preset"):
 
     elif panel in TOKEN_PANELS:
         form_class, groups = TOKEN_PANELS[panel]
-        form = form_class(initial=form_class.initial_from(tokens))
+        form_kwargs = form_class.form_kwargs(tokens) if hasattr(form_class, "form_kwargs") else {}
+        form = form_class(initial=form_class.initial_from(tokens), **form_kwargs)
         if request.method == "POST":
             if request.POST.get("action") == "reset":
                 theme_services.reset_tokens(ts, groups)
                 messages.success(request, "مقادیر این بخش به پیش‌تنظیم برگشت.")
                 return redirect(here)
-            form = form_class(request.POST)
+            form = form_class(request.POST, **form_kwargs)
             if form.is_valid():
                 theme_services.save_tokens(ts, form.to_tokens())
                 messages.success(request, SAVED)
