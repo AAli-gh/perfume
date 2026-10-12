@@ -26,6 +26,10 @@ CSRF_TRUSTED_ORIGINS=https://$HOST
 DATABASE_URL=sqlite:///$DATA/db.sqlite3
 ENV
 fi
+# آدرس مخفی و تصادفی پنل مدیریت (یک بار ساخته می‌شود و در استقرارهای بعدی ثابت می‌ماند)
+if ! grep -q '^ADMIN_URL=' "$DATA/.env"; then
+  echo "ADMIN_URL=manage-$("$VENV/bin/python" -c 'import secrets; print(secrets.token_hex(6))')/" >> "$DATA/.env"
+fi
 ln -sfn "$DATA/.env" "$APP.new/.env"
 ln -sfn "$DATA/media" "$APP.new/media"
 

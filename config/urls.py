@@ -25,5 +25,7 @@ urlpatterns = [
     path("blog/", include("apps.blog.urls")),
 ]
 
+handler400 = "apps.core.errors.bad_request"
+
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

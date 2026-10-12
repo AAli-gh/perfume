@@ -1,0 +1,5 @@
+{% extends "errors/page.html" %}
+{% load i18n majd %}
+{% block seo %}{% with error_title=_("اجازه دسترسی به این صفحه را ندارید") %}{{ block.super }}{% endwith %}{% endblock %}
+{% block content %}{% with error_code=403 error_title=_("اجازه دسترسی به این صفحه را ندارید") error_message=_("این بخش فقط برای افراد مجاز باز است. اگر فکر می‌کنید باید به آن دسترسی داشته باشید، با حساب درست وارد شوید یا با ما تماس بگیرید.") %}{{ block.super }}{% endwith %}{% endblock %}
+{% block error_actions %}{{ block.super }}{% if not user.is_authenticated %}<a class="btn btn-ghost btn-lg" href="{% url 'accounts:login' %}?next={{ request.path|urlencode }}">{% translate "ورود به حساب" %}</a>{% endif %}{% endblock %}

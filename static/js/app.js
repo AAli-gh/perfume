@@ -53,6 +53,12 @@
   document.addEventListener("click", (e) => {
     const t = e.target;
 
+    // دکمه «بازگشت» صفحه‌های خطا
+    if (t.closest("[data-history-back]")) { history.length > 1 ? history.back() : location.assign("/"); return; }
+
+    // منوی مدیریت کارکنان: کلیک بیرون از آن، منو را می‌بندد
+    $$("[data-staff-menu][open]").forEach((menu) => { if (!menu.contains(t)) menu.removeAttribute("open"); });
+
     // منوی موبایل
     const menuBtn = t.closest("[data-menu-toggle]");
     if (menuBtn) {
@@ -110,7 +116,10 @@
   });
 
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") $$("[data-open]").forEach((el) => toggle(el, false));
+    if (e.key === "Escape") {
+      $$("[data-open]").forEach((el) => toggle(el, false));
+      $$("[data-staff-menu][open]").forEach((menu) => menu.removeAttribute("open"));
+    }
   });
 
   // قیمت متناسب با حجم انتخاب‌شده

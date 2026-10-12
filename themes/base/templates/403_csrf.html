@@ -1,0 +1,5 @@
+{% extends "errors/page.html" %}
+{% load i18n majd %}
+{% block seo %}{% with error_title=_("نشست فرم منقضی شده است") %}{{ block.super }}{% endwith %}{% endblock %}
+{% block content %}{% with error_code=403 error_title=_("نشست فرم منقضی شده است") error_message=_("برای امنیت شما، فرم‌ها پس از مدتی یا با پاک شدن کوکی‌ها نامعتبر می‌شوند. صفحه را تازه کنید و دوباره تلاش کنید؛ اطلاعاتی از شما ثبت نشده است.") %}{{ block.super }}{% endwith %}{% endblock %}
+{% block error_actions %}<button class="btn btn-lg" type="button" data-history-back>{% translate "بازگشت و تلاش دوباره" %}</button><a class="btn btn-ghost btn-lg" href="{% url 'pages:home' %}">{% translate "صفحه اصلی" %}</a>{% endblock %}

@@ -79,14 +79,15 @@ def publish(admin_client):
 
 # ---------- دسترسی ----------
 
-def test_anonymous_redirected_to_login(client, store):
+def test_anonymous_gets_not_found(client, store):
+    """استودیو برای مهمان مثل آدرس ناموجود است (لو نمی‌رود)."""
     r = client.get(reverse("builder:dashboard"))
-    assert r.status_code == 302 and reverse("accounts:login") in r["Location"]
+    assert r.status_code == 404 and "صفحه‌ای که دنبالش بودید پیدا نشد" in r.content.decode()
 
 
-def test_customer_forbidden(client, store):
+def test_customer_gets_not_found(client, store):
     client.force_login(make_user("c@example.com", staff=False))
-    assert client.get(reverse("builder:dashboard")).status_code == 403
+    assert client.get(reverse("builder:dashboard")).status_code == 404
 
 
 def test_staff_without_permissions_forbidden(client, store):

@@ -1,0 +1,6 @@
+<svg viewBox="0 0 200 260" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+  <rect x="82" y="18" width="36" height="22" rx="3"/><path d="M88 40v14h24V40"/>
+  <path d="M74 54h52l22 30v138a18 18 0 0 1-18 18H70a18 18 0 0 1-18-18V84z"/>
+  <path d="M64 112h72M64 196h72" opacity=".45"/><path d="M78 140c10-12 34-12 44 0s-10 30-22 30-32-18-22-30z" opacity=".7"/>
+  <path d="M150 40c8 4 12 12 10 20M164 26c12 8 18 22 14 36M40 30c-8 6-10 16-6 24" opacity=".4"/>
+</svg>

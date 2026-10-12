@@ -46,6 +46,17 @@
   .btn-lg { @apply px-10 py-3 text-lg; }
   .btn-ghost { @apply border-line-strong text-gold-soft hover:bg-copper/10; background: transparent; box-shadow: none; }
 
+  /* منوی مدیریت در هدر (فقط کارکنان) */
+  .staff-menu > summary { list-style: none; }
+  .staff-menu > summary::-webkit-details-marker { display: none; }
+  .staff-menu-btn { @apply me-1 inline-flex h-10 cursor-pointer select-none items-center gap-1.5 rounded-full border border-line-strong px-3 text-sm text-gold transition hover:border-copper hover:bg-copper/10; }
+  .staff-menu[open] .staff-menu-btn { @apply border-copper bg-copper/15; }
+  .staff-menu-panel { @apply absolute end-0 top-[calc(100%+10px)] z-[60] grid w-[260px] gap-1 rounded border border-line-strong bg-surface p-2 shadow-luxe; }
+  .staff-menu-panel a { @apply flex items-start gap-3 rounded px-3 py-2.5 text-body hover:bg-copper/10 hover:text-gold; }
+  .staff-menu-panel b { @apply block text-[.95rem] font-medium text-cream; }
+  .staff-menu-panel small { @apply block text-xs text-muted; }
+  .staff-menu-panel .icon { @apply mt-1 text-copper; }
+
   .icon-btn { @apply relative inline-grid h-10 w-10 place-items-center rounded-full text-body transition hover:bg-copper/10 hover:text-gold; }
 
   .nav-link { @apply relative block border-b border-line px-1 py-3.5 text-[1.05rem] text-body hover:text-gold lg:border-0 lg:px-0 lg:py-1.5 lg:text-[.95rem]; }
@@ -169,6 +180,15 @@
 
   /* نقشه */
   .map-sepia { filter: sepia(.75) hue-rotate(-12deg) saturate(1.3) brightness(.62) contrast(1.1); }
+
+  /* صفحه‌های خطا (errors/page.html) */
+  .error-page { @apply relative min-h-[calc(100vh-72px)] overflow-hidden border-b border-line; background: radial-gradient(ellipse at 80% 20%, rgb(var(--color-glow-1) / .22), transparent 55%), radial-gradient(ellipse at 10% 90%, rgb(var(--color-glow-2) / .16), transparent 50%); }
+  .error-ghost { @apply pointer-events-none absolute -bottom-10 start-[-2vw] select-none font-display text-[clamp(10rem,32vw,26rem)] leading-none opacity-[.05]; color: rgb(var(--color-accent)); }
+  .error-eyebrow { @apply mb-3 inline-flex items-center gap-2 rounded-full border border-line-strong px-3.5 py-1 text-sm text-gold-soft; }
+  .error-eyebrow .icon { @apply h-4 w-4 text-copper; }
+  .error-art { @apply relative grid aspect-square place-items-center rounded-full border border-line text-copper; background: radial-gradient(circle, rgb(var(--color-primary) / .12), transparent 65%); }
+  .error-art svg { @apply h-[62%] w-auto opacity-80; }
+  .error-code { @apply absolute bottom-[14%] rounded-full border border-line-strong bg-ink/80 px-4 py-0.5 font-display text-2xl text-gold backdrop-blur; }
 
   /* اعلان */
   .toast { @apply flex items-center gap-3 rounded border border-line-strong border-s-[3px] border-s-copper bg-ink-3 px-4 py-3 text-[.92rem] text-cream shadow-luxe; animation: toast-in .3s ease; }

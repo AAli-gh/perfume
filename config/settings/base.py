@@ -69,6 +69,8 @@ MIDDLEWARE = [
     "apps.notifications.staff_2fa.StaffTwoFactorMiddleware",  # ورود دومرحله‌ای کارکنان (اگر روشن باشد)
     "apps.builder.preview.PreviewMiddleware",  # حالت پیش‌نمایش پیش‌نویس (قبل از ThemeMiddleware)
     "apps.themes.runtime.ThemeMiddleware",
+    "apps.core.backoffice.HideBackofficeMiddleware",  # پنل مدیریت و استودیو برای غیرکارکنان ۴۰۴ است
+    "apps.core.errors.ErrorPageMiddleware",  # صفحه ۴۰۵ با طرح سایت
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django_htmx.middleware.HtmxMiddleware",
 ]
@@ -191,6 +193,7 @@ CSP_UPGRADE_INSECURE = False
 CSP_EXTRA_SOURCES = {}
 # آدرس پنل مدیریت Django (تغییر آن از حملات خودکار به /admin/ جلوگیری می‌کند)
 ADMIN_URL = env("ADMIN_URL", default="admin/")
+CSRF_FAILURE_VIEW = "apps.core.errors.csrf_failure"
 # نشست کارکنان کوتاه‌تر از مشتریان (سبد خرید مشتری ۳۰ روز می‌ماند)
 STAFF_SESSION_AGE = env.int("STAFF_SESSION_AGE", default=60 * 60 * 12)
 # تعداد پراکسی‌های مطمئن جلوی برنامه (nginx) برای تشخیص IP واقعی از X-Forwarded-For

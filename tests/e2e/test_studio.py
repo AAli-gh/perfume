@@ -112,5 +112,6 @@ def test_section_editor_with_repeater_and_device_preview(site, page, staff_crede
 
 
 def test_studio_requires_staff(site, page):
-    page.goto(f"{site}/studio/")
-    page.wait_for_url("**/account/login/?next=/studio/")
+    response = page.goto(f"{site}/studio/")
+    assert response.status == 404  # استودیو برای مهمان پنهان است
+    expect(page.locator("h1")).to_contain_text("پیدا نشد")

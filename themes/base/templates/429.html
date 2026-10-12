@@ -1,11 +1,5 @@
-{% extends "base.html" %}
-{% load seo i18n %}
-{% block seo %}{% translate "درخواست‌های زیاد" as too_many %}{% seo_head title=too_many noindex=True %}{% endblock %}
-{% block content %}
-<section class="container grid place-items-center py-24 text-center">
-  <p class="font-display text-[4rem] leading-none text-gold">{{ 429|fa }}</p>
-  <h1 class="mb-3 mt-4 text-[1.6rem]">{% translate "تعداد درخواست‌ها بیش از حد مجاز است" %}</h1>
-  <p class="mb-8 max-w-[520px] text-muted">{% translate "برای امنیت حساب‌ها، لطفاً کمی صبر کنید و دوباره تلاش کنید." %}</p>
-  <a class="btn" href="{% url 'pages:home' %}">{% translate "بازگشت به صفحه اصلی" %}</a>
-</section>
-{% endblock %}
+{% extends "errors/page.html" %}
+{% load i18n majd %}
+{% block seo %}{% with error_title=_("تعداد درخواست‌ها بیش از حد مجاز است") %}{{ block.super }}{% endwith %}{% endblock %}
+{% block content %}{% with error_code=429 error_title=_("تعداد درخواست‌ها بیش از حد مجاز است") error_message=_("برای امنیت حساب‌ها، تعداد تلاش‌ها محدود است. لطفاً چند دقیقه صبر کنید و دوباره تلاش کنید.") %}{{ block.super }}{% endwith %}{% endblock %}
+
