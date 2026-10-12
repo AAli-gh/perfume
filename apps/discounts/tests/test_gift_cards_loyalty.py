@@ -182,3 +182,18 @@ def test_card_spent_between_quote_and_checkout_blocks_order(client, store, club,
     assert any("کارت هدیه" in str(m) for m in response.wsgi_request._messages)
     card.refresh_from_db()
     assert card.balance == 0 and not card.transactions.filter(amount__lt=0).exists()
+
+
+def test_studio_gift_card_search_toggle_and_invalid_form(client, store):
+    staff = User.objects.create_user(email="gc2@example.com", password="x-Strong-123", is_staff=True)
+    staff.user_permissions.add(Permission.objects.get(codename="change_product"))
+    client.force_login(staff)
+    card = credits.issue_card(store, 200_000)
+    credits.issue_card(store, 300_000)
+    page = client.get(reverse("builder:gift_cards"), {"s": credits.format_code(card.code).lower()})
+    assert [c.pk for c in page.context["page"]] == [card.pk] and page.context["outstanding"] == 500_000
+    assert client.post(reverse("builder:gift_cards"), {"amount": "5", "count": "1"}).status_code == 422
+    client.post(reverse("builder:gift_card_toggle", args=[card.pk]))
+    card.refresh_from_db()
+    assert not card.is_active
+    assert client.post(reverse("builder:gift_card_toggle", args=[999999])).status_code == 404

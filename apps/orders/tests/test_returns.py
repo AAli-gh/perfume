@@ -124,3 +124,33 @@ def test_studio_return_actions(client, order):
     assert (req.status, req.refund_amount) == (R.Status.REFUNDED, 7_200_000)
     assert ProductVariant.objects.get(pk=order["a"].pk).stock == 7
     assert client.get(reverse("builder:returns"), {"show": "all"}).status_code == 200
+
+
+def test_studio_return_errors_and_edge_cases(client, order):
+    user = get_user_model().objects.create_user(email="r2@example.com", password="x-Strong-123", is_staff=True)
+    for codename in ("view_order", "change_order"):
+        user.user_permissions.add(Permission.objects.get(codename=codename))
+    client.force_login(user)
+    o = order["order"]
+    adjust = reverse("builder:order_adjust", args=[o.pk])
+    assert client.get(adjust).status_code == 200
+    # علت انتخاب نشده
+    assert client.post(adjust, {f"qty-{order['ia'].pk}": "1", "reason": "nope"})["Location"] == adjust
+    # بدون کالا
+    assert client.post(adjust, {"reason": "wrong"})["Location"] == adjust
+    assert not ReturnRequest.objects.exists()
+    assert client.get(reverse("builder:order_adjust", args=[999999])).status_code == 404
+    client.post(adjust, {f"qty-{order['ia'].pk}": "1", "reason": "wrong"})
+    req = ReturnRequest.objects.get()
+    detail = reverse("builder:return", args=[req.pk])
+    assert client.post(detail, {"action": "bogus"}).status_code == 404
+    client.post(detail, {"action": "approve"})
+    client.post(detail, {"action": "receive"})
+    # روش بازپرداخت نامعتبر و مبلغ نامعتبر
+    assert client.post(detail, {"action": "refund", "amount": "100", "method": "cash?"})["Location"] == detail
+    assert client.post(detail, {"action": "refund", "amount": "abc", "method": "gateway"})["Location"] == detail
+    req.refresh_from_db()
+    assert req.refunded_at is None
+    # سفارش لغوشده ← امکان مرجوعی نیست
+    Order.objects.filter(pk=o.pk).update(status=S.CANCELLED)
+    assert client.get(adjust)["Location"] == reverse("builder:orders")

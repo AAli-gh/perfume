@@ -83,3 +83,12 @@ def test_reindex_tasks(store):
     Product.objects.filter(pk=product.pk).update(search_document="")
     reindex_store_task.delay(store.pk)
     assert Product.objects.get(pk=product.pk).search_document
+
+
+def test_reindex_search_command(store):
+    run("seed_demo")
+    assert "ایندکس جستجوی 16 محصول بازسازی شد" in run("reindex_search")
+
+
+def test_send_cart_reminders_command(store):
+    assert "یادآوری ارسال شد" in run("send_cart_reminders")
