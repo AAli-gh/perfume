@@ -1,0 +1,46 @@
+<div class="panel gift-panel min-w-0" id="gift-packaging">
+  <h3 class="panel-title">بسته‌بندی و هدیه</h3>
+  <div class="panel-body grid gap-4">
+    <fieldset class="grid gap-2">
+      <legend class="mb-2 text-[.95rem]">سفارش چطور ارسال شود؟</legend>
+      {% for radio in form.packaging %}
+        <label class="finder-option py-2.5 text-[.92rem]">{{ radio.tag }} <span class="flex-1">{{ radio.choice_label }}</span></label>
+      {% endfor %}
+      {% for e in form.packaging.errors %}<span class="field-error">{{ e }}</span>{% endfor %}
+    </fieldset>
+
+    <div class="grid gap-4" data-gift-details>
+      {% if form.cart_contents.boxes %}
+        <p class="alert" data-gift-boxes>باکس هدیه در سبد شما: {{ form.cart_contents.boxes|fa }} عدد با گنجایش {{ form.cart_contents.capacity|fa }} عطر{% if form.cart_contents.perfumes %} برای {{ form.cart_contents.perfumes|fa }} عطر سفارش{% endif %}.</p>
+      {% elif form.gift_box %}
+        <fieldset class="grid gap-2" data-gift-boxes>
+          <legend class="mb-2 text-[.95rem]">انتخاب باکس هدیه</legend>
+          {% for radio, variant in form.gift_box_options %}
+            <label class="gift-box-option text-[.92rem]">
+              {{ radio.tag }}
+              {% if variant %}
+                <img src="{{ variant.product.image.url }}" alt="" class="h-14 w-14 border border-line object-cover" loading="lazy">
+                <span class="flex-1 leading-normal">{{ variant.product.name }}<small class="block text-xs text-muted">گنجایش {{ variant.product.gift_capacity|fa }} عطر</small></span>
+                <span class="text-sm text-gold">{{ variant.current_price|toman }}</span>
+              {% else %}
+                <span class="flex-1">{{ radio.choice_label }}</span>
+              {% endif %}
+            </label>
+          {% endfor %}
+          {% for e in form.gift_box.errors %}<span class="field-error">{{ e }}</span>{% endfor %}
+          <a class="text-xs text-muted underline-offset-4 hover:text-gold hover:underline" href="{% url 'catalog:gift_boxes' %}">مشاهده جزئیات باکس‌ها</a>
+        </fieldset>
+      {% else %}
+        <p class="alert" data-gift-boxes>در حال حاضر باکس هدیه موجود نیست؛ می‌توانید با «توضیح می‌دهم» بسته‌بندی دلخواهتان را بنویسید.</p>
+      {% endif %}
+
+      <div data-gift-custom>{% include "components/field.html" with field=form.packaging_note %}</div>
+
+      <div class="grid gap-x-5 gap-y-4 sm:grid-cols-2">
+        {% include "components/field.html" with field=form.gift_message class="sm:col-span-2" %}
+        {% include "components/field.html" with field=form.gift_from %}
+        <label class="check self-end pb-2">{{ form.hide_prices }} {{ form.hide_prices.label }}</label>
+      </div>
+    </div>
+  </div>
+</div>

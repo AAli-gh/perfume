@@ -46,6 +46,17 @@
   .btn-lg { @apply px-10 py-3 text-lg; }
   .btn-ghost { @apply border-line-strong text-gold-soft hover:bg-copper/10; background: transparent; box-shadow: none; }
 
+  /* منوی مدیریت در هدر (فقط کارکنان) */
+  .staff-menu > summary { list-style: none; }
+  .staff-menu > summary::-webkit-details-marker { display: none; }
+  .staff-menu-btn { @apply me-1 inline-flex h-10 cursor-pointer select-none items-center gap-1.5 rounded-full border border-line-strong px-3 text-sm text-gold transition hover:border-copper hover:bg-copper/10; }
+  .staff-menu[open] .staff-menu-btn { @apply border-copper bg-copper/15; }
+  .staff-menu-panel { @apply absolute end-0 top-[calc(100%+10px)] z-[60] grid w-[260px] gap-1 rounded border border-line-strong bg-surface p-2 shadow-luxe; }
+  .staff-menu-panel a { @apply flex items-start gap-3 rounded px-3 py-2.5 text-body hover:bg-copper/10 hover:text-gold; }
+  .staff-menu-panel b { @apply block text-[.95rem] font-medium text-cream; }
+  .staff-menu-panel small { @apply block text-xs text-muted; }
+  .staff-menu-panel .icon { @apply mt-1 text-copper; }
+
   .icon-btn { @apply relative inline-grid h-10 w-10 place-items-center rounded-full text-body transition hover:bg-copper/10 hover:text-gold; }
 
   .nav-link { @apply relative block border-b border-line px-1 py-3.5 text-[1.05rem] text-body hover:text-gold lg:border-0 lg:px-0 lg:py-1.5 lg:text-[.95rem]; }
@@ -114,6 +125,11 @@
   .chip { @apply m-0.5 inline-block rounded-full border border-line px-2.5 py-0.5 text-xs text-body; }
   .chip-shared { @apply border-copper/60 text-gold; }
   .chip-strong { @apply border-copper bg-copper/15 text-gold; }
+  .smart-chip { @apply text-sm transition hover:border-danger/70; }
+  .smart-chip.is-negated { @apply border-danger/50 text-cream; }
+  .smart-chip.is-relaxed { @apply border-dashed text-muted line-through decoration-muted/60; }
+  .sale-badge { @apply rounded-full bg-danger/90 px-2 py-0.5 text-xs font-medium text-white; }
+  .search-example { @apply rounded-full border border-line px-3 py-1 text-sm text-muted transition hover:border-copper hover:text-gold; }
   .compare-table th, .compare-table td { @apply border-b border-line; }
   .compare-label { @apply sticky right-0 z-[1] w-40 min-w-[9rem] bg-panel p-3 text-start align-top text-sm font-normal text-muted; }
   .compare-cell { @apply min-w-[11rem] p-3 text-center align-top; }
@@ -123,6 +139,12 @@
   .best-badge { @apply mt-1 block text-[.7rem] font-medium text-success; }
   .finder-option { @apply flex cursor-pointer items-center gap-3 rounded border border-line bg-input/20 px-4 py-3 transition hover:border-line-strong has-[:checked]:border-copper has-[:checked]:bg-copper/10; }
   .finder-option:has(:focus-visible) { @apply outline outline-2 outline-copper; }
+  /* بسته‌بندی هدیه در تسویه: جزئیات فقط با انتخاب باکس/توضیح نمایش داده می‌شوند (بدون JavaScript) */
+  .gift-panel:has([name=packaging][value=none]:checked) [data-gift-details] { display: none; }
+  .gift-panel:not(:has([name=packaging][value=custom]:checked)) [data-gift-custom] { display: none; }
+  .gift-panel:has([name=packaging][value=custom]:checked) [data-gift-boxes] { display: none; }
+  .gift-box-option { @apply flex cursor-pointer items-center gap-3 rounded border border-line bg-input/20 p-2.5 transition hover:border-line-strong has-[:checked]:border-copper has-[:checked]:bg-copper/10; }
+  .gift-box-option:has(:focus-visible) { @apply outline outline-2 outline-copper; }
   .match-ring { @apply grid h-14 w-14 shrink-0 place-items-center rounded-full border-2 border-copper text-sm font-bold text-gold; }
   [data-card="flat"] .product-card { background: rgb(var(--color-surface)); }
   [data-card="outline"] .product-card { background: transparent; }
@@ -159,6 +181,15 @@
   /* نقشه */
   .map-sepia { filter: sepia(.75) hue-rotate(-12deg) saturate(1.3) brightness(.62) contrast(1.1); }
 
+  /* صفحه‌های خطا (errors/page.html) */
+  .error-page { @apply relative min-h-[calc(100vh-72px)] overflow-hidden border-b border-line; background: radial-gradient(ellipse at 80% 20%, rgb(var(--color-glow-1) / .22), transparent 55%), radial-gradient(ellipse at 10% 90%, rgb(var(--color-glow-2) / .16), transparent 50%); }
+  .error-ghost { @apply pointer-events-none absolute -bottom-10 start-[-2vw] select-none font-display text-[clamp(10rem,32vw,26rem)] leading-none opacity-[.05]; color: rgb(var(--color-accent)); }
+  .error-eyebrow { @apply mb-3 inline-flex items-center gap-2 rounded-full border border-line-strong px-3.5 py-1 text-sm text-gold-soft; }
+  .error-eyebrow .icon { @apply h-4 w-4 text-copper; }
+  .error-art { @apply relative grid aspect-square place-items-center rounded-full border border-line text-copper; background: radial-gradient(circle, rgb(var(--color-primary) / .12), transparent 65%); }
+  .error-art svg { @apply h-[62%] w-auto opacity-80; }
+  .error-code { @apply absolute bottom-[14%] rounded-full border border-line-strong bg-ink/80 px-4 py-0.5 font-display text-2xl text-gold backdrop-blur; }
+
   /* اعلان */
   .toast { @apply flex items-center gap-3 rounded border border-line-strong border-s-[3px] border-s-copper bg-ink-3 px-4 py-3 text-[.92rem] text-cream shadow-luxe; animation: toast-in .3s ease; }
   @keyframes toast-in { from { opacity: 0; transform: translateY(10px); } }
@@ -167,6 +198,69 @@
   .reveal { @apply translate-y-6 opacity-0 transition duration-700; }
   .reveal.visible { @apply translate-y-0 opacity-100; }
   @media (prefers-reduced-motion: reduce) { .reveal { @apply translate-y-0 opacity-100 transition-none; } }
+
+  /* ---------- سبک رابط «Design System» (توکن components.ui = system) ----------
+     بر اساس Design System فیگما: وزن ۴۰۰/۵۰۰/۶۰۰، دکمه یکدست با حالت‌های hover (تیره‌تر)، فشرده (تیره‌ترین)،
+     فوکوس (حلقه ۴px) و غیرفعال (خاکستری)؛ بج‌ها و چیپ‌های گرد؛ کارت‌ها و پنل‌های سفید با سایه سبک. */
+  [data-ui="system"] body { @apply font-normal leading-[1.8]; }
+  [data-ui="system"] :is(h1, h2, h3, h4) { @apply font-semibold leading-snug tracking-[-.01em] text-cream; }
+  [data-ui="system"] :focus-visible { outline: 2px solid rgb(var(--color-primary)); outline-offset: 2px; }
+  [data-ui="system"] .btn {
+    @apply rounded font-medium hover:brightness-100 active:translate-y-0;
+    background: rgb(var(--color-primary)); border-color: rgb(var(--color-primary)); color: rgb(var(--color-button-text));
+    box-shadow: 0 1px 2px rgb(var(--color-text-strong) / .06);
+  }
+  [data-ui="system"] .btn:hover { background: rgb(var(--color-primary-dark)); border-color: rgb(var(--color-primary-dark)); color: rgb(var(--color-button-text-hover)); }
+  [data-ui="system"] .btn:active { background: rgb(var(--color-primary-dark)); filter: brightness(.85); }
+  [data-ui="system"] .btn:focus-visible { outline: none; box-shadow: 0 0 0 4px rgb(var(--color-primary) / .3); }
+  [data-ui="system"] .btn:disabled, [data-ui="system"] .btn[aria-disabled="true"] {
+    @apply opacity-100; filter: none;
+    background: rgb(var(--color-border) / .22); border-color: transparent; color: rgb(var(--color-placeholder)); box-shadow: none;
+  }
+  [data-ui="system"][data-button="outline"] .btn:not(.btn-ghost):not(:hover):not(:disabled) { background: transparent; color: rgb(var(--color-primary)); }
+  [data-ui="system"] .btn-ghost { @apply border-line-strong text-cream; background: rgb(var(--color-surface)); }
+  [data-ui="system"] .btn-ghost:hover { @apply border-line-strong text-cream; background: rgb(var(--color-background-2)); }
+  [data-ui="system"] .btn-sm { @apply px-3.5 py-1.5; }
+  [data-ui="system"] .icon-btn { @apply hover:bg-primary/10 hover:text-primary; }
+  [data-ui="system"] .nav-link { @apply font-medium hover:text-primary; }
+  [data-ui="system"] .nav-link.is-active { @apply text-primary; }
+  [data-ui="system"] .nav-link::after { @apply h-0.5 bg-primary; }
+  [data-ui="system"] .footer-list li::before { @apply text-primary; content: "•"; }
+  [data-ui="system"] .footer-social { @apply rounded-full hover:border-primary hover:bg-primary; }
+  [data-ui="system"] .tab-btn { @apply border-0 border-b-2 border-transparent font-medium; }
+  [data-ui="system"] .tab-btn[aria-selected="true"] { @apply border-primary bg-transparent text-primary; }
+
+  [data-ui="system"] .panel { @apply rounded-lg bg-panel; box-shadow: 0 1px 3px rgb(var(--color-text-strong) / .06), 0 1px 2px rgb(var(--color-text-strong) / .04); }
+  [data-ui="system"] .panel-title { @apply text-[1.2rem] font-semibold; }
+  [data-ui="system"] .input { @apply rounded border-line-strong bg-input text-cream focus:border-primary focus:ring-primary/20; }
+  [data-ui="system"] .field > label { @apply font-medium text-cream; }
+  [data-ui="system"] .check input[type="checkbox"] { @apply rounded-[4px] bg-input checked:border-primary checked:bg-primary; }
+  [data-ui="system"] .check input[type="checkbox"]:checked::after { color: rgb(var(--color-button-text)); }
+  [data-ui="system"] .alert { @apply rounded-lg; }
+
+  [data-ui="system"] .product-card { @apply rounded-lg border-line bg-surface hover:border-line hover:shadow-lg; background: rgb(var(--color-surface)); }
+  [data-ui="system"] .product-card .thumb { @apply rounded-t-lg; }
+
+  /* Badge & Chip: گرد، دو سبک «پر» و «دورخط ملایم» */
+  [data-ui="system"] .chip { @apply rounded-full border-primary/30 bg-primary/[.08] px-3 font-medium text-primary-dark; }
+  [data-ui="system"] .chip-shared { @apply border-primary/50 text-primary-dark; }
+  [data-ui="system"] .chip-strong { @apply border-primary bg-primary; color: rgb(var(--color-button-text)); }
+  [data-ui="system"] .search-example { @apply font-medium hover:border-primary hover:bg-primary/[.08] hover:text-primary-dark; }
+  [data-ui="system"] .sale-badge { @apply bg-danger px-2.5; }
+  [data-ui="system"] .match-ring { @apply border-primary text-primary-dark; }
+  [data-ui="system"] .finder-option, [data-ui="system"] .gift-box-option { @apply rounded-lg bg-surface has-[:checked]:border-primary has-[:checked]:bg-primary/[.06]; }
+  [data-ui="system"] .compare-cell.is-best { @apply bg-primary/[.06]; }
+  [data-ui="system"] .compare-group { @apply text-cream; }
+
+  [data-ui="system"] .carousel-btn { @apply border-line-strong bg-surface text-cream shadow-md hover:border-primary hover:bg-primary hover:text-[rgb(var(--color-button-text))]; }
+  [data-ui="system"] .pager a, [data-ui="system"] .pager span { @apply rounded bg-surface font-medium; }
+  [data-ui="system"] .pager a:hover { @apply border-primary text-primary; }
+  [data-ui="system"] .toast { @apply rounded-lg border-line border-s-primary bg-surface; box-shadow: 0 12px 24px rgb(var(--color-text-strong) / .12); }
+  [data-ui="system"] .map-sepia { filter: none; }
+  [data-ui="system"] .page-hero::after { background: linear-gradient(to left, rgb(var(--color-hero)) 0%, rgb(var(--color-hero) / .94) 40%, rgb(var(--color-hero) / .2) 72%, rgb(var(--color-hero) / 0) 100%); }
+  @media (max-width: 640px) {
+    [data-ui="system"] .page-hero::after { background: linear-gradient(to left, rgb(var(--color-hero) / .96) 20%, rgb(var(--color-hero) / .7)); }
+  }
 
   /* ---------- استودیو (سازنده فروشگاه) ---------- */
   .studio-top-link { @apply inline-flex items-center gap-1.5 rounded px-2.5 py-1.5 text-body hover:bg-copper/10 hover:text-gold; }

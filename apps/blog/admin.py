@@ -1,5 +1,7 @@
 from django.contrib import admin
 
+from apps.core.jalali import JalaliAdminMixin
+
 from .models import Category, Post
 
 
@@ -11,7 +13,7 @@ class CategoryAdmin(admin.ModelAdmin):
 
 
 @admin.register(Post)
-class PostAdmin(admin.ModelAdmin):
+class PostAdmin(JalaliAdminMixin, admin.ModelAdmin):
     list_display = ["title", "category", "is_published", "published_at"]
     list_filter = ["store", "is_published", "category"]
     search_fields = ["title", "excerpt", "body"]

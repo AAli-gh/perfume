@@ -2,6 +2,8 @@
 {% block title %}پیشخوان{% endblock %}
 {% block content %}
 <h1 class="mb-1 text-[1.7rem]">سلام، <bdi>{{ user.display_name|default:user.get_username }}</bdi></h1>
+{% if ops %}{% include "builder/ops/_today.html" %}{% endif %}
+<h2 class="mb-1 mt-8 text-xl">ظاهر سایت</h2>
 <p class="mb-6 text-muted">ظاهر فروشگاه و چیدمان صفحه اصلی را از اینجا بدون کدنویسی تغییر دهید. تغییرات ابتدا در پیش‌نویس ذخیره می‌شوند؛ پس از پیش‌نمایش با دکمه «انتشار» برای مشتریان نمایش داده می‌شوند.</p>
 <div class="grid gap-4 md:grid-cols-2">
   {% if perms.themes.change_themesettings %}

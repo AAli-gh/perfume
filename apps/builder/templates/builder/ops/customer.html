@@ -1,0 +1,50 @@
+{% extends "builder/base.html" %}
+{% block title %}{{ c.first_name }} {{ c.last_name }}{% endblock %}
+{% block content %}
+<a class="text-sm" href="{% url 'builder:customers' %}">← مشتریان</a>
+<h1 class="mb-1 mt-2 text-[1.7rem]">{{ c.first_name }} {{ c.last_name }}</h1>
+<p class="mb-5 text-sm text-muted"><bdi dir="ltr">{{ c.phone|fa }}</bdi>{% if c.email %} · <bdi>{{ c.email }}</bdi>{% endif %}{% if c.user_id %} · <a href="{% url 'admin:accounts_user_change' c.user_id %}">حساب کاربری</a>{% else %} · مهمان{% endif %}</p>
+<div class="mb-5 grid gap-3 sm:grid-cols-4">
+  <div class="studio-preview"><p class="m-0 text-sm text-muted">مجموع خرید</p><p class="m-0 mt-1 text-xl text-gold">{{ c.spent|toman }}</p></div>
+  <div class="studio-preview"><p class="m-0 text-sm text-muted">تعداد خرید</p><p class="m-0 mt-1 text-xl text-gold">{{ c.orders|fa }}</p></div>
+  <div class="studio-preview"><p class="m-0 text-sm text-muted">اولین خرید</p><p class="m-0 mt-1 text-xl">{{ c.first|jdate }}</p></div>
+  <div class="studio-preview"><p class="m-0 text-sm text-muted">آخرین خرید</p><p class="m-0 mt-1 text-xl">{{ c.last|jdate }}</p></div>
+</div>
+<div class="grid gap-5 xl:grid-cols-[1.4fr_1fr]">
+  <section class="studio-preview">
+    <h2 class="mb-3 text-lg">سفارش‌ها</h2>
+    <table class="w-full text-right text-sm">
+      <thead class="text-muted"><tr><th class="p-1.5 font-normal">سفارش</th><th class="p-1.5 font-normal">تاریخ</th><th class="p-1.5 font-normal">وضعیت</th><th class="p-1.5 font-normal">مبلغ</th></tr></thead>
+      <tbody>{% for o in orders %}<tr class="border-t border-line"><td class="p-1.5"><a dir="ltr" href="{% url 'admin:orders_order_change' o.pk %}">{{ o.number }}</a></td><td class="p-1.5">{{ o.created_at|jdate }}</td><td class="p-1.5">{{ o.get_status_display }}</td><td class="p-1.5">{{ o.total|toman }}</td></tr>{% endfor %}</tbody>
+    </table>
+  </section>
+  <section class="studio-preview">
+    {% if loyalty and c.user_id %}
+    <h2 class="mb-2 text-lg">باشگاه مشتریان</h2>
+    <p class="text-sm">مانده: <b class="text-gold" data-points>{{ account.points|default:0|fa }} امتیاز</b> (ارزش {% widthratio account.points|default:0 1 loyalty.loyalty_point_value as worth %}{{ worth|toman }})</p>
+    {% if account %}<ul class="mb-3 grid list-none gap-1 p-0 text-xs text-muted">{% for e in account.entries.all|slice:":8" %}<li>{{ e.created_at|jdate:"%d %B" }} · {{ e.get_reason_display }} {% if e.points > 0 %}+{% endif %}{{ e.points|fa }}{% if e.order_number %} · <bdi>{{ e.order_number }}</bdi>{% endif %}{% if e.note %} · {{ e.note }}{% endif %}</li>{% endfor %}</ul>{% endif %}
+    {% if can_edit %}
+    <form method="post" action="{% url 'builder:customer_points' c.phone %}" class="mb-5 flex flex-wrap items-end gap-2">
+      {% csrf_token %}
+      <div class="field !w-32">{{ points_form.points.label_tag }}{{ points_form.points }}</div>
+      <div class="field flex-1">{{ points_form.note.label_tag }}{{ points_form.note }}</div>
+      <button class="btn btn-sm" type="submit">ثبت</button>
+    </form>
+    {% endif %}
+    {% endif %}
+    <h2 class="mb-3 text-lg">یادداشت داخلی و برچسب</h2>
+    {% if can_edit %}
+    <form method="post" class="grid gap-3">
+      {% csrf_token %}
+      {% include "components/field.html" with field=form.tags %}
+      {% include "components/field.html" with field=form.note %}
+      <button class="btn btn-sm justify-self-start" type="submit">ذخیره</button>
+      {% if profile.updated_by %}<p class="m-0 text-xs text-muted">آخرین ویرایش: <bdi>{{ profile.updated_by.display_name }}</bdi> · {{ profile.updated_at|jdate:"%d %B %Y، %H:%M" }}</p>{% endif %}
+    </form>
+    {% else %}
+    {% for t in profile.tag_list %}<span class="chip">{{ t }}</span>{% endfor %}
+    <p class="text-sm">{{ profile.note|default:"یادداشتی ثبت نشده است."|linebreaksbr }}</p>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

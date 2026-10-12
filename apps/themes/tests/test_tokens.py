@@ -66,7 +66,7 @@ def test_component_attrs_and_fonts_url():
 
 # ---------- پیش‌تنظیم‌ها ----------
 
-PRESETS = read_manifest("luxury")["presets"]
+PRESETS = read_manifest("luxury")["presets"] + read_manifest("standard")["presets"]
 
 
 @pytest.mark.parametrize("preset", PRESETS, ids=lambda p: p["code"])
@@ -76,7 +76,22 @@ def test_every_preset_is_valid_and_defines_all_colors(preset):
 
 
 def test_required_presets_exist():
-    assert [p["code"] for p in PRESETS] == ["luxury-gold", "luxury-emerald", "luxury-black", "pearl", "minimal-light"]
+    assert [p["code"] for p in read_manifest("luxury")["presets"]] == [
+        "luxury-gold", "luxury-emerald", "luxury-black", "pearl", "minimal-light"]
+    assert [p["code"] for p in read_manifest("standard")["presets"]] == ["ds-indigo", "ds-green", "ds-dark"]
+
+
+def test_design_system_theme_matches_figma_tokens():
+    """پوسته «استاندارد» از Design System فیگما: Inter، ایندیگو ۵۰۰ (#4E61F6)، دکمه یکدست و سبک رابط system."""
+    indigo = read_manifest("standard")["presets"][0]["tokens"]
+    assert indigo["colors"]["primary"] == "#4e61f6" and indigo["colors"]["text-strong"] == "#131927"
+    assert indigo["typography"]["font_body"] == "Inter"
+    assert indigo["components"]["ui"] == "system" and indigo["components"]["button"] == "solid"
+    assert 'data-ui="system"' in T.component_attrs(indigo)
+    assert 'data-ui="classic"' in T.component_attrs({})
+    # Inter حروف فارسی ندارد ← وزیرمتن همراهش بارگذاری می‌شود
+    url = T.google_fonts_url(indigo)
+    assert "family=Inter:" in url and "family=Vazirmatn:" in url and url.count("family=") == 2
 
 
 def test_luxury_gold_equals_platform_defaults():
@@ -158,3 +173,16 @@ def test_built_css_has_no_hardcoded_store_colors():
         pytest.skip("CSS ساخته نشده (npm run build:css)")
     found = set(re.findall(r"#[0-9a-fA-F]{6}\b|#[0-9a-fA-F]{3}\b", css_file.read_text())) - {"#9ca3af", "#e5e7eb", "#fff", "#000"}
     assert not found, found
+
+
+@pytest.mark.django_db
+def test_switching_to_design_system_theme(client, store):
+    from apps.themes import services
+    from apps.themes.models import Theme
+    from apps.themes.registry import sync
+
+    sync()
+    services.change_theme(ThemeSettings.objects.get(store=store, status="published"), Theme.objects.get(code="standard"))
+    html = client.get("/").content.decode()
+    assert 'data-ui="system"' in html and 'data-button="solid"' in html
+    assert "--color-primary:78 97 246" in html and "family=Inter:" in html

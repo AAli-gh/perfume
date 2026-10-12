@@ -1,9 +1,10 @@
 <div class="mb-5 flex flex-wrap items-center gap-x-4 gap-y-1">
   <span>{% if page.paginator.count %}نمایش {{ page.start_index|fa }}–{{ page.end_index|fa }} از {{ page.paginator.count|fa }} محصول{% else %}۰ محصول{% endif %}</span>
-  {% if q %}<a class="text-sm text-muted" href="{% querystring q=None page=None %}">جستجو: «{{ q }}» <span class="text-copper">✕</span></a>{% endif %}
+  {% if q and not smart %}<a class="text-sm text-muted" href="{% querystring q=None page=None %}">جستجو: «{{ q }}» <span class="text-copper">✕</span></a>{% endif %}
   {% if collection %}<a class="text-sm text-muted" href="{% if landing %}{% url 'catalog:shop' %}{% else %}{% querystring collection=None page=None %}{% endif %}">{{ collection.name }} <span class="text-copper">✕</span></a>{% endif %}
   {% if category %}<a class="text-sm text-muted" href="{% if landing %}{% url 'catalog:shop' %}{% else %}{% querystring category=None page=None %}{% endif %}">{{ category.name }} <span class="text-copper">✕</span></a>{% endif %}
 </div>
+{% include "catalog/partials/smart_query.html" %}
 {% if page.object_list %}
   <div class="grid grid-cols-2 gap-3 sm:gap-[18px] md:grid-cols-3 xl:grid-cols-4" data-product-grid>
     {% for p in page.object_list %}{% include "components/product_card.html" %}{% endfor %}
@@ -13,6 +14,7 @@
   <div class="rounded border border-dashed border-line px-5 py-16 text-center text-muted">
     {% icon "search" "mx-auto mb-3 !h-11 !w-11 text-copper" %}
     <p>عطری با این مشخصات پیدا نشد.</p>
+    {% if q %}<p class="text-sm">نمونه: «عطر خنک زیر ۴ میلیون»، «زنانه شیرین برای شب»، «مردانه ماندگار برای زمستان»</p>{% endif %}
     <a class="btn btn-ghost btn-sm" href="{% url 'catalog:shop' %}">پاک کردن فیلترها</a>
   </div>
 {% endif %}

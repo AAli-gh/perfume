@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load seo static notifications %}
+{% block seo %}{% seo_head title="ورود" %}{% endblock %}
+{% block content %}
+<div class="relative grid min-h-[calc(100vh-72px)] place-items-center overflow-hidden py-12">
+  <div class="absolute inset-0 bg-no-repeat opacity-30 blur-[2px]" style="background-image:url('{% static 'img/auth-bg.jpg' %}'),url('{% static 'img/hero-shop.jpg' %}');background-position:left center,right bottom;background-size:auto 100%,auto 70%"></div>
+  <form class="relative grid w-[min(100%-32px,440px)] content-start gap-4" method="post" action="{% url 'accounts:login' %}" novalidate>
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ next }}">
+    <h1 class="mb-1 text-[2rem] lg:text-[2.8rem]">ورود</h1>
+    {% if form.non_field_errors %}<p class="alert alert-err m-0">{{ form.non_field_errors|join:" " }}</p>{% endif %}
+    {% include "components/field.html" with field=form.username %}
+    {% include "components/field.html" with field=form.password %}
+    <label class="check">{{ form.remember }} {{ form.remember.label }}</label>
+    <button class="btn btn-lg w-full" type="submit">ورود</button>
+    {% otp_login_enabled as otp_on %}{% if otp_on %}
+    <a class="btn btn-ghost w-full" href="{% url 'notifications:otp_login' %}{% if next %}?next={{ next|urlencode }}{% endif %}">ورود با کد پیامکی</a>
+    {% endif %}
+    <p class="m-0 border-t border-line pt-4 text-center text-[.95rem] text-muted">حساب کاربری ندارید؟
+      <a href="{% url 'accounts:register' %}{% if next %}?next={{ next|urlencode }}{% endif %}">ثبت‌نام کنید</a></p>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends "builder/base.html" %}
+{% block title %}پیامک گروهی{% endblock %}
+{% block content %}
+<a class="text-sm" href="{% url 'builder:customers' %}?{{ query }}">← مشتریان</a>
+<h1 class="mb-1 mt-2 text-[1.7rem]">پیامک گروهی</h1>
+<p class="mb-5 text-sm text-muted">گیرندگان: <b class="text-gold">{{ audience }}</b> — {{ count|fa }} شماره. هزینه پیامک‌ها از پنل پیامک شما کم می‌شود.</p>
+{% if not count %}<p class="alert alert-err">مشتری‌ای در این گروه نیست.</p>{% endif %}
+<form method="post" action="?{{ query }}" class="studio-preview grid max-w-2xl gap-4">
+  {% csrf_token %}
+  {% include "components/field.html" with field=form.name %}
+  {% include "components/field.html" with field=form.message %}
+  <label class="check">{{ form.with_coupon }} {{ form.with_coupon.label }}</label>
+  <div class="grid gap-3 sm:grid-cols-2">
+    {% include "components/field.html" with field=form.percent %}
+    {% include "components/field.html" with field=form.days %}
+  </div>
+  <p class="-mt-2 m-0 text-xs text-muted">یک کد مشترک ساخته می‌شود که حداکثر به تعداد گیرندگان قابل استفاده است.</p>
+  <label class="check">{{ form.opt_out }} {{ form.opt_out.label }}</label>
+  <label class="check">{{ form.confirm }} {{ form.confirm.label }}</label>
+  {% for e in form.confirm.errors %}<span class="field-error">{{ e }}</span>{% endfor %}
+  <button class="btn justify-self-start" type="submit" {% if not count %}disabled{% endif %}>ارسال برای {{ count|fa }} مشتری</button>
+</form>
+{% endblock %}

@@ -65,7 +65,8 @@ def post(store):
     ("/about/", "درباره ما | عطر مجد"),
     ("/contact/", "تماس با ما | عطر مجد"),
     ("/cart/", "سبد خرید | عطر مجد"),
-    ("/account/login/", "ورود / ثبت‌نام | عطر مجد"),
+    ("/account/login/", "ورود | عطر مجد"),
+    ("/account/register/", "ثبت‌نام | عطر مجد"),
 ])
 def test_page_titles_unchanged(client, store, url, expected):
     _, html = head(client, url)
@@ -236,8 +237,9 @@ def test_robots_txt(client, store):
     r = client.get("/robots.txt")
     text = r.content.decode()
     assert r["Content-Type"].startswith("text/plain")
-    for path in ["/admin/", "/studio/", "/cart/", "/account/", "/orders/"]:
+    for path in ["/cart/", "/account/", "/orders/"]:
         assert f"Disallow: {path}" in text
+    assert "/admin/" not in text and "/studio/" not in text  # پنل‌ها پنهان‌اند (برای غیرکارکنان ۴۰۴)
     assert "Sitemap: http://testserver/sitemap.xml" in text
     assert "Disallow: /\n" not in text and "Disallow: /shop" not in text
 

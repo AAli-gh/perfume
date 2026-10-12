@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
 from django.shortcuts import redirect, render
 from django.utils.http import url_has_allowed_host_and_scheme
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_http_methods
 
 from .forms import LoginForm, RegisterForm
 from apps.core.audit import record
@@ -19,16 +19,11 @@ def _next_url(request, default="accounts:profile"):
 
 
 class AuthPageView(LoginView):
-    """صفحه ترکیبی ورود و ثبت‌نام."""
+    """صفحه ورود (ثبت‌نام صفحه جداگانه خودش را دارد)."""
 
-    template_name = "accounts/auth.html"
+    template_name = "accounts/login.html"
     authentication_form = LoginForm
     redirect_authenticated_user = True
-
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx.setdefault("register_form", RegisterForm())
-        return ctx
 
     def form_valid(self, form):
         if not form.cleaned_data.get("remember"):
@@ -38,10 +33,13 @@ class AuthPageView(LoginView):
 
 
 @ratelimit("register", "5/1h")
-@require_POST
+@require_http_methods(["GET", "POST"])
 def register(request):
     if request.user.is_authenticated:
-        return redirect("accounts:profile")
+        return redirect(_next_url(request))
+    nxt = _next_url(request, default="")
+    if request.method == "GET":
+        return render(request, "accounts/register.html", {"form": RegisterForm(), "next": nxt})
     form = RegisterForm(request.POST)
     if form.is_valid():
         user = form.save()
@@ -49,9 +47,7 @@ def register(request):
         login(request, user, backend="django.contrib.auth.backends.ModelBackend")
         messages.success(request, "حساب کاربری شما ساخته شد. به خانواده عطر مجد خوش آمدید!")
         return redirect(_next_url(request))
-    return render(request, "accounts/auth.html", {
-        "form": LoginForm(request), "register_form": form, "next": request.POST.get("next", ""),
-    }, status=422)
+    return render(request, "accounts/register.html", {"form": form, "next": nxt}, status=422)
 
 
 @login_required

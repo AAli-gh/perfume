@@ -25,3 +25,20 @@ def set_product_notes(product, top=(), heart=(), base=()):
     ProductNote.objects.bulk_create(links)
     reindex_products([product.pk])  # bulk_create سیگنال post_save ندارد
     return links
+
+
+def request_back_in_stock(variant, phone, user=None):
+    """ثبت «موجود شد خبرم کن»؛ تکراری بودن درخواست باز همان شماره خطا نیست. خروجی: (درخواست، تازه؟)."""
+    from django.db import IntegrityError, transaction
+
+    from .models import BackInStockRequest
+
+    existing = BackInStockRequest.objects.filter(variant=variant, phone=phone, notified_at__isnull=True).first()
+    if existing:
+        return existing, False
+    try:
+        with transaction.atomic():
+            return BackInStockRequest.objects.create(variant=variant, phone=phone,
+                                                     user=user if user and user.is_authenticated else None), True
+    except IntegrityError:  # درخواست هم‌زمان
+        return BackInStockRequest.objects.get(variant=variant, phone=phone, notified_at__isnull=True), False

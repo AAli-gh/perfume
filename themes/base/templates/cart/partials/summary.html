@@ -2,7 +2,14 @@
   {% for line in cart %}
     <div class="flex items-center gap-3 border-b border-line py-2.5">
       <img src="{{ line.product.image.url }}" alt="" class="h-[50px] w-[50px] border border-line object-cover">
-      <div class="flex-1 text-[.95rem] leading-normal text-cream">{{ line.product.name }} × {{ line.quantity|fa }}<small class="block text-xs text-muted">{{ line.product.brand.name }}، {{ line.variant.size_ml|fa }} میل</small></div>
+      <div class="flex-1 text-[.95rem] leading-normal text-cream">{{ line.product.name }} × {{ line.quantity|fa }}<small class="block text-xs text-muted">{% if line.product.is_gift_box %}باکس هدیه{% elif line.product.is_gift_card %}کارت هدیه{% else %}{{ line.product.brand.name }}، {{ line.variant.size_ml|fa }} میل{% endif %}</small></div>
+      <span class="text-sm">{{ line.line_total|toman }}</span>
+    </div>
+  {% endfor %}
+  {% for line in extra_lines %}
+    <div class="flex items-center gap-3 border-b border-line py-2.5" data-extra-line>
+      <img src="{{ line.product.image.url }}" alt="" class="h-[50px] w-[50px] border border-line object-cover">
+      <div class="flex-1 text-[.95rem] leading-normal text-cream">{{ line.product.name }} × {{ line.quantity|fa }}<small class="block text-xs text-muted">باکس هدیه انتخاب‌شده</small></div>
       <span class="text-sm">{{ line.line_total|toman }}</span>
     </div>
   {% endfor %}
@@ -16,5 +23,11 @@
     </div>
   {% endif %}
   <div class="flex justify-between py-2.5 text-[.95rem]"><span>هزینه ارسال{% if shipping_label %} <small class="text-xs text-muted">({{ shipping_label }})</small>{% endif %}</span><span>{% if price.shipping %}{{ price.shipping|toman }}{% else %}رایگان{% endif %}</span></div>
+  {% if credits %}
+    {% if credits.points_amount %}<div class="flex justify-between py-2.5 text-[.95rem] text-success" data-points-line><span>امتیاز باشگاه ({{ credits.points|fa }} امتیاز)</span><span>− {{ credits.points_amount|toman }}</span></div>{% endif %}
+    {% if credits.gift_amount %}<div class="flex justify-between py-2.5 text-[.95rem] text-success" data-gift-card-line><span>کارت هدیه</span><span>− {{ credits.gift_amount|toman }}</span></div>{% endif %}
+    <div class="mt-1.5 flex justify-between border-t border-line pt-3.5 text-xl text-gold"><span>مبلغ قابل پرداخت</span><span>{{ credits.payable|toman }}</span></div>
+  {% else %}
   <div class="mt-1.5 flex justify-between border-t border-line pt-3.5 text-xl text-gold"><span>مبلغ قابل پرداخت</span><span>{{ price.total|toman }}</span></div>
+  {% endif %}
 </div>{% endwith %}

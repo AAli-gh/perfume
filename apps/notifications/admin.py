@@ -1,6 +1,6 @@
 from django.contrib import admin, messages
 
-from .models import NotificationLog, NotificationRule, NotificationSettings
+from .models import Campaign, NotificationLog, NotificationRule, NotificationSettings
 from .services import ensure_rules, sms_available
 from .sms import SMSError, get_provider
 
@@ -63,3 +63,13 @@ class NotificationLogAdmin(admin.ModelAdmin):
 
     def has_change_permission(self, request, obj=None):
         return False
+
+
+@admin.register(Campaign)
+class CampaignAdmin(admin.ModelAdmin):
+    list_display = ["name", "audience", "status", "sent", "failed", "created_at"]
+    list_filter = ["store", "status"]
+    readonly_fields = [f.name for f in Campaign._meta.fields]
+
+    def has_add_permission(self, request):
+        return False  # از استودیو ← مشتریان ← پیامک به این گروه

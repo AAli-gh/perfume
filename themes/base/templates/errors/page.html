@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load seo i18n majd %}
+{# قالب مشترک صفحه‌های خطا (۴۰۳، ۴۰۴، ۴۰۵، ۴۲۹ و خطای CSRF). ۴۰۰ و ۵۰۰ بدون context رندر می‌شوند: errors/standalone.html #}
+{% block seo %}{% seo_head title=error_title noindex=True %}{% endblock %}
+{% block content %}
+<section class="error-page">
+  <span class="error-ghost" aria-hidden="true">{{ error_code|fa }}</span>
+  <div class="container relative grid items-center gap-10 py-16 md:py-24 lg:grid-cols-[1fr_300px] lg:gap-16">
+    <div class="max-w-[600px] max-lg:mx-auto max-lg:text-center">
+      <p class="error-eyebrow">{% icon "alert" %}{% translate "خطای" %} {{ error_code|fa }}</p>
+      <h1 class="mb-4 text-[2rem] leading-snug md:text-[2.6rem]">{{ error_title }}</h1>
+      <p class="mb-8 text-[1.05rem] text-muted">{{ error_message }}</p>
+      {% block error_extra %}{% endblock %}
+      <div class="flex flex-wrap gap-3 max-lg:justify-center">
+        {% block error_actions %}
+        <a class="btn btn-lg" href="{% url 'pages:home' %}">{% translate "بازگشت به صفحه اصلی" %}</a>
+        <a class="btn btn-ghost btn-lg" href="{% url 'catalog:shop' %}">{% translate "رفتن به فروشگاه" %}</a>
+        {% endblock %}
+      </div>
+    </div>
+    <div class="error-art max-lg:hidden" aria-hidden="true">{% include "errors/_bottle.svg" %}<span class="error-code">{{ error_code|fa }}</span></div>
+  </div>
+</section>
+{% endblock %}

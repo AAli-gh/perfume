@@ -10,6 +10,8 @@
   <meta name="htmx-config" content='{"includeIndicatorStyles":false,"allowEval":false,"allowScriptTags":false}'>
   <script src="{% static 'vendor/htmx.min.js' %}" defer></script>
   <script src="{% static 'js/studio.js' %}" defer></script>
+  <script src="{% static 'js/jalali-picker.js' %}" defer></script>
+  <link rel="stylesheet" href="{% static 'css/jalali-picker.css' %}">
 </head>
 <body class="studio" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
   <header class="border-b border-line bg-ink-2/90">
@@ -30,6 +32,19 @@
     <aside class="min-w-0">
       <nav class="studio-nav" aria-label="بخش‌های استودیو">
         <a href="{% url 'builder:dashboard' %}" {% if nav == 'dashboard' %}aria-current="page"{% endif %}>{% icon "diamond" "!w-4 !h-4" %} پیشخوان</a>
+        {% if perms.orders.view_order %}
+        <a href="{% url 'builder:orders' %}" {% if nav == 'orders' %}aria-current="page"{% endif %}>{% icon "bag" "!w-4 !h-4" %} سفارش‌ها</a>
+        <a href="{% url 'builder:returns' %}" {% if nav == 'returns' %}aria-current="page"{% endif %}>{% icon "truck" "!w-4 !h-4" %} مرجوعی‌ها</a>
+        {% endif %}
+        {% if perms.catalog.change_product %}
+        <a href="{% url 'builder:stock' %}" {% if nav == 'stock' %}aria-current="page"{% endif %}>{% icon "truck" "!w-4 !h-4" %} موجودی</a>
+        <a href="{% url 'builder:products' %}" {% if nav == 'products' %}aria-current="page"{% endif %}>{% icon "grid" "!w-4 !h-4" %} اکسل و قیمت‌ها</a>
+        <a href="{% url 'builder:sales' %}" {% if nav == 'sales' %}aria-current="page"{% endif %}>{% icon "flame" "!w-4 !h-4" %} حراج زمان‌دار</a>
+        <a href="{% url 'builder:gift_cards' %}" {% if nav == 'gift_cards' %}aria-current="page"{% endif %}>{% icon "gift" "!w-4 !h-4" %} کارت هدیه</a>
+        {% endif %}
+        {% if perms.accounts.view_user %}
+        <a href="{% url 'builder:customers' %}" {% if nav == 'customers' %}aria-current="page"{% endif %}>{% icon "user" "!w-4 !h-4" %} مشتریان</a>
+        {% endif %}
         {% if perms.themes.change_themesettings %}
         <a href="{% url 'builder:theme' %}" {% if nav == 'theme' %}aria-current="page"{% endif %}>{% icon "flame" "!w-4 !h-4" %} ظاهر و پوسته</a>
         {% endif %}
@@ -40,6 +55,7 @@
         <a href="{% url 'builder:history' %}" {% if nav == 'history' %}aria-current="page"{% endif %}>{% icon "check" "!w-4 !h-4" %} تاریخچه انتشار</a>
         {% if perms.orders.view_order %}
         <a href="{% url 'builder:reports' %}" {% if nav == 'reports' %}aria-current="page"{% endif %}>{% icon "grid" "!w-4 !h-4" %} گزارش فروش</a>
+        <a href="{% url 'builder:searches' %}" {% if nav == 'searches' %}aria-current="page"{% endif %}>{% icon "search" "!w-4 !h-4" %} مشتریان دنبال چه‌اند</a>
         {% endif %}
       </nav>
     </aside>

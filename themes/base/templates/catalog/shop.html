@@ -54,6 +54,13 @@
   </aside>
 
   <section class="min-w-0">
+    <form action="{% url 'catalog:shop' %}" method="get" role="search" class="mb-4 flex gap-2" data-smart-search>
+      <label class="sr-only" for="shop-search">جستجوی هوشمند</label>
+      <input id="shop-search" name="q" type="search" value="{{ q }}" class="input min-w-0 flex-1" autocomplete="off"
+             placeholder="جستجوی هوشمند؛ مثلاً: عطر خنک زیر سه تومن، زنانه شیرین برای شب">
+      <button class="btn" type="submit">{% icon "search" "!h-4 !w-4" %} <span class="hidden sm:inline">جستجو</span></button>
+    </form>
+    {% if not q %}{% include "catalog/partials/search_examples.html" with class="mb-5 justify-start" %}{% endif %}
     <div class="mb-4 flex flex-wrap items-center justify-end gap-2.5 text-[.9rem] text-muted">
       <button type="button" class="btn btn-ghost btn-sm me-auto lg:hidden" data-drawer-open>{% icon "filter" "!h-4 !w-4" %} فیلترها</button>
       <label for="sort" class="hidden sm:inline">مرتب‌سازی:</label>

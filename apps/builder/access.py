@@ -4,7 +4,11 @@
 - ظاهر و پوسته:   themes.change_themesettings
 - ویرایش بخش‌ها:  pages.change_pagesection   (افزودن: pages.add_pagesection، حذف: pages.delete_pagesection)
 - انتشار:         builder.publish_site        (ویرایشگر بدون این مجوز فقط پیش‌نویس می‌سازد)
-- گزارش فروش:     orders.view_order
+- گزارش فروش، پیشخوان سفارش‌ها، چاپ فاکتور و گزارش جستجوها: orders.view_order
+- رهگیری گروهی، مرجوعی و لغو بخشی سفارش:                   orders.change_order
+- موجودی، ورود/خروج محصولات، تغییر قیمت و حراج:             catalog.change_product
+- مشتریان:                                                  accounts.view_user (یادداشت: accounts.change_user)
+- پیامک گروهی به مشتریان:                                   notifications.add_campaign
 """
 
 from functools import wraps
@@ -17,8 +21,12 @@ SECTION_CHANGE_PERM = "pages.change_pagesection"
 SECTION_ADD_PERM = "pages.add_pagesection"
 SECTION_DELETE_PERM = "pages.delete_pagesection"
 PUBLISH_PERM = "builder.publish_site"  # انتشار، کنار گذاشتن تغییرات و بازگشت به نسخه قبلی
-REPORTS_PERM = "orders.view_order"  # گزارش فروش
-STUDIO_PERMS = (THEME_PERM, SECTION_CHANGE_PERM, PUBLISH_PERM, REPORTS_PERM)
+REPORTS_PERM = "orders.view_order"  # گزارش فروش، پیشخوان سفارش‌ها و چاپ فاکتور
+ORDERS_PERM = "orders.change_order"  # ثبت گروهی کد رهگیری، مرجوعی و لغو بخشی
+PRODUCTS_PERM = "catalog.change_product"  # موجودی، ورود/خروج محصولات، تغییر گروهی قیمت و حراج
+CUSTOMERS_PERM = "accounts.view_user"  # فهرست و گروه‌های مشتریان، یادداشت (تغییر: accounts.change_user)
+CAMPAIGN_PERM = "notifications.add_campaign"  # پیامک گروهی
+STUDIO_PERMS = (THEME_PERM, SECTION_CHANGE_PERM, PUBLISH_PERM, REPORTS_PERM, PRODUCTS_PERM, CUSTOMERS_PERM)
 
 
 def can_use_studio(user):

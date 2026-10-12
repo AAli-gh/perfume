@@ -177,10 +177,11 @@ def test_get_requests_not_limited_unless_configured(client, store):
     assert all(client.get(reverse("pages:contact")).status_code == 200 for _ in range(8))
 
 
-def test_admin_login_rate_limited(client, store):
+def test_admin_login_hidden_from_anonymous(client, store):
+    """صفحه ورود پنل مدیریت برای مهمان وجود ندارد؛ کارکنان از ورود فروشگاه وارد می‌شوند."""
     url = reverse("admin:login")
-    codes = [client.post(url, {"username": "a@example.com", "password": "x"}).status_code for _ in range(11)]
-    assert codes[10] == 429 and 429 not in codes[:10]
+    assert client.get(url).status_code == 404
+    assert client.post(url, {"username": "a@example.com", "password": "x"}).status_code == 404
 
 
 def test_preview_share_links_rate_limited(client, store):

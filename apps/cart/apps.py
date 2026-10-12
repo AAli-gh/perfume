@@ -6,3 +6,6 @@ class CartConfig(AppConfig):
     name = "apps.cart"
     label = "cart"
     verbose_name = "سبد"
+
+    def ready(self):
+        from . import signals  # noqa: F401 — بازگرداندن سبد ذخیره‌شده پس از ورود

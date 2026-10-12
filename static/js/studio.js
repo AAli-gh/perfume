@@ -80,3 +80,11 @@
     }
   });
 })();
+
+// انتخاب همه سطرهای جدول (سفارش‌ها، مشتریان، …)
+document.addEventListener("change", (e) => {
+  const all = e.target.closest("[data-check-all]");
+  if (!all) return;
+  const form = all.closest("form");
+  form.querySelectorAll('input[type=checkbox][name="ids"]').forEach((box) => { box.checked = all.checked; });
+});

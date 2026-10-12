@@ -84,7 +84,7 @@ def test_report_requires_permission(client, data):
     client.force_login(staff)
     assert client.get(reverse("builder:reports")).status_code == 403
     client.logout()
-    assert client.get(reverse("builder:reports")).status_code == 302
+    assert client.get(reverse("builder:reports")).status_code == 404
 
 
 def test_csv_export_is_escaped_and_audited(client, data, analyst):

@@ -66,8 +66,11 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "apps.core.stores.StoreMiddleware",
+    "apps.notifications.staff_2fa.StaffTwoFactorMiddleware",  # ورود دومرحله‌ای کارکنان (اگر روشن باشد)
     "apps.builder.preview.PreviewMiddleware",  # حالت پیش‌نمایش پیش‌نویس (قبل از ThemeMiddleware)
     "apps.themes.runtime.ThemeMiddleware",
+    "apps.core.backoffice.HideBackofficeMiddleware",  # پنل مدیریت و استودیو برای غیرکارکنان ۴۰۴ است
+    "apps.core.errors.ErrorPageMiddleware",  # صفحه ۴۰۵ با طرح سایت
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django_htmx.middleware.HtmxMiddleware",
 ]
@@ -172,6 +175,8 @@ CELERY_TIMEZONE = TIME_ZONE
 CELERY_BEAT_SCHEDULE = {
     "release-expired-reservations": {"task": "apps.orders.tasks.release_expired_reservations", "schedule": 300.0},
     "prune-audit-log": {"task": "apps.core.tasks.prune_audit_log", "schedule": 86400.0},
+    "prune-search-log": {"task": "apps.catalog.tasks.prune_search_log_task", "schedule": 86400.0},
+    "cart-reminders": {"task": "apps.notifications.tasks.send_cart_reminders_task", "schedule": 1800.0},
 }
 
 # ---------- پیامک (apps/notifications) ----------
@@ -188,6 +193,7 @@ CSP_UPGRADE_INSECURE = False
 CSP_EXTRA_SOURCES = {}
 # آدرس پنل مدیریت Django (تغییر آن از حملات خودکار به /admin/ جلوگیری می‌کند)
 ADMIN_URL = env("ADMIN_URL", default="admin/")
+CSRF_FAILURE_VIEW = "apps.core.errors.csrf_failure"
 # نشست کارکنان کوتاه‌تر از مشتریان (سبد خرید مشتری ۳۰ روز می‌ماند)
 STAFF_SESSION_AGE = env.int("STAFF_SESSION_AGE", default=60 * 60 * 12)
 # تعداد پراکسی‌های مطمئن جلوی برنامه (nginx) برای تشخیص IP واقعی از X-Forwarded-For

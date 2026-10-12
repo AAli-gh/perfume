@@ -21,8 +21,9 @@ def run(*args):
 
 def test_seed_demo_builds_full_store(store):
     output = run("seed_demo")
-    assert "12 محصول و 6 مقاله" in output
-    assert Product.objects.for_store(store).count() == 12
+    assert "12 محصول، 4 باکس و کارت هدیه و 6 مقاله" in output
+    assert Product.objects.for_store(store).perfumes().count() == 12
+    assert Product.objects.for_store(store).gift_boxes().filter(gift_capacity__gte=1).count() == 3
     assert Collection.objects.for_store(store).count() == 5
     assert Post.objects.for_store(store).published().count() == 6
     assert Coupon.objects.filter(code="MAJD10").exists()
@@ -30,7 +31,7 @@ def test_seed_demo_builds_full_store(store):
     # موجودی اولیه در دفتر انبار ثبت می‌شود
     assert StockMovement.objects.count() == ProductVariant.objects.count()
     # جستجو برای داده بذر هم کار می‌کند
-    assert Product.objects.exclude(search_document="").count() == 12
+    assert Product.objects.exclude(search_document="").count() == 16
 
 
 def test_seed_demo_is_idempotent_and_reset_rebuilds(store):
@@ -39,12 +40,12 @@ def test_seed_demo_is_idempotent_and_reset_rebuilds(store):
     run("seed_demo")
     assert set(Product.objects.values_list("pk", flat=True)) == first_ids  # تکرار، چیزی تکراری نمی‌سازد
     run("seed_demo", "--reset")
-    assert Product.objects.count() == 12 and not first_ids & set(Product.objects.values_list("pk", flat=True))
+    assert Product.objects.count() == 16 and not first_ids & set(Product.objects.values_list("pk", flat=True))
 
 
 def test_seed_demo_for_another_store(store, other_store):
     run("seed_demo", f"--store={other_store.code}")
-    assert Product.objects.for_store(other_store).count() == 12
+    assert Product.objects.for_store(other_store).count() == 16
     assert Product.objects.for_store(store).count() == 0
 
 
@@ -82,3 +83,12 @@ def test_reindex_tasks(store):
     Product.objects.filter(pk=product.pk).update(search_document="")
     reindex_store_task.delay(store.pk)
     assert Product.objects.get(pk=product.pk).search_document
+
+
+def test_reindex_search_command(store):
+    run("seed_demo")
+    assert "ایندکس جستجوی 16 محصول بازسازی شد" in run("reindex_search")
+
+
+def test_send_cart_reminders_command(store):
+    assert "یادآوری ارسال شد" in run("send_cart_reminders")

@@ -11,13 +11,18 @@ from apps.accounts.services import remember_address
 from apps.cart.pricing import calculate
 from apps.catalog import inventory
 from apps.catalog.inventory import OutOfStock
+from apps.discounts import credits
 from apps.discounts.models import Coupon
 from apps.discounts.services import record_usage
 
 from .models import Order, OrderItem
 from .signals import order_placed
 
-__all__ = ["CouponUnavailable", "OutOfStock", "create_order"]
+__all__ = ["CouponUnavailable", "GiftCardUnavailable", "OutOfStock", "create_order"]
+
+
+class GiftCardUnavailable(Exception):
+    """کارت هدیه بین نمایش سبد و ثبت سفارش خرج یا غیرفعال شد (تراکنش برگشت می‌خورد)."""
 
 
 class CouponUnavailable(Exception):
@@ -31,7 +36,7 @@ class _Line:
 
     @property
     def unit_price(self):
-        return self.variant.price
+        return self.variant.current_price  # قیمت حراج در لحظه ثبت (حجم قفل‌شده)
 
 
 @transaction.atomic
@@ -42,10 +47,17 @@ def create_order(cart, form, user=None):
     order.user = user if user and user.is_authenticated else None
     order.save()  # شماره سفارش برای مرجع گردش موجودی لازم است
 
+    wanted = [(line.variant, line.quantity) for line in cart]
+    box = form.cleaned_data.get("gift_box")
+    if box is not None:  # باکس هدیه انتخاب‌شده در صفحه تسویه
+        wanted.append((box, 1))
+    quantities = {}
+    for variant, quantity in wanted:
+        quantities[variant.pk] = quantities.get(variant.pk, 0) + quantity
     variants = inventory.reserve(
-        [inventory.StockLine(line.variant.pk, line.quantity) for line in cart], order.number, user=order.user
+        [inventory.StockLine(pk, quantity) for pk, quantity in quantities.items()], order.number, user=order.user
     )
-    lines = [_Line(variants[line.variant.pk], line.quantity) for line in cart]
+    lines = [_Line(variants[pk], quantity) for pk, quantity in quantities.items()]
 
     coupon = None
     if cart.coupon_code:
@@ -64,14 +76,21 @@ def create_order(cart, form, user=None):
         pricing.subtotal, pricing.discount, pricing.shipping, pricing.total,
     )
     order.coupon_code = coupon.code if coupon else ""
-    if order.payment_method == Order.PaymentMethod.ONLINE:
+    used = credits.redeem(cart.store, order, card_code=form.cleaned_data.get("gift_card", ""),
+                          use_points=form.cleaned_data.get("use_points", False), user=order.user, total=pricing.total)
+    if form.cleaned_data.get("gift_card") and used.gift_card is None and pricing.total:
+        raise GiftCardUnavailable(used.error or "مانده کارت هدیه دیگر قابل استفاده نیست.")
+    order.gift_card_code = used.gift_card.code if used.gift_card else ""
+    order.gift_card_amount, order.points_used, order.points_amount = used.gift_amount, used.points, used.points_amount
+    order.total = used.payable
+    if order.payment_method == Order.PaymentMethod.ONLINE and order.total:
         order.reserved_until = timezone.now() + timedelta(minutes=cart.store.config.payment_timeout_minutes)
     order.save()
 
     OrderItem.objects.bulk_create([
         OrderItem(
             order=order, variant=line.variant, product_name=line.variant.product.name,
-            size_ml=line.variant.size_ml, unit_price=line.unit_price, quantity=line.quantity,
+            size_ml=0 if line.variant.product.is_accessory else line.variant.size_ml, unit_price=line.unit_price, quantity=line.quantity,
         )
         for line in lines
     ])

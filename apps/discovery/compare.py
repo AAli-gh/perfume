@@ -79,12 +79,12 @@ class Group:
 
 
 def _price_range(p):
-    prices = sorted(v.price for v in p.variants.all())
+    prices = sorted(v.current_price for v in p.variants.all())
     return (prices[0], prices[-1]) if prices else (None, None)
 
 
 def _per_ml(p):
-    values = [v.price / v.size_ml for v in p.variants.all() if v.size_ml]
+    values = [v.current_price / v.size_ml for v in p.variants.all() if v.size_ml]
     return round(min(values)) if values else None
 
 

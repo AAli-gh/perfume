@@ -1,0 +1,19 @@
+{% extends "builder/base.html" %}
+{% block title %}{% if mode == "cancel" %}لغو بخشی{% else %}ثبت مرجوعی{% endif %} {{ order.number }}{% endblock %}
+{% block content %}
+<a class="text-sm" href="{% url 'builder:orders' %}">← سفارش‌ها</a>
+<h1 class="mb-1 mt-2 text-[1.7rem]">{% if mode == "cancel" %}لغو بخشی از سفارش{% else %}ثبت مرجوعی{% endif %} <bdi dir="ltr">{{ order.number }}</bdi></h1>
+<p class="mb-4 text-sm text-muted">{{ order.full_name }} · {{ order.get_status_display }} · مبلغ فعلی {{ order.total|toman }}.
+  {% if mode == "cancel" %}اقلام انتخاب‌شده همین حالا به انبار برمی‌گردند و از مبلغ سفارش کم می‌شوند{% if order.is_paid %}؛ چون سفارش پرداخت شده، بازپرداخت را بعداً ثبت کنید{% endif %}.{% else %}مرجوعی ثبت می‌شود؛ بعد از دریافت کالا آن را به انبار برگردانید و بازپرداخت را ثبت کنید.{% endif %}</p>
+<form method="post" class="studio-preview grid max-w-2xl gap-3">
+  {% csrf_token %}
+  {% for item, max in available.items %}
+  <label class="flex items-center justify-between gap-3 text-sm"><span>{{ item.product_name }}{% if item.size_ml %} ({{ item.size_ml|fa }} میل){% endif %} — {{ item.unit_price|toman }} <small class="text-muted">(حداکثر {{ max|fa }})</small></span>
+    <input class="input !w-20 !py-1" type="number" min="0" max="{{ max }}" value="0" name="qty-{{ item.pk }}" aria-label="تعداد {{ item.product_name }}"></label>
+  {% empty %}<p class="m-0 text-muted">قلمی برای این کار باقی نمانده است.</p>
+  {% endfor %}
+  <select class="input" name="reason" aria-label="علت"><option value="">علت…</option>{% for v, l in reasons %}<option value="{{ v }}">{{ l }}</option>{% endfor %}</select>
+  <textarea class="input" name="note" rows="2" placeholder="توضیح (اختیاری)"></textarea>
+  <button class="btn justify-self-start" type="submit" {% if not available %}disabled{% endif %}>{% if mode == "cancel" %}لغو اقلام انتخاب‌شده{% else %}ثبت مرجوعی{% endif %}</button>
+</form>
+{% endblock %}

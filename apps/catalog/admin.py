@@ -3,11 +3,12 @@ from django.contrib import admin
 from django.utils.html import format_html
 
 from .models import (
-    Attribute, AttributeValue, Brand, Category, Collection, FragranceNote, Product, ProductImage, ProductNote,
+    Attribute, AttributeValue, BackInStockRequest, Brand, Category, PriceChangeBatch, SaleCampaign, SearchLog, Collection, FragranceNote, Product, ProductImage, ProductNote,
     ProductVariant, ScentFamily, StockMovement, Tag,
 )
 from . import inventory
 from .profile import Occasion, Season
+from apps.core.jalali import JalaliAdminMixin
 
 
 @admin.register(Brand, ScentFamily)
@@ -25,9 +26,10 @@ class CollectionAdmin(admin.ModelAdmin):
     prepopulated_fields = {"slug": ["name"]}
 
 
-class VariantInline(admin.TabularInline):
+class VariantInline(JalaliAdminMixin, admin.TabularInline):
     model = ProductVariant
     extra = 1
+    fields = ["size_ml", "price", "stock", "low_stock_threshold", "sale_price", "sale_starts_at", "sale_ends_at"]
 
 
 class NoteInline(admin.TabularInline):
@@ -55,9 +57,9 @@ class ProductAdminForm(forms.ModelForm):
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     form = ProductAdminForm
-    list_display = ["thumb", "name", "brand", "scent", "collection", "is_active", "is_featured"]
+    list_display = ["thumb", "name", "kind", "brand", "scent", "collection", "is_active", "is_featured"]
     list_display_links = ["thumb", "name"]
-    list_filter = ["store", "is_active", "is_featured", "brand", "scent", "collection"]
+    list_filter = ["store", "kind", "is_active", "is_featured", "brand", "scent", "collection"]
     list_editable = ["is_active", "is_featured"]
     search_fields = ["name", "short_description", "notes__note__name"]
     filter_horizontal = ["categories", "tags", "attribute_values"]
@@ -142,4 +144,41 @@ class StockMovementAdmin(admin.ModelAdmin):
         return False
 
     def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(BackInStockRequest)
+class BackInStockRequestAdmin(admin.ModelAdmin):
+    list_display = ["variant", "phone", "created_at", "notified_at"]
+    list_filter = [("notified_at", admin.EmptyFieldListFilter)]
+    search_fields = ["phone", "variant__product__name"]
+    raw_id_fields = ["variant", "user"]
+    readonly_fields = ["created_at", "notified_at"]
+
+
+@admin.register(SaleCampaign)
+class SaleCampaignAdmin(JalaliAdminMixin, admin.ModelAdmin):
+    list_display = ["name", "percent", "starts_at", "ends_at", "ended_at"]
+    list_filter = ["store"]
+    readonly_fields = ["created_by", "created_at", "ended_at"]
+
+
+@admin.register(PriceChangeBatch)
+class PriceChangeBatchAdmin(admin.ModelAdmin):
+    list_display = ["description", "created_at", "created_by", "reverted_at"]
+    list_filter = ["store"]
+    readonly_fields = ["store", "description", "changes", "created_by", "created_at", "reverted_at"]
+
+    def has_add_permission(self, request):
+        return False
+
+
+@admin.register(SearchLog)
+class SearchLogAdmin(admin.ModelAdmin):
+    list_display = ["raw", "intent", "results", "exact", "created_at"]
+    list_filter = ["store", "exact"]
+    search_fields = ["raw", "intent"]
+    readonly_fields = [f.name for f in SearchLog._meta.fields]
+
+    def has_add_permission(self, request):
         return False

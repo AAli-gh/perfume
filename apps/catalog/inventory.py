@@ -7,9 +7,11 @@
 
 from dataclasses import dataclass
 
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from django.db.models import F
 
+from . import events
 from .models import ProductVariant, StockMovement
 
 
@@ -56,6 +58,15 @@ def release(lines, reference, user=None, note=""):
 
 
 @transaction.atomic
+def restock(lines, reference, user=None, note="", reason=StockMovement.Reason.RETURNED):
+    """برگشت کالا به انبار (مرجوعی دریافت‌شده یا لغو بخشی از سفارش)."""
+    lock_variants(line.variant_id for line in lines)
+    for line in lines:
+        if line.quantity > 0:
+            _apply(line.variant_id, line.quantity, reason, reference, user, note)
+
+
+@transaction.atomic
 def set_stock(variant, new_stock, user=None, note="", reason=StockMovement.Reason.ADJUSTMENT):
     """تنظیم دستی موجودی (مثلاً از پنل مدیریت) همراه با ثبت اختلاف در دفتر موجودی."""
     current = ProductVariant.objects.select_for_update().get(pk=variant.pk).stock
@@ -74,3 +85,24 @@ def _apply(variant_id, change, reason, reference, user=None, note=""):
     StockMovement.objects.create(
         variant_id=variant_id, change=change, reason=reason, reference=reference, created_by=user, note=note
     )
+    _announce(variant_id, change)
+
+
+def threshold_for(variant):
+    if variant.low_stock_threshold is not None:
+        return variant.low_stock_threshold
+    try:
+        return variant.product.store.config.low_stock_threshold
+    except ObjectDoesNotExist:  # فروشگاه بدون تنظیمات (فقط در تست‌ها)
+        return 3
+
+
+def _announce(variant_id, change):
+    """عبور از آستانه موجودی کم (رو به پایین) یا از صفر (رو به بالا) ← رویداد پس از commit."""
+    variant = ProductVariant.objects.select_related("product__store").get(pk=variant_id)
+    after, before = variant.stock, variant.stock - change
+    if change < 0 and before > threshold_for(variant) >= after:
+        transaction.on_commit(lambda: events.stock_low.send(sender=ProductVariant, variant_id=variant_id, stock=after))
+    elif change > 0 and before <= 0 < after:
+        transaction.on_commit(lambda: events.back_in_stock.send(sender=ProductVariant, variant_id=variant_id,
+                                                                stock=after))

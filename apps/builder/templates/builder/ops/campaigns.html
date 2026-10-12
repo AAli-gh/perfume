@@ -1,0 +1,24 @@
+{% extends "builder/base.html" %}
+{% block title %}پیامک‌های گروهی{% endblock %}
+{% block content %}
+<a class="text-sm" href="{% url 'builder:customers' %}">← مشتریان</a>
+<h1 class="mb-4 mt-2 text-[1.7rem]">پیامک‌های گروهی</h1>
+{% if campaigns %}
+<div class="studio-preview overflow-x-auto">
+  <table class="w-full min-w-[640px] text-right text-sm">
+    <thead class="text-muted"><tr><th class="p-1.5 font-normal">عنوان</th><th class="p-1.5 font-normal">گروه</th><th class="p-1.5 font-normal">ارسال</th><th class="p-1.5 font-normal">کد تخفیف</th><th class="p-1.5 font-normal">زمان</th></tr></thead>
+    <tbody>
+      {% for c in campaigns %}
+      <tr class="border-t border-line">
+        <td class="p-1.5">{{ c.name }}<small class="block max-w-xs truncate text-xs text-muted">{{ c.message }}</small></td>
+        <td class="p-1.5">{{ c.audience }}</td>
+        <td class="p-1.5">{{ c.get_status_display }}<small class="block text-xs text-muted">موفق {{ c.sent|fa }} از {{ c.total|fa }}{% if c.failed %} · ناموفق {{ c.failed|fa }}{% endif %}</small></td>
+        <td class="p-1.5" dir="ltr">{{ c.coupon_code|default:"—" }}</td>
+        <td class="p-1.5">{{ c.created_at|jdate:"%d %B، %H:%M" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}<p class="text-muted">هنوز پیامک گروهی ارسال نشده است.</p>{% endif %}
+{% endblock %}

@@ -1,0 +1,49 @@
+{% extends "builder/base.html" %}
+{% block title %}{{ r.get_kind_display }} {{ r.order.number }}{% endblock %}
+{% block content %}
+<a class="text-sm" href="{% url 'builder:returns' %}">← مرجوعی‌ها</a>
+<h1 class="mb-1 mt-2 text-[1.7rem]">{{ r.get_kind_display }} <bdi dir="ltr">{{ r.order.number }}</bdi></h1>
+<p class="mb-4 text-sm text-muted">{{ r.order.full_name }} · <bdi dir="ltr">{{ r.order.phone|fa }}</bdi> · وضعیت سفارش: {{ r.order.get_status_display }} · <a href="{% url 'admin:orders_order_change' r.order.pk %}">سفارش در پنل</a></p>
+<div class="grid gap-5 xl:grid-cols-2">
+  <section class="studio-preview text-sm leading-7">
+    <p class="m-0"><b>وضعیت:</b> <span class="text-gold" data-return-status>{{ r.get_status_display }}</span></p>
+    <p class="m-0"><b>علت:</b> {{ r.get_reason_display }}</p>
+    {% if r.description %}<p class="m-0"><b>توضیح:</b> {{ r.description|linebreaksbr }}</p>{% endif %}
+    <p class="m-0"><b>اقلام:</b></p>
+    <ul class="m-0 ps-5">{% for ri in r.items.all %}<li>{{ ri.order_item.product_name }}{% if ri.order_item.size_ml %} ({{ ri.order_item.size_ml|fa }} میل){% endif %} × {{ ri.quantity|fa }} — {{ ri.order_item.unit_price|toman }}</li>{% endfor %}</ul>
+    <p class="m-0"><b>مبلغ بازپرداخت:</b> {{ r.refund_amount|toman }}{% if r.refund_method %} · {{ r.get_refund_method_display }}{% endif %}{% if r.refund_reference %} · <bdi>{{ r.refund_reference }}</bdi>{% endif %}</p>
+    <p class="m-0"><b>به انبار برگشت:</b> {% if r.restocked %}بله{% else %}خیر{% endif %}</p>
+    {% if r.staff_note %}<p class="m-0"><b>یادداشت کارکنان:</b> {{ r.staff_note|linebreaksbr }}</p>{% endif %}
+    <p class="m-0 text-xs text-muted">ثبت: {{ r.created_at|jdate:"%d %B %Y، %H:%M" }}{% if r.handled_by %} · رسیدگی: <bdi>{{ r.handled_by.display_name }}</bdi>{% endif %}</p>
+  </section>
+  {% if perms.orders.change_order and r.is_open %}
+  <section class="studio-preview grid content-start gap-4">
+    <h2 class="m-0 text-lg">اقدام</h2>
+    {% if r.status == "requested" %}
+    <form method="post" class="flex flex-wrap gap-2">{% csrf_token %}
+      <input class="input flex-1" name="note" placeholder="یادداشت (اختیاری)">
+      <button class="btn btn-sm" name="action" value="approve">تأیید درخواست</button>
+      <button class="btn btn-ghost btn-sm" name="action" value="reject">رد درخواست</button>
+    </form>
+    {% endif %}
+    {% if r.status == "requested" or r.status == "approved" %}
+    <form method="post" class="grid gap-2">{% csrf_token %}
+      <label class="check"><input type="checkbox" name="restock" checked> کالا سالم است؛ به موجودی انبار برگردد</label>
+      <button class="btn btn-sm justify-self-start" name="action" value="receive">کالا دریافت شد</button>
+    </form>
+    {% endif %}
+    {% if r.status == "received" or r.status == "approved" %}
+    <form method="post" class="grid gap-2">{% csrf_token %}
+      <div class="grid gap-2 sm:grid-cols-2">
+        <label class="grid gap-1 text-sm">مبلغ بازپرداخت (تومان)<input class="input" dir="ltr" name="amount" value="{{ r.refund_amount }}"></label>
+        <label class="grid gap-1 text-sm">روش<select class="input" name="method">{% for v, l in methods %}<option value="{{ v }}">{{ l }}</option>{% endfor %}</select></label>
+      </div>
+      <input class="input" name="reference" placeholder="کد پیگیری واریز (اختیاری)">
+      <button class="btn btn-sm justify-self-start" name="action" value="refund">ثبت بازپرداخت</button>
+      <p class="m-0 text-xs text-muted">مبلغ پیشنهادی = قیمت اقلام منهای سهم آن‌ها از تخفیف سفارش (هزینه ارسال برنمی‌گردد).</p>
+    </form>
+    {% endif %}
+  </section>
+  {% endif %}
+</div>
+{% endblock %}

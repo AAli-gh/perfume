@@ -5,11 +5,13 @@
 شماره سفارش: {{ number }}
 وضعیت: {{ status }}
 روش پرداخت: {{ payment_method }}
-{% for item in order.items.all %}- {{ item.product_name }} ({{ item.size_ml|fa }} میل) × {{ item.quantity|fa }}: {{ item.line_total|toman }}
+{% for item in order.items.all %}- {{ item.product_name }}{% if item.size_ml %} ({{ item.size_ml|fa }} میل){% endif %} × {{ item.quantity|fa }}: {{ item.line_total|toman }}
 {% endfor %}
 جمع جزء: {{ order.subtotal|toman }}{% if order.discount %}
 تخفیف: {{ order.discount|toman }}{% endif %}
-هزینه ارسال: {% if order.shipping %}{{ order.shipping|toman }}{% else %}رایگان{% endif %}
+{% if order.points_amount %}امتیاز باشگاه: −{{ order.points_amount|toman }}
+{% endif %}{% if order.gift_card_amount %}کارت هدیه: −{{ order.gift_card_amount|toman }}
+{% endif %}هزینه ارسال: {% if order.shipping %}{{ order.shipping|toman }}{% else %}رایگان{% endif %}
 مبلغ نهایی: {{ total }}
 {% if tracking_code %}
 روش ارسال: {{ shipping_method }}
@@ -17,7 +19,11 @@
 پیگیری: {{ tracking_url }}{% endif %}
 {% endif %}
 گیرنده: {{ order.full_name }}، {{ order.province }}، {{ order.city }}، {{ order.address }}
-
+{% if order.is_gift %}بسته‌بندی: {{ order.get_packaging_display }}{% if order.packaging_note %}
+توضیح بسته‌بندی: {{ order.packaging_note }}{% endif %}{% if order.gift_message %}
+پیام کارت هدیه: {{ order.gift_message }}{% if order.gift_from %} (از طرف {{ order.gift_from }}){% endif %}{% endif %}{% if order.hide_prices %}
+فاکتور قیمت داخل بسته نباشد.{% endif %}
+{% endif %}
 مشاهده سفارش: {{ order_url }}
 
 {{ store }}{% endautoescape %}

@@ -1,19 +1,17 @@
-{% extends "base.html" %}
-{% load seo i18n %}
-{% block seo %}{% translate "صفحه پیدا نشد" as not_found %}{% seo_head title=not_found noindex=True %}{% endblock %}
-{% block content %}
-<section class="container grid place-items-center py-24 text-center">
-  <p class="font-display text-[5rem] leading-none text-gold">{{ 404|fa }}</p>
-  <h1 class="mb-3 mt-4 text-[1.8rem]">{% translate "صفحه‌ای که دنبالش بودید پیدا نشد" %}</h1>
-  <p class="mb-8 max-w-[520px] text-muted">{% translate "ممکن است آدرس اشتباه وارد شده باشد یا این صفحه دیگر وجود نداشته باشد." %}</p>
-  <form action="{% url 'catalog:shop' %}" role="search" class="mb-6 flex w-full max-w-[460px] gap-2">
-    <label class="sr-only" for="nf-search">{% translate "جستجوی عطر" %}</label>
-    <input id="nf-search" name="q" type="search" class="input" placeholder="{% translate "نام عطر، برند یا نت…" %}">
-    <button class="btn" type="submit">{% icon "search" %}</button>
-  </form>
-  <p class="flex flex-wrap justify-center gap-3">
-    <a class="btn" href="{% url 'pages:home' %}">{% translate "صفحه اصلی" %}</a>
-    <a class="btn btn-ghost" href="{% url 'catalog:shop' %}">{% translate "فروشگاه" %}</a>
-  </p>
-</section>
+{% extends "errors/page.html" %}
+{% load i18n majd %}
+{% block seo %}{% with error_title=_("صفحه پیدا نشد") %}{{ block.super }}{% endwith %}{% endblock %}
+{% block content %}{% with error_code=404 error_title=_("صفحه‌ای که دنبالش بودید پیدا نشد") error_message=_("ممکن است آدرس اشتباه وارد شده باشد یا این صفحه دیگر وجود نداشته باشد. عطر مورد نظرتان را جستجو کنید یا از فروشگاه دیدن کنید.") %}{{ block.super }}{% endwith %}{% endblock %}
+{% block error_extra %}
+<form action="{% url 'catalog:shop' %}" role="search" class="mb-6 flex w-full max-w-[480px] gap-2 max-lg:mx-auto">
+  <label class="sr-only" for="nf-search">{% translate "جستجوی عطر" %}</label>
+  <input id="nf-search" name="q" type="search" class="input" placeholder="{% translate "مثلاً: عطر خنک زیر سه تومن" %}">
+  <button class="btn" type="submit" aria-label="{% translate "جستجو" %}">{% icon "search" %}</button>
+</form>
+<p class="mb-8 flex flex-wrap gap-2 text-sm max-lg:justify-center">
+  <a class="search-example" href="{% url 'catalog:collections' %}">{% translate "کالکشن‌ها" %}</a>
+  <a class="search-example" href="{% url 'discovery:finder' %}">{% translate "عطریاب" %}</a>
+  <a class="search-example" href="{% url 'blog:list' %}">{% translate "مجله" %}</a>
+  <a class="search-example" href="{% url 'pages:contact' %}">{% translate "تماس با ما" %}</a>
+</p>
 {% endblock %}

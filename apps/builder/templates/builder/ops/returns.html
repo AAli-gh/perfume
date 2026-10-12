@@ -1,0 +1,27 @@
+{% extends "builder/base.html" %}
+{% block title %}مرجوعی‌ها{% endblock %}
+{% block content %}
+<h1 class="mb-1 text-[1.7rem]">مرجوعی‌ها و لغوهای بخشی</h1>
+<p class="mb-4 text-sm text-muted">درخواست‌های مرجوعی مشتریان (از صفحه سفارش) و لغوهای بخشی کارکنان. برای ثبت دستی، در «سفارش‌ها» روی «مرجوعی» یا «لغو بخشی» آن سفارش بزنید.</p>
+<nav class="studio-tabs mb-4"><a href="?show=open" {% if show == "open" %}aria-current="page"{% endif %}>باز</a><a href="?show=all" {% if show == "all" %}aria-current="page"{% endif %}>همه</a></nav>
+{% if page.object_list %}
+<div class="studio-preview overflow-x-auto">
+  <table class="w-full min-w-[640px] text-right text-sm">
+    <thead class="text-muted"><tr><th class="p-1.5 font-normal">سفارش</th><th class="p-1.5 font-normal">نوع</th><th class="p-1.5 font-normal">اقلام</th><th class="p-1.5 font-normal">وضعیت</th><th class="p-1.5 font-normal">مبلغ</th><th class="p-1.5 font-normal">زمان</th></tr></thead>
+    <tbody>
+      {% for r in page.object_list %}
+      <tr class="border-t border-line">
+        <td class="p-1.5"><a dir="ltr" href="{% url 'builder:return' r.pk %}">{{ r.order.number }}</a><small class="block text-xs text-muted">{{ r.order.full_name }}</small></td>
+        <td class="p-1.5">{{ r.get_kind_display }}{% if r.by_customer %}<small class="block text-xs text-muted">ثبت مشتری</small>{% endif %}</td>
+        <td class="p-1.5">{% for ri in r.items.all %}<span class="block">{{ ri.order_item.product_name }} × {{ ri.quantity|fa }}</span>{% endfor %}</td>
+        <td class="p-1.5">{{ r.get_status_display }}</td>
+        <td class="p-1.5">{{ r.refund_amount|toman }}</td>
+        <td class="p-1.5">{{ r.created_at|jdate:"%d %B" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% include "components/pagination.html" %}
+{% else %}<p class="rounded border border-dashed border-line p-8 text-center text-muted">درخواستی نیست.</p>{% endif %}
+{% endblock %}

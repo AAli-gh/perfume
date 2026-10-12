@@ -1,0 +1,5 @@
+{% extends "errors/page.html" %}
+{% load i18n majd %}
+{% block seo %}{% with error_title=_("این درخواست برای این صفحه مجاز نیست") %}{{ block.super }}{% endwith %}{% endblock %}
+{% block content %}{% with error_code=405 error_title=_("این درخواست برای این صفحه مجاز نیست") error_message=_("این آدرس با این روش باز نمی‌شود؛ احتمالاً لینک یا فرمی که از آن آمدید قدیمی است. از صفحه اصلی یا فروشگاه ادامه دهید.") %}{{ block.super }}{% endwith %}{% endblock %}
+

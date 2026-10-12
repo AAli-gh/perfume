@@ -12,7 +12,17 @@
 <tr><td align="center" valign="top"><img src="screenshots/collections.jpg" alt="کالکشن‌ها"><br><sub>کالکشن‌ها</sub></td><td align="center" valign="top"><img src="screenshots/collection-detail.jpg" alt="صفحه اختصاصی کالکشن"><br><sub>صفحه اختصاصی کالکشن</sub></td></tr>
 <tr><td align="center" valign="top"><img src="screenshots/blog.jpg" alt="مجله"><br><sub>مجله</sub></td><td align="center" valign="top"><img src="screenshots/blog-post.jpg" alt="مقاله"><br><sub>مقاله</sub></td></tr>
 <tr><td align="center" valign="top"><img src="screenshots/about.jpg" alt="درباره ما"><br><sub>درباره ما</sub></td><td align="center" valign="top"><img src="screenshots/contact.jpg" alt="تماس با ما"><br><sub>تماس با ما</sub></td></tr>
-<tr><td align="center" valign="top"><img src="screenshots/login.jpg" alt="ورود و ثبت‌نام"><br><sub>ورود و ثبت‌نام</sub></td><td align="center" valign="top"><img src="screenshots/404.jpg" alt="صفحه ۴۰۴ با جستجو"><br><sub>صفحه ۴۰۴ با جستجو</sub></td></tr>
+<tr><td align="center" valign="top"><img src="screenshots/login.jpg" alt="ورود"><br><sub>ورود</sub></td><td align="center" valign="top"><img src="screenshots/register.jpg" alt="ثبت‌نام (صفحه جدا)"><br><sub>ثبت‌نام (صفحه جدا)</sub></td></tr>
+<tr><td align="center" valign="top"><img src="screenshots/404.jpg" alt="صفحه ۴۰۴ با جستجو"><br><sub>صفحه ۴۰۴ با جستجو</sub></td><td></td></tr>
+</table>
+
+## پوسته «استاندارد (Design System)»
+
+بر اساس Design System فیگما با پیش‌تنظیم «ایندیگو». فونت‌های گوگل در محیط گرفتن عکس بارگذاری نشده‌اند، پس متن با فونت سیستم دیده می‌شود.
+
+<table>
+<tr><td align="center" valign="top"><img src="screenshots/theme-standard-home.jpg" alt="صفحه اصلی با پوسته استاندارد"><br><sub>صفحه اصلی</sub></td><td align="center" valign="top"><img src="screenshots/theme-standard-product.jpg" alt="صفحه محصول با پوسته استاندارد"><br><sub>صفحه محصول</sub></td></tr>
+<tr><td align="center" valign="top"><img src="screenshots/theme-standard-mobile-search.jpg" alt="جستجوی هوشمند در موبایل" width="300"><br><sub>جستجوی هوشمند (موبایل)</sub></td><td align="center" valign="top"><img src="screenshots/theme-standard-studio.jpg" alt="انتخاب پوسته در استودیو"><br><sub>انتخاب پوسته و پیش‌تنظیم در استودیو</sub></td></tr>
 </table>
 
 ## خرید
@@ -55,6 +65,45 @@
 
 <table>
 <tr><td align="center" valign="top"><img src="screenshots/m-compare.jpg" alt="مقایسه در موبایل"><br><sub>مقایسه در موبایل</sub></td><td align="center" valign="top"><img src="screenshots/m-finder.jpg" alt="عطریاب در موبایل"><br><sub>عطریاب در موبایل</sub></td></tr>
+</table>
+
+## عملیات فروشگاه (استودیو)
+
+ابزارهای کار روزانه مدیر ([backoffice.md](backoffice.md)).
+
+<table>
+<tr><td align="center" valign="top"><img src="screenshots/studio-ops-dashboard.jpg" alt="پیشخوان: کارهای امروز"><br><sub>پیشخوان: کارهای امروز</sub></td><td align="center" valign="top"><img src="screenshots/studio-ops-orders.jpg" alt="سفارش‌ها: چاپ گروهی و رهگیری"><br><sub>سفارش‌ها: چاپ گروهی و رهگیری</sub></td></tr>
+<tr><td align="center" valign="top"><img src="screenshots/studio-ops-invoice.jpg" alt="فاکتور (بدون قیمت به درخواست مشتری)"><br><sub>فاکتور (بدون قیمت به درخواست مشتری)</sub></td><td align="center" valign="top"><img src="screenshots/studio-ops-packing.jpg" alt="برگه بسته‌بندی با کارت هدیه"><br><sub>برگه بسته‌بندی با کارت هدیه</sub></td></tr>
+<tr><td align="center" valign="top"><img src="screenshots/studio-ops-labels.jpg" alt="برچسب ارسال"><br><sub>برچسب ارسال</sub></td><td align="center" valign="top"><img src="screenshots/studio-ops-stock.jpg" alt="موجودی رو به اتمام"><br><sub>موجودی رو به اتمام</sub></td></tr>
+<tr><td align="center" valign="top"><img src="screenshots/studio-ops-products.jpg" alt="Excel و تغییر گروهی قیمت"><br><sub>Excel و تغییر گروهی قیمت</sub></td><td align="center" valign="top"><img src="screenshots/studio-ops-sales.jpg" alt="حراج زمان‌دار"><br><sub>حراج زمان‌دار</sub></td></tr>
+<tr><td align="center" valign="top"><img src="screenshots/studio-ops-customers.jpg" alt="مشتریان و گروه‌ها"><br><sub>مشتریان و گروه‌ها</sub></td><td align="center" valign="top"><img src="screenshots/studio-ops-searches.jpg" alt="مشتریان دنبال چه‌اند"><br><sub>مشتریان دنبال چه‌اند</sub></td></tr>
+<tr><td align="center" valign="top"><img src="screenshots/studio-ops-giftcards.jpg" alt="کارت هدیه"><br><sub>کارت هدیه</sub></td></tr>
+</table>
+
+## جستجوی هوشمند
+
+«عطر خنک زیر سه تومن»: برداشت از عبارت، پیشنهاد زنده و نزدیک‌ترین نتایج ([smart-search.md](smart-search.md)).
+
+<table>
+<tr><td align="center" valign="top"><img src="screenshots/smart-search-panel.jpg" alt="پنل جستجو با نمونه‌ها"><br><sub>پنل جستجو با نمونه‌ها</sub></td><td align="center" valign="top"><img src="screenshots/smart-search-suggest.jpg" alt="پیشنهاد زنده حین تایپ"><br><sub>پیشنهاد زنده حین تایپ</sub></td></tr>
+<tr><td align="center" valign="top"><img src="screenshots/smart-search-results.jpg" alt="برچسب هر شرط با ✕ و کلمات نادیده"><br><sub>برچسب هر شرط با ✕ و کلمات نادیده</sub></td><td align="center" valign="top"><img src="screenshots/smart-search-relaxed.jpg" alt="نتیجه دقیق نبود: نزدیک‌ترین گزینه‌ها"><br><sub>نتیجه دقیق نبود: نزدیک‌ترین گزینه‌ها</sub></td></tr>
+</table>
+
+<table>
+<tr><td align="center" valign="top"><img src="screenshots/m-smart-search.jpg" alt="جستجوی هوشمند در موبایل"><br><sub>جستجوی هوشمند در موبایل</sub></td></tr>
+</table>
+
+## باکس هدیه و بسته‌بندی
+
+خرید باکس جدا یا انتخاب در تسویه، با چیدن عطرها داخل باکس، ارسال جدا یا توضیح دلخواه ([gift-boxes.md](gift-boxes.md)).
+
+<table>
+<tr><td align="center" valign="top"><img src="screenshots/gift-boxes.jpg" alt="صفحه باکس‌های هدیه"><br><sub>صفحه باکس‌های هدیه</sub></td><td align="center" valign="top"><img src="screenshots/gift-box-product.jpg" alt="صفحه باکس: گنجایش و امکانات"><br><sub>صفحه باکس: گنجایش و امکانات</sub></td></tr>
+<tr><td align="center" valign="top"><img src="screenshots/checkout-gift.jpg" alt="تسویه: انتخاب باکس و پیام کارت؛ باکس به خلاصه سفارش اضافه می‌شود"><br><sub>تسویه: انتخاب باکس و پیام کارت؛ باکس به خلاصه سفارش اضافه می‌شود</sub></td><td align="center" valign="top"><img src="screenshots/checkout-gift-custom.jpg" alt="«توضیح می‌دهم چطور بسته‌بندی شود»"><br><sub>«توضیح می‌دهم چطور بسته‌بندی شود»</sub></td></tr>
+</table>
+
+<table>
+<tr><td align="center" valign="top"><img src="screenshots/m-checkout-gift.jpg" alt="بسته‌بندی هدیه در موبایل"><br><sub>بسته‌بندی هدیه در موبایل</sub></td></tr>
 </table>
 
 ## استودیو (`/studio/`)

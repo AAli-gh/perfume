@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load seo discovery %}
+{% load seo discovery loyalty %}
 {% block seo %}{% seo_head title="حساب کاربری" %}{% endblock %}
 {% block content %}
 <div class="container py-14">
@@ -14,6 +14,16 @@
     </div>
   </div>
 
+  {% loyalty_summary as club %}
+  {% if club %}
+  <section class="panel mb-7" id="loyalty">
+    <h2 class="panel-title">باشگاه مشتریان</h2>
+    <div class="panel-body flex flex-wrap items-center justify-between gap-3">
+      <p class="m-0"><b class="text-2xl text-gold">{{ club.points|fa_int }}</b> امتیاز <span class="text-muted">— ارزش {{ club.value|toman }}</span></p>
+      <p class="m-0 text-sm text-muted">به ازای هر {{ club.earn_per|toman }} خرید یک امتیاز می‌گیرید؛ از {{ club.min|fa }} امتیاز به بالا در صفحه ثبت سفارش قابل استفاده است.</p>
+    </div>
+  </section>
+  {% endif %}
   {% recommendations_for_user as recs %}
   <section class="panel mb-7">
     <h2 class="panel-title">پیشنهاد برای شما</h2>

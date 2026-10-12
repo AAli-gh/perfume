@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 
@@ -20,6 +21,17 @@ class NotificationSettings(models.Model):
                                     help_text="برای پیامک «سفارش جدید»؛ چند شماره را با کاما جدا کنید")
     staff_emails = models.CharField("ایمیل مدیران", max_length=300, blank=True,
                                     help_text="برای ایمیل «سفارش جدید»؛ چند ایمیل را با کاما جدا کنید")
+    cart_reminder_enabled = models.BooleanField(
+        "یادآوری سبد رهاشده", default=True,
+        help_text="به مشتری واردشده‌ای که سبدش را پر کرده ولی سفارش نداده، یک پیامک یادآوری می‌رود",
+    )
+    cart_reminder_hours = models.PositiveSmallIntegerField(
+        "یادآوری پس از (ساعت)", default=3, help_text="چند ساعت بعد از آخرین تغییر سبد",
+    )
+    staff_2fa_enabled = models.BooleanField(
+        "ورود دومرحله‌ای کارکنان", default=False,
+        help_text="کارکنان بعد از رمز عبور، کد پیامکی به موبایل حسابشان می‌گیرند (موبایل کارمند باید ثبت شده باشد)",
+    )
     otp_login_enabled = models.BooleanField(
         "ورود با کد پیامکی", default=False,
         help_text="مشتری با شماره موبایل و کد یک‌بارمصرف وارد می‌شود (نیاز به سرویس پیامک فعال)",
@@ -112,6 +124,8 @@ class NotificationLog(models.Model):
     store = models.ForeignKey("core.Store", on_delete=models.CASCADE, related_name="+", verbose_name="فروشگاه")
     order = models.ForeignKey("orders.Order", on_delete=models.SET_NULL, null=True, blank=True, related_name="+",
                               verbose_name="سفارش")
+    campaign = models.ForeignKey("Campaign", on_delete=models.SET_NULL, null=True, blank=True, related_name="logs",
+                                 verbose_name="پیامک گروهی")
     event = models.CharField("رویداد", max_length=30, choices=E.EVENT_CHOICES)
     channel = models.CharField("کانال", max_length=10, choices=NotificationRule.CHANNELS)
     recipient = models.CharField("گیرنده", max_length=254)
@@ -136,3 +150,35 @@ class NotificationLog(models.Model):
 
     def __str__(self):
         return f"{self.get_event_display()} → {self.recipient}"
+
+
+class Campaign(models.Model):
+    """پیامک گروهی به یک گروه مشتری (با کد تخفیف اختیاری)."""
+
+    SENDING, DONE = "sending", "done"
+    STATUSES = [("sending", "در حال ارسال"), ("done", "ارسال شد")]
+
+    store = models.ForeignKey("core.Store", on_delete=models.CASCADE, related_name="+", verbose_name="فروشگاه")
+    name = models.CharField("عنوان", max_length=100)
+    message = models.TextField("متن پیامک", max_length=600)
+    audience = models.CharField("گروه مخاطب", max_length=200, blank=True)
+    recipients = models.JSONField("گیرندگان", default=list, help_text="[[موبایل، نام]، …]")
+    coupon_code = models.CharField("کد تخفیف", max_length=30, blank=True)
+    status = models.CharField("وضعیت", max_length=10, choices=STATUSES, default="sending")
+    sent = models.PositiveIntegerField("ارسال موفق", default=0)
+    failed = models.PositiveIntegerField("ناموفق", default=0)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+                                   related_name="+", verbose_name="کاربر")
+    created_at = models.DateTimeField("زمان", auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "پیامک گروهی"
+        verbose_name_plural = "پیامک‌های گروهی"
+
+    def __str__(self):
+        return self.name
+
+    @property
+    def total(self):
+        return len(self.recipients)

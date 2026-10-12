@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import views
+from . import ops_views, views
 
 app_name = "builder"
 urlpatterns = [
@@ -23,5 +23,30 @@ urlpatterns = [
     path("discard/", views.discard, name="discard"),
     path("history/", views.history, name="history"),
     path("reports/", views.sales_report, name="reports"),
+    path("orders/", ops_views.orders, name="orders"),
+    path("orders/print/", ops_views.print_orders, name="print_orders"),
+    path("orders/status/", ops_views.orders_status, name="orders_status"),
+    path("orders/tracking/", ops_views.tracking, name="tracking"),
+    path("orders/abandoned/", ops_views.abandoned_carts, name="abandoned_carts"),
+    path("orders/<int:pk>/adjust/", ops_views.order_adjust, name="order_adjust"),
+    path("returns/", ops_views.returns_list, name="returns"),
+    path("returns/<int:pk>/", ops_views.return_detail, name="return"),
+    path("stock/", ops_views.stock, name="stock"),
+    path("searches/", ops_views.searches, name="searches"),
+    path("products/", ops_views.products, name="products"),
+    path("products/export/", ops_views.products_export, name="products_export"),
+    path("products/import/", ops_views.products_import, name="products_import"),
+    path("products/import/confirm/", ops_views.products_import_confirm, name="products_import_confirm"),
+    path("products/prices/", ops_views.products_prices, name="products_prices"),
+    path("sales/", ops_views.sales, name="sales"),
+    path("customers/", ops_views.customers, name="customers"),
+    path("customers/sms/", ops_views.campaign_new, name="campaign_new"),
+    path("customers/sms/history/", ops_views.campaigns_list, name="campaigns"),
+    path("customers/<str:phone>/", ops_views.customer_detail, name="customer"),
+    path("customers/<str:phone>/points/", ops_views.customer_points, name="customer_points"),
+    path("gift-cards/", ops_views.gift_cards, name="gift_cards"),
+    path("gift-cards/<int:pk>/toggle/", ops_views.gift_card_toggle, name="gift_card_toggle"),
+    path("sales/<int:pk>/end/", ops_views.sale_end, name="sale_end"),
+    path("products/prices/<int:pk>/revert/", ops_views.products_price_revert, name="products_price_revert"),
     path("history/<int:number>/restore/", views.restore, name="restore"),
 ]

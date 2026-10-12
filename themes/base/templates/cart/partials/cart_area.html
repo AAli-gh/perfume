@@ -22,10 +22,10 @@
               <div class="flex items-center gap-3.5">
                 <img src="{{ line.product.image.url }}" alt="" class="h-[60px] w-[60px] border border-line object-cover">
                 <div><a class="text-cream" href="{{ line.product.get_absolute_url }}">{{ line.product.name }}</a>
-                  <small class="block text-xs text-muted">{{ line.product.brand.name }}، {{ line.variant.size_ml|fa }} میل</small></div>
+                  <small class="block text-xs text-muted">{% if line.product.is_gift_box %}باکس هدیه · گنجایش {{ line.product.gift_capacity|fa }} عطر{% elif line.product.is_gift_card %}کارت هدیه دیجیتال{% else %}{{ line.product.brand.name }}، {{ line.variant.size_ml|fa }} میل{% endif %}</small></div>
               </div>
             </td>
-            <td class="p-2.5 text-sm max-sm:hidden">{{ line.unit_price|toman }}</td>
+            <td class="p-2.5 text-sm max-sm:hidden">{{ line.unit_price|toman }}{% if line.unit_price < line.regular_price %}<del class="block text-xs text-muted">{{ line.regular_price|toman }}</del>{% endif %}</td>
             <td class="p-2.5 max-sm:p-0 max-sm:pt-2">
               <div class="inline-flex items-center overflow-hidden rounded border border-line">
                 <button class="h-[34px] w-[34px] bg-input/30 text-muted hover:text-gold" aria-label="کاهش"

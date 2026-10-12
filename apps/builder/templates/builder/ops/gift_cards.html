@@ -1,0 +1,39 @@
+{% extends "builder/base.html" %}
+{% block title %}کارت هدیه{% endblock %}
+{% block content %}
+<h1 class="mb-1 text-[1.7rem]">کارت هدیه</h1>
+<p class="mb-5 text-sm text-muted">کارت با مانده قابل خرج در چند خرید. مشتری کد را در صفحه ثبت سفارش وارد می‌کند. برای فروش کارت در سایت، یک محصول با نوع «کارت هدیه» بسازید (هر حجم = یک مبلغ). مانده کل کارت‌های فعال: <b class="text-gold">{{ outstanding|toman }}</b></p>
+<div class="grid gap-5 xl:grid-cols-[1fr_1.4fr]">
+  <section class="studio-preview">
+    <h2 class="mb-3 text-lg">صدور کارت</h2>
+    <form method="post" class="grid gap-3" novalidate>
+      {% csrf_token %}
+      <div class="grid gap-3 sm:grid-cols-[1fr_7rem]">{% include "components/field.html" with field=form.amount %}{% include "components/field.html" with field=form.count %}</div>
+      <div class="grid gap-3 sm:grid-cols-2">{% include "components/field.html" with field=form.recipient_name %}{% include "components/field.html" with field=form.recipient_phone %}</div>
+      <div class="grid gap-3 sm:grid-cols-2">{% include "components/field.html" with field=form.sender_name %}{% include "components/field.html" with field=form.expires_at %}</div>
+      {% include "components/field.html" with field=form.message %}
+      <button class="btn justify-self-start" type="submit">صدور{% if form.recipient_phone.value %} و پیامک{% endif %}</button>
+    </form>
+  </section>
+  <section class="studio-preview">
+    <form method="get" class="mb-3 flex gap-2"><input class="input !py-1.5" name="s" value="{{ search }}" placeholder="جستجوی کد" dir="ltr"><button class="btn btn-sm" type="submit">جستجو</button></form>
+    {% if page.object_list %}
+    <table class="w-full text-right text-sm">
+      <thead class="text-muted"><tr><th class="p-1.5 font-normal">کد</th><th class="p-1.5 font-normal">مانده / مبلغ</th><th class="p-1.5 font-normal">منبع</th><th class="p-1.5 font-normal">گیرنده</th><th class="p-1.5 font-normal"></th></tr></thead>
+      <tbody>
+        {% for g in page.object_list %}
+        <tr class="border-t border-line {% if not g.is_active %}text-muted{% endif %}">
+          <td class="p-1.5 font-mono" dir="ltr">{{ g.code|slice:":4" }}-{{ g.code|slice:"4:8" }}-{{ g.code|slice:"8:" }}<small class="block text-xs text-muted">{{ g.created_at|jdate:"%d %B %Y" }}{% if g.expires_at %} · تا {{ g.expires_at|jdate:"%d %B %Y" }}{% endif %}</small></td>
+          <td class="p-1.5">{{ g.balance|toman }}<small class="block text-xs text-muted">از {{ g.initial_amount|toman }}</small></td>
+          <td class="p-1.5">{{ g.get_source_display }}{% if g.order_number %}<small class="block text-xs" dir="ltr">{{ g.order_number }}</small>{% endif %}</td>
+          <td class="p-1.5">{{ g.recipient_name|default:"—" }}<small class="block text-xs text-muted" dir="ltr">{{ g.recipient_phone|fa }}</small></td>
+          <td class="p-1.5"><form method="post" action="{% url 'builder:gift_card_toggle' g.pk %}">{% csrf_token %}<button class="text-xs text-gold hover:underline" type="submit">{% if g.is_active %}غیرفعال کن{% else %}فعال کن{% endif %}</button></form></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% include "components/pagination.html" %}
+    {% else %}<p class="m-0 text-sm text-muted">کارتی پیدا نشد.</p>{% endif %}
+  </section>
+</div>
+{% endblock %}

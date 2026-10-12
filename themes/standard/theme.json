@@ -1,0 +1,198 @@
+{
+  "code": "standard",
+  "name": "استاندارد (Design System)",
+  "version": "1.0.0",
+  "description": "پوسته روشن و مدرن بر اساس Design System فیگما: فونت Inter (با وزیرمتن برای فارسی)، پالت ایندیگو/خاکستری/سبز، دکمه‌های یکدست با حالت‌های hover/فشرده/فوکوس/غیرفعال و بج‌های گرد.",
+  "extends": "base",
+  "direction": "rtl",
+  "source": "https://www.figma.com/community/file/1267195373409722424",
+  "presets": [
+    {
+      "code": "ds-indigo",
+      "name": "ایندیگو",
+      "default": true,
+      "tokens": {
+        "colors": {
+          "background": "#f9fafb",
+          "background-2": "#f3f4f6",
+          "surface": "#ffffff",
+          "panel": "#ffffff",
+          "media": "#f3f4f6",
+          "hero": "#eef0fe",
+          "overlay": "#ffffff",
+          "footer": "#f3f4f6",
+          "input": "#ffffff",
+          "primary": "#4e61f6",
+          "primary-dark": "#3745af",
+          "accent": "#131927",
+          "accent-soft": "#3745af",
+          "text-strong": "#131927",
+          "text": "#394050",
+          "muted": "#6d717f",
+          "placeholder": "#9ea2ae",
+          "price": "#131927",
+          "border": "#9ea2ae",
+          "success": "#308242",
+          "danger": "#d92d20",
+          "button-from": "#4e61f6",
+          "button-to": "#4e61f6",
+          "button-border": "#4e61f6",
+          "button-text": "#ffffff",
+          "button-text-hover": "#ffffff",
+          "button-highlight": "#ffffff",
+          "card-from": "#ffffff",
+          "card-to": "#ffffff",
+          "glow-1": "#eef0fe",
+          "glow-2": "#eef0fe",
+          "glow-3": "#eef0fe"
+        },
+        "typography": {
+          "font_body": "Inter",
+          "font_display": "Inter",
+          "base_size": 16
+        },
+        "radius": {
+          "sm": 6,
+          "base": 8,
+          "lg": 16
+        },
+        "spacing": {
+          "section": 64
+        },
+        "components": {
+          "button": "solid",
+          "card": "flat",
+          "header": "solid",
+          "background": "plain",
+          "texture": "none",
+          "shadow": "soft",
+          "ui": "system"
+        }
+      }
+    },
+    {
+      "code": "ds-green",
+      "name": "سبز",
+      "tokens": {
+        "colors": {
+          "background": "#f9fafb",
+          "background-2": "#f3f4f6",
+          "surface": "#ffffff",
+          "panel": "#ffffff",
+          "media": "#f3f4f6",
+          "hero": "#ecf8ef",
+          "overlay": "#ffffff",
+          "footer": "#f3f4f6",
+          "input": "#ffffff",
+          "primary": "#308242",
+          "primary-dark": "#256533",
+          "accent": "#131927",
+          "accent-soft": "#256533",
+          "text-strong": "#131927",
+          "text": "#394050",
+          "muted": "#6d717f",
+          "placeholder": "#9ea2ae",
+          "price": "#131927",
+          "border": "#9ea2ae",
+          "success": "#256533",
+          "danger": "#d92d20",
+          "button-from": "#308242",
+          "button-to": "#308242",
+          "button-border": "#308242",
+          "button-text": "#ffffff",
+          "button-text-hover": "#ffffff",
+          "button-highlight": "#ffffff",
+          "card-from": "#ffffff",
+          "card-to": "#ffffff",
+          "glow-1": "#ecf8ef",
+          "glow-2": "#ecf8ef",
+          "glow-3": "#ecf8ef"
+        },
+        "typography": {
+          "font_body": "Inter",
+          "font_display": "Inter",
+          "base_size": 16
+        },
+        "radius": {
+          "sm": 6,
+          "base": 8,
+          "lg": 16
+        },
+        "spacing": {
+          "section": 64
+        },
+        "components": {
+          "button": "solid",
+          "card": "flat",
+          "header": "solid",
+          "background": "plain",
+          "texture": "none",
+          "shadow": "soft",
+          "ui": "system"
+        }
+      }
+    },
+    {
+      "code": "ds-dark",
+      "name": "تیره",
+      "tokens": {
+        "colors": {
+          "background": "#131927",
+          "background-2": "#182031",
+          "surface": "#212936",
+          "panel": "#212936",
+          "media": "#182031",
+          "hero": "#182031",
+          "overlay": "#131927",
+          "footer": "#0e131d",
+          "input": "#131927",
+          "primary": "#7181f8",
+          "primary-dark": "#4e61f6",
+          "accent": "#f3f4f6",
+          "accent-soft": "#aeb6fb",
+          "text-strong": "#f3f4f6",
+          "text": "#d2d5db",
+          "muted": "#9ea2ae",
+          "placeholder": "#6d717f",
+          "price": "#f3f4f6",
+          "border": "#6d717f",
+          "success": "#69c57d",
+          "danger": "#f97066",
+          "button-from": "#7181f8",
+          "button-to": "#7181f8",
+          "button-border": "#7181f8",
+          "button-text": "#131927",
+          "button-text-hover": "#131927",
+          "button-highlight": "#ffffff",
+          "card-from": "#212936",
+          "card-to": "#212936",
+          "glow-1": "#182031",
+          "glow-2": "#182031",
+          "glow-3": "#182031"
+        },
+        "typography": {
+          "font_body": "Inter",
+          "font_display": "Inter",
+          "base_size": 16
+        },
+        "radius": {
+          "sm": 6,
+          "base": 8,
+          "lg": 16
+        },
+        "spacing": {
+          "section": 64
+        },
+        "components": {
+          "button": "solid",
+          "card": "flat",
+          "header": "solid",
+          "background": "plain",
+          "texture": "none",
+          "shadow": "soft",
+          "ui": "system"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{# برداشت جستجوی هوشمند: برچسب هر شرط با ✕ (حذف همان کلمات از عبارت)، پیام «نزدیک‌ترین نتایج» و کلمات نادیده #}
+{% if smart %}
+<div class="smart-query mb-5 rounded border border-line bg-panel/60 p-3.5" data-smart-query>
+  <div class="flex flex-wrap items-center gap-1.5 text-sm">
+    <span class="me-1 flex items-center gap-1.5 text-muted">{% icon "sparkle" "!h-4 !w-4 text-gold" %} برداشت ما از جستجوی شما:</span>
+    {% for c in smart.chips %}
+      <a class="chip smart-chip{% if c.relaxed %} is-relaxed{% elif c.negated %} is-negated{% elif c.kind != 'text' %} chip-strong{% endif %}"
+         href="{% if remove_base %}{{ remove_base }}?q={{ c.remove_q|urlencode }}{% else %}{% querystring q=c.remove_q page=None %}{% endif %}"
+         title="{% if c.relaxed %}این شرط برای نمایش نزدیک‌ترین نتایج نادیده گرفته شد؛ {% endif %}حذف این شرط"
+         data-chip-kind="{{ c.kind }}">{{ c.label }} <span aria-hidden="true" class="text-copper">✕</span><span class="sr-only">حذف</span></a>
+    {% endfor %}
+    {% if not remove_base %}<a class="ms-auto text-xs text-muted hover:text-gold" href="{% querystring q=None page=None %}">پاک کردن جستجو</a>{% endif %}
+  </div>
+  {% for c in smart.chips %}{% if c.note %}<p class="mt-2 text-xs text-muted" data-typo>اصلاح املایی: {{ c.note }}</p>{% endif %}{% endfor %}
+  {% if not smart.exact %}
+    <p class="alert mt-3 !mb-0 text-sm" data-relaxed>عطری دقیقاً با همه این شرط‌ها پیدا نشد؛ نزدیک‌ترین گزینه‌ها بدون شرط «{{ smart.relaxed|join:"، " }}» نمایش داده می‌شوند.</p>
+  {% endif %}
+  {% if smart.ignored %}<p class="mt-2 text-xs text-muted" data-ignored>این کلمات در هیچ عطری پیدا نشد و در نظر گرفته نشد: {{ smart.ignored|join:"، " }}</p>{% endif %}
+</div>
+{% endif %}

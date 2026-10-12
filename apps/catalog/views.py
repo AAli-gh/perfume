@@ -1,14 +1,18 @@
 from django.core.paginator import Paginator
 from django.http import Http404
 from django.shortcuts import render
+from django.views.decorators.http import require_POST
 
-from . import selectors
+from apps.core.ratelimit import ratelimit
+
+from . import search_log, selectors, services
 from .history import remember_view
 from .recommend import similar_products
-from .forms import ShopFilterForm
+from .forms import BackInStockForm, ShopFilterForm
 from .models import Category, Collection, Product
 
 PER_PAGE = 8
+SUGGEST_LIMIT = 5
 
 
 def _render_partial_or_page(request, partial, page, context):
@@ -42,10 +46,13 @@ def shop(request, *, landing=None):
         max_price=data.get("max_price"),
         sort=data.get("sort", ""),
     )
-    products = selectors.filter_products(store, filters, bounds=(lo, hi))
+    search = selectors.search_shop(store, filters, bounds=(lo, hi))
+    products = search.products
     if (data.get("collection") and collection is None) or (data.get("category") and category is None):
         products = products.none()
     page = Paginator(products, PER_PAGE).get_page(request.GET.get("page"))
+    if filters.q and page.number == 1:
+        search_log.record_search(request, filters.q, search, page.paginator.count)
 
     context = {
         "form": form,
@@ -55,6 +62,7 @@ def shop(request, *, landing=None):
         "selected_brands": filters.brands,
         "selected_scents": filters.scents,
         "q": filters.q,
+        **_search_context(search),
         "collection": collection,
         "category": category,
         "landing": landing,
@@ -65,6 +73,30 @@ def shop(request, *, landing=None):
         "max_price": filters.max_price if filters.max_price is not None else hi,
     }
     return _render_partial_or_page(request, "catalog/partials/results.html", "catalog/shop.html", context)
+
+
+def _search_context(search):
+    """برداشت جستجوی هوشمند برای قالب: برچسب‌ها با پیوند حذف، شرط‌های کنارگذاشته و کلمات نادیده."""
+    parsed = search.parsed
+    if parsed is None or not parsed.is_smart:
+        return {"smart": None}
+    chips = [{"label": c.label, "kind": c.kind, "negated": c.negated, "note": c.note,
+              "relaxed": c in search.relaxed, "remove_q": parsed.without(c)} for c in parsed.criteria]
+    return {"smart": {"chips": chips, "exact": search.exact, "relaxed": [c.label for c in search.relaxed],
+                      "ignored": parsed.ignored}}
+
+
+@ratelimit("search-suggest", "120/1m", methods=("GET",))
+def search_suggest(request):
+    """HTMX: پیش‌نمایش زنده جستجو در پنل جستجوی هدر (برداشت از عبارت + چند نتیجه اول)."""
+    q = request.GET.get("q", "").strip()[:200]
+    if not q:
+        return render(request, "catalog/partials/search_suggest.html", {"q": ""})
+    search = selectors.search_shop(request.store, selectors.ProductFilters(q=q))
+    products = list(search.products[:SUGGEST_LIMIT + 1])
+    context = {"q": q, "products": products[:SUGGEST_LIMIT], "more": len(products) > SUGGEST_LIMIT,
+               **_search_context(search)}
+    return render(request, "catalog/partials/search_suggest.html", context)
 
 
 def collection_detail(request, slug):
@@ -91,9 +123,42 @@ def product_detail(request, slug):
     except Product.DoesNotExist:
         raise Http404 from None
     remember_view(request, product)
+    variants = list(product.variants.all())
     return render(request, "catalog/product.html", {
         "product": product,
+        "notify_form": _notify_form(request, variants),
         "gallery": selectors.product_gallery(product),
-        "variants": list(product.variants.all()),
-        "related": similar_products(product) or selectors.related_products(product),
+        "variants": variants,
+        "related": (selectors.related_products(product) if product.is_accessory
+                    else similar_products(product) or selectors.related_products(product)),
+        "gift_boxes": [] if product.is_accessory else selectors.gift_boxes(request.store)[:4],
     })
+
+
+def _notify_form(request, variants, data=None):
+    sold_out = [v for v in variants if v.stock <= 0]
+    if not sold_out:
+        return None
+    phone = getattr(request.user, "phone", "") if request.user.is_authenticated else ""
+    return BackInStockForm(data, variants=sold_out, initial={"phone": phone})
+
+
+@require_POST
+@ratelimit("back-in-stock", "10/10m")
+def notify_me(request, slug):
+    """HTMX: ثبت «موجود شد خبرم کن» برای یک حجم ناموجود."""
+    try:
+        product = selectors.product_detail(request.store, slug)
+    except Product.DoesNotExist:
+        raise Http404 from None
+    form = _notify_form(request, list(product.variants.all()), request.POST)
+    done = False
+    if form is not None and form.is_valid():
+        services.request_back_in_stock(form.cleaned_data["variant"], form.cleaned_data["phone"], request.user)
+        done = True
+    return render(request, "catalog/partials/notify_me.html", {"product": product, "notify_form": form, "done": done})
+
+
+def gift_boxes(request):
+    return render(request, "catalog/gift_boxes.html", {"boxes": selectors.gift_boxes(request.store),
+                                                       "cards": selectors.gift_cards(request.store)})

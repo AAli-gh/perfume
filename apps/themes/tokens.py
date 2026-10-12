@@ -60,6 +60,9 @@ FONTS = {
     "Amiri": {"google": "Amiri:wght@400;700", "stack": '"Amiri", "Vazirmatn", serif'},
     "Markazi Text": {"google": "Markazi+Text:wght@400;500;700", "stack": '"Markazi Text", "Vazirmatn", serif'},
     "Noto Sans Arabic": {"google": "Noto+Sans+Arabic:wght@300;400;500;700", "stack": '"Noto Sans Arabic", Tahoma, sans-serif'},
+    # Inter حروف فارسی ندارد: متن لاتین و ارقام انگلیسی با Inter و حروف فارسی با وزیرمتن (همراه بارگذاری می‌شود)
+    "Inter": {"google": "Inter:wght@400;500;600;700", "stack": '"Inter", "Vazirmatn", Tahoma, sans-serif',
+              "with": ["Vazirmatn:wght@300;400;500;700"]},
 }
 
 # ---------- اعداد (px) ----------
@@ -79,6 +82,8 @@ COMPONENTS = {
     "background": ("glow", ["glow", "plain"], "جلوه پس‌زمینه"),
     "texture": ("noise", ["noise", "none"], "بافت پس‌زمینه"),
     "shadow": ("strong", ["strong", "soft", "none"], "سایه پنل‌ها و کارت‌ها"),
+    # system: قواعد Design System (وزن فونت، حالت‌های دکمه، فوکوس، بج‌ها، کارت و فیلدها) — static/src/input.css
+    "ui": ("classic", ["classic", "system"], "سبک رابط کاربری"),
 }
 
 
@@ -208,7 +213,7 @@ def google_fonts_url(tokens):
     typo = merge(validate(tokens, partial=True))["typography"]
     families = []
     for key in ("font_display", "font_body"):  # ترتیب فعلی لینک: Aref Ruqaa سپس Vazirmatn
-        spec = FONTS[typo[key]]["google"]
-        if spec not in families:
-            families.append(spec)
+        for spec in (FONTS[typo[key]]["google"], *FONTS[typo[key]].get("with", ())):
+            if spec not in families:
+                families.append(spec)
     return "https://fonts.googleapis.com/css2?" + "&".join(f"family={f}" for f in families) + "&display=swap"

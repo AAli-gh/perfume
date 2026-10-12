@@ -1,0 +1,24 @@
+{% extends "builder/print/base.html" %}
+{% block pages %}
+<section class="labels">
+  {% for o in orders %}
+  <article class="label" data-order="{{ o.number }}">
+    <div class="to">
+      <span class="tag">گیرنده</span>
+      <strong>{{ o.full_name }}</strong>
+      <span>{{ o.province }}، {{ o.city }}</span>
+      <span>{{ o.address }}</span>
+      <span>کد پستی: <bdi class="big">{{ o.postal_code|fa }}</bdi></span>
+      <span>موبایل: <bdi class="big">{{ o.phone|fa }}</bdi></span>
+    </div>
+    <div class="from">
+      <span class="tag">فرستنده</span>
+      <strong>{{ SITE.name }}</strong>
+      {% if SITE.address %}<span>{{ SITE.address }}</span>{% endif %}
+      {% if SITE.phone %}<span><bdi>{{ SITE.phone }}</bdi></span>{% endif %}
+    </div>
+    <div class="meta"><bdi>{{ o.number }}</bdi>{% if o.shipping_method_name %} · {{ o.shipping_method_name }}{% endif %}{% if o.payment_method == "cod" %} · <b>پرداخت در محل: {{ o.total|toman }}</b>{% endif %}</div>
+  </article>
+  {% endfor %}
+</section>
+{% endblock %}

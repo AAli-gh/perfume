@@ -205,7 +205,7 @@ def test_share_link_lets_anonymous_preview(admin_client, shopper, store):
     assert r.status_code == 302
     body = shopper.get("/").content.decode()
     assert "--color-primary:18 52 86" in body and "data-preview-banner" in body
-    assert shopper.get(reverse("builder:dashboard")).status_code == 302  # بدون دسترسی استودیو
+    assert shopper.get(reverse("builder:dashboard")).status_code == 404  # استودیو برای غیرکارکنان پنهان است
 
 
 def test_share_link_revoked_on_publish(admin_client, shopper, store):

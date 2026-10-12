@@ -18,6 +18,7 @@ from apps.blog.models import Category, Post
 from apps.catalog.models import Brand, Collection, Product, ProductImage, ProductVariant, ScentFamily
 from apps.reviews.models import Review
 from apps.catalog.inventory import record_initial
+from apps.catalog.profile import Kind
 from apps.catalog.services import set_product_notes
 from apps.core.models import Store
 from apps.core.stores import get_default_store, use_store
@@ -75,6 +76,17 @@ PRODUCTS = [
      ("زعفران، تمشک", "رز، عود", "مشک، چوب کشمیر"),
      "عود مخملی نسخه‌ای نرم و مدرن از عود است؛ تمشک و رز، تندی عود را لطیف کرده‌اند تا رایحه‌ای مخملی و دلنشین به دست آید."),
 ]
+# باکس‌های هدیه: slug, نام، گنجایش (تعداد شیشه)، قیمت، موجودی، تصویر، توضیح
+GIFT_CARD_AMOUNTS = [1_000_000, 2_000_000, 5_000_000]  # هر مبلغ یک حجم (size_ml فقط برای یکتایی)
+GIFT_BOXES = [
+    ("box-classic", "باکس هدیه کلاسیک", 1, 350_000, 40, "box-classic.jpg",
+     "باکس مشکی مات با روبان طلایی و بستر مخملی؛ مناسب یک شیشه عطر. کارت پیام هدیه همراه باکس است."),
+    ("box-duo", "باکس هدیه دوتایی مخملی", 2, 590_000, 25, "box-duo.jpg",
+     "باکس زرشکی مخملی برای دو شیشه عطر؛ انتخابی شیک برای هدیه زوج‌ها یا ست روز و شب."),
+    ("box-royal", "باکس هدیه سلطنتی", 3, 890_000, 15, "box-royal.jpg",
+     "باکس سبز زمردی با روبان طلایی دست‌دوز برای سه شیشه عطر؛ کامل‌ترین بسته‌بندی هدیه عطر مجد."),
+]
+
 # مشخصات رایحه: (مناسب برای، غلظت، ماندگاری، پخش بو، فصل‌ها، موقعیت‌ها)
 PROFILES = {
     "arabesque": ("unisex", "edp", 4, 4, ["autumn", "winter"], ["evening", "formal"]),
@@ -256,6 +268,30 @@ class Command(BaseCommand):
                 Review.objects.create(product=p, name=name_, rating=rating if (i + j) % 4 else 4, text=text, is_approved=True)
             created += 1
 
+        boxes = 0
+        house = Brand.objects.for_store(store).get_or_create(slug="house", defaults={"name": store.name})[0]
+        for slug, name, capacity, price, stock, img, desc in GIFT_BOXES:
+            if Product.objects.for_store(store).filter(slug=slug).exists():
+                continue
+            box = Product(slug=slug, name=name, brand=house, kind=Kind.GIFT_BOX, gift_capacity=capacity,
+                          short_description=desc.split("؛")[0] + ".", description=desc)
+            attach(box.image, img)
+            box.save()
+            record_initial(ProductVariant.objects.create(product=box, size_ml=0, price=price, stock=stock))
+            boxes += 1
+
+        if not Product.objects.for_store(store).filter(slug="gift-card").exists():
+            card = Product(slug="gift-card", name="کارت هدیه عطر", brand=house, kind=Kind.GIFT_CARD,
+                           short_description="هدیه‌ای که گیرنده خودش انتخاب می‌کند.",
+                           description="کارت هدیه دیجیتال با مانده قابل خرج در چند خرید. کد کارت پس از پرداخت با "
+                                       "پیامک ارسال می‌شود.")
+            attach(card.image, "gift-card.jpg")
+            card.save()
+            for amount in GIFT_CARD_AMOUNTS:
+                record_initial(ProductVariant.objects.create(product=card, size_ml=amount // 100_000, price=amount,
+                                                             stock=100_000))
+            boxes += 1
+
         cats = {k: Category.objects.for_store(store).get_or_create(slug=k, defaults={"name": v})[0] for k, v in CATEGORIES.items()}
         posts = 0
         for slug, title, cat, img, days_ago, excerpt, body in POSTS:
@@ -270,4 +306,4 @@ class Command(BaseCommand):
         for code, percent, max_discount in COUPONS:
             Coupon.objects.for_store(store).get_or_create(code=code, defaults={"percent": percent, "max_discount": max_discount})
 
-        self.stdout.write(self.style.SUCCESS(f"{created} محصول و {posts} مقاله در «{store.name}» ساخته شد."))
+        self.stdout.write(self.style.SUCCESS(f"{created} محصول، {boxes} باکس و کارت هدیه و {posts} مقاله در «{store.name}» ساخته شد."))

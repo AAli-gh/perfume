@@ -10,7 +10,9 @@
 import re
 
 from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
-from django.db.models import F, Q, Value
+from django.db.models import F, FloatField, Q, Value
+
+from apps.core.db import is_postgres
 
 _CHAR_MAP = str.maketrans({
     "ي": "ی", "ى": "ی", "ئ": "ی", "ك": "ک", "ة": "ه", "ۀ": "ه", "أ": "ا", "إ": "ا", "آ": "ا", "ٱ": "ا", "ؤ": "و",
@@ -37,9 +39,14 @@ def document_parts(product):
     """بخش‌های وزن‌دار سند جستجوی یک محصول: (A: نام، B: برند/نت/دسته، C: بقیه)."""
     notes = [link.note.name for link in product.notes.all()]
     a = [product.name]
-    b = [product.brand.name, product.scent.name, *notes, *(c.name for c in product.categories.all())]
+    b = [product.brand.name, product.scent.name if product.scent_id else "باکس هدیه", *notes, *(c.name for c in product.categories.all())]
     c = [
         product.collection.name if product.collection_id else "",
+        # مشخصات رایحه («زنانه»، «تابستان»، «شب و مهمانی»، …) تا جستجوی یک‌کلمه‌ای هم آن‌ها را پیدا کند
+        product.get_gender_display() if product.gender else "",
+        product.get_concentration_display() if product.concentration else "",
+        *product.season_labels,
+        *product.occasion_labels,
         *(t.name for t in product.tags.all()),
         *(str(v.value) for v in product.attribute_values.all()),
         product.short_description,
@@ -59,6 +66,9 @@ def reindex_products(product_ids):
     )
     for product in products:
         a, b, c = document_parts(product)
+        if not is_postgres():  # پایگاه نمایشی: فقط سند متنی (بدون tsvector)
+            Product.objects.filter(pk=product.pk).update(search_document=" ".join(x for x in (a, b, c) if x))
+            continue
         Product.objects.filter(pk=product.pk).update(
             search_document=" ".join(x for x in (a, b, c) if x),
             search_vector=(
@@ -75,11 +85,13 @@ def search_products(queryset, raw_query):
     tokens = _TOKEN.findall(q)
     if not tokens:
         return queryset
-    # هر کلمه به‌صورت پیشوند (برای جستجو حین تایپ) و همه کلمات با AND
-    tsquery = SearchQuery(" & ".join(f"{t}:*" for t in tokens), config="simple", search_type="raw")
     substring = Q()
     for t in tokens:
         substring &= Q(search_document__contains=t)
+    if not is_postgres():  # پایگاه نمایشی: تطبیق متن نرمال‌شده، بدون رتبه‌بندی
+        return queryset.filter(substring).annotate(search_rank=Value(0.0, output_field=FloatField()))
+    # هر کلمه به‌صورت پیشوند (برای جستجو حین تایپ) و همه کلمات با AND
+    tsquery = SearchQuery(" & ".join(f"{t}:*" for t in tokens), config="simple", search_type="raw")
     return queryset.filter(Q(search_vector=tsquery) | substring).annotate(
         search_rank=SearchRank(F("search_vector"), tsquery)
     )

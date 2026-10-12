@@ -1,5 +1,6 @@
 {% load discovery %}<article class="product-card relative">
-  {% compare_button p "icon" %}
+  {% if not p.is_accessory %}{% compare_button p "icon" %}{% endif %}
+  {% if p.min_regular_price and p.min_price < p.min_regular_price %}<span class="sale-badge absolute right-2.5 top-2.5 z-[1]">حراج</span>{% endif %}
   <a class="thumb block aspect-[5/6] overflow-hidden bg-media" href="{{ p.get_absolute_url }}">
     <img src="{{ p.image.url }}" alt="عطر {{ p.name }}" loading="lazy" class="h-full w-full object-cover">
   </a>
@@ -7,7 +8,7 @@
     <h3 class="m-0 text-[1.05rem] font-medium text-cream"><a class="text-inherit" href="{{ p.get_absolute_url }}">{{ p.name }}</a></h3>
     <span class="text-xs text-muted">{{ p.brand.name }}</span>
     {% stars p.rating_avg p.review_count %}
-    <span class="mt-0.5 font-medium text-gold">{% if p.variants.all|length > 1 %}از {% endif %}{{ p.min_price|toman }}</span>
+    <span class="mt-0.5 font-medium text-gold">{% if p.variants.all|length > 1 %}از {% endif %}{{ p.min_price|toman }}{% if p.min_regular_price and p.min_price < p.min_regular_price %}<del class="block text-xs font-normal text-muted">{{ p.min_regular_price|toman }}</del>{% endif %}</span>
     <p class="card-desc m-0 mt-1.5 hidden text-sm text-muted">{{ p.short_description }}</p>
     {% with v=p.default_variant %}
       {% if v and p.in_stock %}

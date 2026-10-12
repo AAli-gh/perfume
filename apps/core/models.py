@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.core.validators import RegexValidator
+from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
 from django.db import models
 from django.db.models import Q
 
@@ -85,6 +85,24 @@ class StoreSettings(models.Model):
         "مهلت پرداخت آنلاین (دقیقه)", default=30,
         help_text="بعد از این مدت سفارش پرداخت‌نشده لغو و موجودی آن آزاد می‌شود",
     )
+    low_stock_threshold = models.PositiveSmallIntegerField(
+        "آستانه موجودی کم", default=3,
+        help_text="وقتی موجودی یک حجم به این عدد (یا کمتر) برسد، به مدیران خبر داده می‌شود. "
+                  "برای هر حجم می‌توانید آستانه جدا بگذارید.",
+    )
+    return_days = models.PositiveSmallIntegerField(
+        "مهلت درخواست مرجوعی (روز)", default=7, help_text="از زمان ارسال سفارش؛ ۰ یعنی مشتری خودش نمی‌تواند درخواست بدهد",
+    )
+    loyalty_enabled = models.BooleanField(
+        "باشگاه مشتریان (امتیاز خرید)", default=False,
+        help_text="مشتریان عضو با هر خرید امتیاز می‌گیرند و در خرید بعدی خرج می‌کنند")
+    loyalty_earn_per = models.PositiveIntegerField(
+        "هر چند تومان خرید = ۱ امتیاز", default=100_000, help_text="پس از تحویل سفارش، بدون هزینه ارسال")
+    loyalty_point_value = models.PositiveIntegerField("ارزش هر امتیاز (تومان)", default=1000)
+    loyalty_min_redeem = models.PositiveIntegerField("حداقل امتیاز برای استفاده", default=50)
+    loyalty_max_percent = models.PositiveSmallIntegerField(
+        "حداکثر سهم امتیاز از مبلغ سفارش (٪)", default=50,
+        validators=[MinValueValidator(1), MaxValueValidator(100)])
     bank_card_number = models.CharField("شماره کارت (کارت به کارت)", max_length=30, blank=True)
     bank_card_holder = models.CharField("نام صاحب کارت", max_length=100, blank=True)
     # ---------- سئو ----------

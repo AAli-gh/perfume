@@ -13,6 +13,7 @@ VARIANT_LABELS = {
     "gradient": "گرادیان", "solid": "یکدست", "outline": "دورخط", "flat": "ساده",
     "blur": "شیشه‌ای (محو)", "glow": "درخشش ملایم", "plain": "ساده", "noise": "بافت دانه‌ای",
     "none": "بدون", "strong": "پررنگ", "soft": "ملایم",
+    "classic": "کلاسیک (لوکس)", "system": "Design System (مدرن)",
 }
 
 

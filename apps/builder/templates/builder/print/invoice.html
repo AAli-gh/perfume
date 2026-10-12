@@ -1,0 +1,43 @@
+{% extends "builder/print/base.html" %}
+{% load payments %}
+{% block pages %}
+{% for o in orders %}
+<section class="page invoice" data-order="{{ o.number }}">
+  <header class="doc-head">
+    {% include "builder/print/_seller.html" %}
+    <div class="doc-title">
+      <h1>فاکتور فروش</h1>
+      <span>شماره سفارش: <bdi>{{ o.number }}</bdi></span>
+      <span>تاریخ: {{ o.created_at|jdate:"%Y/%m/%d" }}</span>
+      {% order_payment o as payment %}{% if payment %}<span>کد پیگیری پرداخت: <bdi>{{ payment.ref_id }}</bdi></span>{% endif %}
+    </div>
+  </header>
+  <div class="party">
+    <div><b>خریدار:</b> {{ o.full_name }} — <bdi>{{ o.phone|fa }}</bdi></div>
+    <div><b>نشانی:</b> {{ o.province }}، {{ o.city }}، {{ o.address }} — کد پستی <bdi>{{ o.postal_code|fa }}</bdi></div>
+    <div><b>روش پرداخت:</b> {{ o.get_payment_method_display }} · <b>وضعیت:</b> {{ o.get_status_display }}{% if o.shipping_method_name %} · <b>ارسال:</b> {{ o.shipping_method_name }}{% endif %}</div>
+  </div>
+  {% if o.hide_prices %}<p class="notice">به درخواست مشتری (هدیه)، قیمت‌ها در این فاکتور چاپ نشده است.</p>{% endif %}
+  <table class="items">
+    <thead><tr><th>ردیف</th><th>کالا</th><th>تعداد</th>{% if not o.hide_prices %}<th>قیمت واحد</th><th>جمع</th>{% endif %}</tr></thead>
+    <tbody>
+      {% for item in o.items.all %}
+      <tr><td>{{ forloop.counter|fa }}</td><td>{{ item.product_name }}{% if item.size_ml %} ({{ item.size_ml|fa }} میل){% endif %}</td><td>{{ item.quantity|fa }}</td>{% if not o.hide_prices %}<td>{{ item.unit_price|toman }}</td><td>{{ item.line_total|toman }}</td>{% endif %}</tr>
+      {% endfor %}
+    </tbody>
+    {% if not o.hide_prices %}
+    <tfoot>
+      <tr><td colspan="4">جمع جزء</td><td>{{ o.subtotal|toman }}</td></tr>
+      {% if o.discount %}<tr><td colspan="4">تخفیف{% if o.coupon_code %} ({{ o.coupon_code }}){% endif %}</td><td>− {{ o.discount|toman }}</td></tr>{% endif %}
+      {% if o.points_amount %}<tr><td colspan="4">امتیاز باشگاه</td><td>− {{ o.points_amount|toman }}</td></tr>{% endif %}
+      {% if o.gift_card_amount %}<tr><td colspan="4">پرداخت با کارت هدیه</td><td>− {{ o.gift_card_amount|toman }}</td></tr>{% endif %}
+      <tr><td colspan="4">هزینه ارسال</td><td>{% if o.shipping %}{{ o.shipping|toman }}{% else %}رایگان{% endif %}</td></tr>
+      <tr class="grand"><td colspan="4">مبلغ نهایی</td><td>{{ o.total|toman }}</td></tr>
+    </tfoot>
+    {% endif %}
+  </table>
+  {% if o.note %}<p class="muted"><b>توضیحات مشتری:</b> {{ o.note }}</p>{% endif %}
+  <footer class="doc-foot">از خرید شما سپاسگزاریم. {{ SITE.name }}</footer>
+</section>
+{% endfor %}
+{% endblock %}
