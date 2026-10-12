@@ -94,3 +94,10 @@ def test_standalone_500_and_400_templates():
     for name, text in (("500.html", "مشکلی پیش آمد"), ("400.html", "درخواست نامعتبر")):
         html = get_template(name).render({})
         assert text in html and "{%" not in html and "<style" not in html
+
+
+def test_admin_uses_store_look(client, store):
+    client.force_login(user("look@example.com", is_staff=True, is_superuser=True))
+    body = client.get(reverse("admin:index")).content.decode()
+    assert "css/admin-theme" in body and 'id="studio-tokens"' in body and "dark_mode.css" not in body
+    assert reverse("builder:dashboard") in body and "پنل مدیریت" in body

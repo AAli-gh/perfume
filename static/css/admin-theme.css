@@ -1,0 +1,145 @@
+/* پنل مدیریت Django با ظاهر فروشگاه (پیش‌تنظیم «طلایی لوکس»).
+   رنگ‌ها از توکن‌های پیش‌فرض پلتفرم می‌آیند ({% studio_head %} → :root{--color-*}) تا مثل استودیو،
+   تنظیمات ظاهری فروشگاه هرگز ابزار مدیریت را ناخوانا نکند. dark_mode.css پیش‌فرض Django بارگذاری نمی‌شود. */
+
+html[data-theme], :root {
+  --primary: rgb(var(--color-primary));
+  --secondary: rgb(var(--color-primary-dark));
+  --accent: rgb(var(--color-accent));
+  --primary-fg: rgb(var(--color-button-text));
+
+  --body-fg: rgb(var(--color-text));
+  --body-bg: rgb(var(--color-background));
+  --body-quiet-color: rgb(var(--color-muted));
+  --body-medium-color: rgb(var(--color-text));
+  --body-loud-color: rgb(var(--color-text-strong));
+
+  --header-color: rgb(var(--color-text));
+  --header-branding-color: rgb(var(--color-accent));
+  --header-bg: rgb(var(--color-background-2));
+  --header-link-color: rgb(var(--color-accent-soft));
+
+  --breadcrumbs-fg: rgb(var(--color-muted));
+  --breadcrumbs-link-fg: rgb(var(--color-accent-soft));
+  --breadcrumbs-bg: rgb(var(--color-surface));
+
+  --link-fg: rgb(var(--color-accent-soft));
+  --link-hover-color: rgb(var(--color-accent));
+  --link-selected-fg: rgb(var(--color-accent));
+
+  --hairline-color: rgb(var(--color-border) / .18);
+  --border-color: rgb(var(--color-border) / .35);
+
+  --error-fg: rgb(var(--color-danger));
+  --message-success-bg: rgb(var(--color-success) / .14);
+  --message-warning-bg: rgb(var(--color-accent) / .14);
+  --message-error-bg: rgb(var(--color-danger) / .14);
+
+  --darkened-bg: rgb(var(--color-panel));
+  --selected-bg: rgb(var(--color-primary) / .18);
+  --selected-row: rgb(var(--color-primary) / .12);
+
+  --button-fg: rgb(var(--color-button-text));
+  --button-bg: rgb(var(--color-primary-dark));
+  --button-hover-bg: rgb(var(--color-primary));
+  --default-button-bg: rgb(var(--color-primary));
+  --default-button-hover-bg: rgb(var(--color-primary-dark));
+  --close-button-bg: rgb(var(--color-surface));
+  --close-button-hover-bg: rgb(var(--color-panel));
+  --delete-button-bg: rgb(var(--color-danger) / .85);
+  --delete-button-hover-bg: rgb(var(--color-danger));
+
+  --object-tools-fg: rgb(var(--color-button-text));
+  --object-tools-bg: rgb(var(--color-primary-dark));
+  --object-tools-hover-bg: rgb(var(--color-primary));
+
+  --font-family-primary: var(--font-body);
+  color-scheme: dark;
+}
+
+body { background: rgb(var(--color-background)) radial-gradient(ellipse at 15% 0%, rgb(var(--color-glow-1) / .16), transparent 55%) fixed; font-size: 15px; }
+body, input, textarea, select, button { font-family: var(--font-body); }
+h1, h2, h3, h4, h5 { color: rgb(var(--color-accent)); font-weight: 500; }
+#content h1 { font-size: 1.6rem; margin-bottom: 1rem; }
+
+/* سربرگ */
+#header { background: rgb(var(--color-background-2) / .95); border-bottom: 1px solid rgb(var(--color-border) / .2); padding: 12px 32px; }
+#branding #site-name { display: flex; align-items: center; gap: 10px; }
+#site-name a, #site-name a:link, #site-name a:visited { color: rgb(var(--color-accent)); font-family: var(--font-display); font-size: 1.75rem; font-weight: 400; }
+.admin-badge { border: 1px solid rgb(var(--color-border) / .35); border-radius: var(--radius-sm); padding: 0 8px; color: rgb(var(--color-muted)); font-size: .75rem; }
+#user-tools { color: rgb(var(--color-muted)); font-size: .85rem; text-transform: none; letter-spacing: 0; }
+#user-tools a, #logout-form button { color: rgb(var(--color-accent-soft)); border-bottom: 0; }
+#user-tools a:hover, #logout-form button:hover { color: rgb(var(--color-accent)); text-decoration: none; }
+#user-tools strong { color: rgb(var(--color-text-strong)); font-weight: 500; }
+.theme-toggle { display: none; }
+
+div.breadcrumbs { text-transform: none; background: rgb(var(--color-surface) / .7); border-bottom: 1px solid rgb(var(--color-border) / .15); padding: 10px 32px; }
+div.breadcrumbs a { color: rgb(var(--color-accent-soft)); }
+
+/* پنل‌ها و جدول‌ها */
+.module, .inline-group, #changelist-filter, .dashboard .module, fieldset.module {
+  background: rgb(var(--color-panel) / .72); border: 1px solid rgb(var(--color-border) / .2); border-radius: var(--radius);
+  box-shadow: 0 18px 40px rgb(0 0 0 / .25); overflow: hidden;
+}
+.module h2, .module caption, .inline-group h2 {
+  background: linear-gradient(180deg, rgb(var(--color-card-from)), rgb(var(--color-card-to)));
+  color: rgb(var(--color-accent)); border-bottom: 1px solid rgb(var(--color-border) / .2); font-weight: 500; font-size: .95rem; padding: 10px 14px;
+}
+.module h2 a, .module caption a { color: rgb(var(--color-accent)); }
+#changelist-filter h2 { background: rgb(var(--color-surface)); color: rgb(var(--color-accent)); }
+#changelist-filter h3 { color: rgb(var(--color-text-strong)); }
+#changelist-filter li.selected a { color: rgb(var(--color-accent)) !important; }
+table { background: transparent; }
+thead th, tfoot td, .module table th[scope="col"] { background: rgb(var(--color-surface)); color: rgb(var(--color-muted)); border-color: rgb(var(--color-border) / .2); }
+thead th a:link, thead th a:visited { color: rgb(var(--color-muted)); }
+tr:nth-child(odd), .row-form-errors { background: transparent; }
+tr:nth-child(even) { background: rgb(var(--color-surface) / .35); }
+td, th { border-bottom-color: rgb(var(--color-border) / .14); }
+#result_list tbody tr:hover { background: rgb(var(--color-primary) / .08); }
+#changelist .actions { background: rgb(var(--color-surface) / .6); border-color: rgb(var(--color-border) / .2); color: rgb(var(--color-text)); }
+#changelist #toolbar { background: transparent; border: 0; }
+.paginator { border-color: rgb(var(--color-border) / .2); color: rgb(var(--color-muted)); }
+.paginator .this-page { color: rgb(var(--color-accent)); }
+
+/* فرم‌ها */
+input[type=text], input[type=password], input[type=email], input[type=url], input[type=number], input[type=tel], input[type=search],
+textarea, select, .vTextField {
+  background: rgb(var(--color-input) / .3); color: rgb(var(--color-text-strong)); border: 1px solid rgb(var(--color-border) / .3);
+  border-radius: var(--radius); padding: 7px 10px;
+}
+input:focus, textarea:focus, select:focus { border-color: rgb(var(--color-primary)); outline: none; box-shadow: 0 0 0 3px rgb(var(--color-primary) / .2); }
+select option { background: rgb(var(--color-surface)); }
+.form-row { border-bottom-color: rgb(var(--color-border) / .12); }
+label, .aligned label { color: rgb(var(--color-text)); }
+.required label, label.required { color: rgb(var(--color-text-strong)); font-weight: 500; }
+.help, p.help, form .help { color: rgb(var(--color-muted)); }
+.errornote { background: rgb(var(--color-danger) / .12); border-color: rgb(var(--color-danger) / .4); color: rgb(var(--color-danger)); border-radius: var(--radius); }
+ul.errorlist { color: rgb(var(--color-danger)); }
+
+/* دکمه‌ها (مثل دکمه‌های فروشگاه) */
+.button, input[type=submit], input[type=button], .submit-row input, a.button {
+  border: 1px solid rgb(var(--color-button-border)); border-radius: var(--radius); color: rgb(var(--color-button-text));
+  background: linear-gradient(180deg, rgb(var(--color-button-from)), rgb(var(--color-button-to)));
+  box-shadow: 0 6px 16px rgb(0 0 0 / .3), inset 0 1px 0 rgb(var(--color-button-highlight) / .25); padding: 8px 18px;
+}
+.button:hover, input[type=submit]:hover, input[type=button]:hover, a.button:hover { filter: brightness(1.1); color: rgb(var(--color-button-text-hover)); }
+.submit-row { background: rgb(var(--color-surface) / .6); border: 1px solid rgb(var(--color-border) / .2); border-radius: var(--radius); }
+.submit-row a.deletelink, .delete-confirmation form input[type="submit"] { background: rgb(var(--color-danger) / .85); border-color: rgb(var(--color-danger)); border-radius: var(--radius); color: #fff; box-shadow: none; }
+.object-tools a:link, .object-tools a:visited { background: rgb(var(--color-primary-dark)); border: 1px solid rgb(var(--color-button-border)); border-radius: 999px; color: rgb(var(--color-button-text)); }
+.object-tools a:hover { background: rgb(var(--color-primary)); }
+
+/* پیام‌ها */
+ul.messagelist li { background-color: rgb(var(--color-success) / .14); color: rgb(var(--color-success)); border-radius: var(--radius); margin-bottom: 6px; }
+ul.messagelist li.warning { background-color: rgb(var(--color-accent) / .14); color: rgb(var(--color-accent)); }
+ul.messagelist li.error { background-color: rgb(var(--color-danger) / .14); color: rgb(var(--color-danger)); }
+
+/* نوار کناری و ابزارک‌ها */
+#nav-sidebar { background: rgb(var(--color-background-2) / .6); border-inline-end: 1px solid rgb(var(--color-border) / .15); }
+#nav-sidebar .current-model { background: rgb(var(--color-primary) / .14); }
+#nav-filter { background: rgb(var(--color-input) / .3); color: rgb(var(--color-text-strong)); border-color: rgb(var(--color-border) / .3); }
+.toggle-nav-sidebar { background: rgb(var(--color-background-2)); border-color: rgb(var(--color-border) / .2); color: rgb(var(--color-accent)); }
+.selector-chosen h2, .selector-available h2 { background: rgb(var(--color-surface)); color: rgb(var(--color-accent)); }
+.calendarbox, .clockbox { background: rgb(var(--color-surface)); border-color: rgb(var(--color-border) / .3); }
+.calendar caption, .calendarbox h2 { background: rgb(var(--color-primary-dark)); color: rgb(var(--color-button-text)); }
+#content-related .module h2 { background: rgb(var(--color-surface)); }
+.dashboard #content { width: auto; max-width: 1100px; }

@@ -84,13 +84,14 @@ DEFAULT_THEME = env("DEFAULT_THEME", default="luxury")
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / "templates"],  # بازنویسی قالب‌های پنل مدیریت (templates/admin/)
         "APP_DIRS": False,
         "OPTIONS": {
             # پوسته فعال ← themes/base ← قالب‌های اپ‌ها (Admin و …)؛ cache به تفکیک پوسته
             "loaders": [
                 ("apps.themes.loaders.ThemeCachedLoader", [
                     "apps.themes.loaders.ThemeLoader",
+                    "django.template.loaders.filesystem.Loader",
                     "django.template.loaders.app_directories.Loader",
                 ]),
             ],

@@ -1,0 +1,25 @@
+{% extends "admin/base.html" %}
+{% load static studio %}
+{# پنل مدیریت با ظاهر فروشگاه: فونت و رنگ‌های توکن پیش‌فرض (مثل استودیو) + static/css/admin-theme.css #}
+{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block dark-mode-vars %}{% endblock %}
+{% block extrastyle %}{{ block.super }}
+{% studio_head %}
+<link rel="stylesheet" href="{% static 'css/admin-theme.css' %}">
+{% endblock %}
+
+{% block branding %}
+<div id="site-name"><a href="{% url 'admin:index' %}">{{ SITE.name|default:site_header }}</a><span class="admin-badge">پنل مدیریت</span></div>
+{% endblock %}
+
+{% block welcome-msg %}خوش آمدید، <strong>{{ user.display_name|default:user.get_username }}</strong> &nbsp;{% endblock %}
+
+{% block userlinks %}
+<a href="{% url 'pages:home' %}">مشاهده فروشگاه</a> /
+<a href="{% url 'builder:dashboard' %}">استودیو</a> /
+{% if user.has_usable_password %}<a href="{% url 'admin:password_change' %}">تغییر رمز</a> /{% endif %}
+<form id="logout-form" method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}<button type="submit">خروج</button></form>
+{% endblock %}
+
+{% block nav-global %}{% endblock %}
