@@ -141,6 +141,9 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
+# پشتیبان روزانه (manage.py backup_site)؛ روی سرور بیرون از پوشه برنامه بگذارید تا با استقرار بعدی پاک نشود
+BACKUP_DIR = env("BACKUP_DIR", default=str(BASE_DIR / "backups"))
+BACKUP_RETENTION_DAYS = env.int("BACKUP_RETENTION_DAYS", default=14)
 STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
     "staticfiles": {

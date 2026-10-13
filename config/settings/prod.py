@@ -56,3 +56,8 @@ CELERY_TASK_REJECT_ON_WORKER_LOST = True
 CELERY_WORKER_PREFETCH_MULTIPLIER = 1
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 CELERY_WORKER_HIJACK_ROOT_LOGGER = False  # لاگ worker هم با همان قالب JSON و Request ID
+
+# گزارش خطاهای سرور به Sentry: SENTRY_DSN=https://…@….ingest.sentry.io/… (خالی = خاموش)
+from apps.core.monitoring import init_sentry  # noqa: E402
+
+SENTRY_ENABLED = init_sentry(env)

@@ -114,6 +114,10 @@ make smoke URL=https://shop.example.com
 - **فوری:** `make backup`
 - **خارج از سرور:** پوشه `backups/` را روزانه به فضای دیگری (مثلاً S3 یا سرور دوم) منتقل کنید. پشتیبانی که فقط روی همان سرور باشد با خرابی سرور از بین می‌رود.
 
+- **بدون Docker (مثلاً PythonAnywhere):** `python manage.py backup_site` همین کار را می‌کند. با SQLite نسخه‌ای سازگار و بررسی‌شده (`db-<زمان>.sqlite3.gz`) می‌سازد؛ با PostgreSQL از `pg_dump` استفاده می‌کند و اگر pg_dump نصب نباشد `dumpdata` (`db-<زمان>.json.gz`). مقصد `BACKUP_DIR` است و نگه‌داری `BACKUP_RETENTION_DAYS` روز (تازه‌ترین نسخه هر نوع همیشه می‌ماند). اگر پشتیبان‌گیری شکست بخورد، دستور با خطا تمام می‌شود و (با Sentry فعال) خطا گزارش می‌شود.
+- **PythonAnywhere:** در Tasks یک کار روزانه با دستور `bash ~/majd/deploy/pythonanywhere/daily.sh` بسازید. این اسکریپت پشتیبان را در `~/majd-data/backups` می‌گیرد (۷ روز) و کارهای زمان‌بندی‌شده‌ای را هم اجرا می‌کند که روی این هاست Celery beat ندارند: خبر کاهش قیمت، یادآوری سبد رهاشده و پاک‌سازی گزارش امنیتی. خروجی در `~/majd-data/daily.log` است.
+  بازگردانی SQLite: وب‌اپ را متوقف کنید، سپس `gunzip -c ~/majd-data/backups/db-<زمان>.sqlite3.gz > ~/majd-data/db.sqlite3` و `tar -xzf ~/majd-data/backups/media-<زمان>.tar.gz -C ~/majd-data/media`، و Reload.
+
 **بازگردانی:**
 
 ```bash
@@ -139,6 +143,7 @@ sh deploy/restore.sh backups/db-20261003-020000.dump backups/media-20261003-0200
   - هر خط یک JSON است، همراه با `request_id`. nginx این شناسه را می‌سازد و Django، gunicorn و Celery همان را ثبت می‌کنند.
   - هدر `X-Request-ID` در پاسخ هم هست، پس شکایت یک کاربر را می‌شود تا لاگ دقیق دنبال کرد.
   - چرخش لاگ Docker: ۵ فایل ۱۰ مگابایتی برای هر سرویس.
+- **گزارش خطا (Sentry):** با تنظیم `SENTRY_DSN` در `.env`، خطاهای سرور (Django، Celery و لاگ‌های سطح ERROR) با Request ID به Sentry می‌روند. بدون DSN هیچ چیزی ارسال نمی‌شود. اطلاعات مشتری فرستاده نمی‌شود: از کاربر فقط شناسه می‌رود؛ بدنه درخواست و کوکی‌ها حذف می‌شوند؛ شماره موبایل و ایمیل در متن خطاها پوشانده می‌شوند. `SENTRY_TRACES_SAMPLE_RATE` (پیش‌فرض ۰) پایش کارایی را روشن می‌کند. `ADMINS` (ایمیل خطای ۵۰۰) هم مستقل از آن کار می‌کند.
 - **رویدادهای امنیتی:** پنل مدیریت ← «گزارش رویدادهای امنیتی». این رویدادها با logger `apps.audit` در لاگ هم نوشته می‌شوند.
 
 ## ظرفیت (اندازه‌گیری فاز ۱۲)
