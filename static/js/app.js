@@ -82,6 +82,15 @@
       return;
     }
 
+    // کپی لینک دعوت
+    const copyBtn = t.closest("[data-copy]");
+    if (copyBtn) {
+      const source = copyBtn.parentElement.querySelector("[data-copy-source]");
+      source.select();
+      navigator.clipboard?.writeText(source.value).then(() => { copyBtn.textContent = "کپی شد ✓"; }, () => {});
+      return;
+    }
+
     // دکمه «بازگشت» صفحه‌های خطا
     if (t.closest("[data-history-back]")) { history.length > 1 ? history.back() : location.assign("/"); return; }
 

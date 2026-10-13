@@ -24,6 +24,23 @@
     </div>
   </section>
   {% endif %}
+  {% referral_summary as invite %}
+  {% if invite %}
+  <section class="panel mb-7" id="invite">
+    <h2 class="panel-title">دعوت از دوستان</h2>
+    <div class="panel-body grid gap-4">
+      <p class="m-0 text-[.95rem]">لینک زیر را برای دوستانتان بفرستید: با ساخت حساب، <b class="text-gold">{{ invite.percent|fa }}٪ تخفیف</b> اولین خرید می‌گیرند و وقتی اولین سفارششان تحویل شد، شما {% if invite.points %}<b class="text-gold">{{ invite.points|fa }} امتیاز باشگاه</b>{% else %}<b class="text-gold">کد تخفیف {{ invite.percent|fa }}٪</b>{% endif %} می‌گیرید.</p>
+      <div class="flex flex-wrap items-center gap-2">
+        <input class="input !w-auto min-w-0 flex-1 font-mono text-sm" dir="ltr" readonly value="{{ invite.link }}" aria-label="لینک دعوت" data-copy-source>
+        <button class="btn btn-sm" type="button" data-copy>کپی لینک</button>
+        <a class="share-link" target="_blank" rel="noopener" aria-label="واتس‌اپ" href="https://wa.me/?text={{ invite.link|urlencode }}">{% icon "whatsapp" "!h-4 !w-4" %}</a>
+        <a class="share-link" target="_blank" rel="noopener" aria-label="تلگرام" href="https://t.me/share/url?url={{ invite.link|urlencode }}">{% icon "telegram" "!h-4 !w-4" %}</a>
+      </div>
+      <p class="m-0 text-sm text-muted">کد دعوت شما: <b class="font-mono text-body" dir="ltr">{{ invite.code }}</b> · دوستان دعوت‌شده: {{ invite.invited|fa }} · پاداش گرفته: {{ invite.rewarded|fa }}</p>
+      {% if invite.friend_coupon %}<p class="alert alert-ok m-0">کد تخفیف اولین خرید شما (به دعوت دوستتان): <b dir="ltr">{{ invite.friend_coupon }}</b></p>{% endif %}
+    </div>
+  </section>
+  {% endif %}
   {% recommendations_for_user as recs %}
   <section class="panel mb-7">
     <h2 class="panel-title">پیشنهاد برای شما</h2>

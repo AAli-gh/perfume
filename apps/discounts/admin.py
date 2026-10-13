@@ -2,7 +2,7 @@ from django.contrib import admin
 
 from apps.core.jalali import JalaliAdminMixin
 
-from .models import Coupon, GiftCard, GiftCardTransaction, LoyaltyAccount, LoyaltyEntry
+from .models import Coupon, GiftCard, GiftCardTransaction, LoyaltyAccount, LoyaltyEntry, Referral
 
 
 @admin.register(Coupon)
@@ -51,6 +51,17 @@ class LoyaltyAccountAdmin(admin.ModelAdmin):
     search_fields = ["user__email", "user__phone"]
     readonly_fields = ["store", "user", "points"]
     inlines = [LoyaltyEntryInline]
+
+    def has_add_permission(self, request):
+        return False
+
+
+@admin.register(Referral)
+class ReferralAdmin(admin.ModelAdmin):
+    list_display = ["referrer", "friend", "status", "friend_coupon", "reward_points", "reward_coupon", "created_at"]
+    list_filter = ["store", "status"]
+    search_fields = ["referrer__email", "referrer__phone", "friend__email", "friend__phone", "friend_coupon"]
+    readonly_fields = [f.name for f in Referral._meta.fields]
 
     def has_add_permission(self, request):
         return False

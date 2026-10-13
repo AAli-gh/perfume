@@ -44,6 +44,25 @@ def send_cart_reminders_task():
     return sum(send_reminders(store) for store in Store.objects.all())
 
 
+@shared_task(acks_late=True)
+def referral_reward_task(referral_id):
+    """پیامک پاداش معرفی دوست به معرف."""
+    from apps.core.templatetags.majd import fa
+    from apps.discounts.models import Referral
+
+    from . import events as E
+    from .services import notify_event
+
+    ref = Referral.objects.select_related("store", "referrer", "friend").filter(pk=referral_id).first()
+    if ref is None or not ref.referrer.phone:
+        return 0
+    reward = f"{fa(ref.reward_points)} امتیاز باشگاه" if ref.reward_points else f"کد تخفیف {ref.reward_coupon}"
+    context = {"name": ref.referrer.first_name or "مشتری", "friend": ref.friend.first_name or "دوستتان",
+               "reward": reward, "shop_url": ref.store.base_url + "/shop/"}
+    logs = notify_event(ref.store, E.REFERRAL_REWARD, context, phone=ref.referrer.phone, audiences=(E.CUSTOMER,))
+    return len(logs)
+
+
 @shared_task
 def send_price_drop_alerts_task():
     from apps.core.models import Store

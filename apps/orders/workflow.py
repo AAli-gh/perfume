@@ -10,7 +10,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from apps.catalog import inventory
-from apps.discounts import credits
+from apps.discounts import credits, referrals
 
 from . import giftcards
 from .models import Order, OrderStatusHistory
@@ -75,6 +75,7 @@ def transition(order, to_status, *, by=None, note=""):
         fields.append("gift_cards_issued")
     if to_status == S.DELIVERED:
         transaction.on_commit(lambda: credits.earn_for_order(locked))
+        transaction.on_commit(lambda: referrals.reward_for_order(locked))
     locked.save(update_fields=fields)
     OrderStatusHistory.objects.create(order=locked, from_status=current, to_status=to_status, changed_by=by, note=note)
     transaction.on_commit(lambda: order_status_changed.send(

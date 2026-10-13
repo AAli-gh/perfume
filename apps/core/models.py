@@ -103,6 +103,15 @@ class StoreSettings(models.Model):
     loyalty_max_percent = models.PositiveSmallIntegerField(
         "حداکثر سهم امتیاز از مبلغ سفارش (٪)", default=50,
         validators=[MinValueValidator(1), MaxValueValidator(100)])
+    referral_enabled = models.BooleanField(
+        "معرفی به دوستان", default=False,
+        help_text="هر مشتری لینک دعوت دارد؛ دوستش کد تخفیف اولین خرید می‌گیرد و خودش پس از تحویل اولین سفارش دوست پاداش")
+    referral_friend_percent = models.PositiveSmallIntegerField(
+        "تخفیف دوست دعوت‌شده (٪)", default=10, validators=[MinValueValidator(1), MaxValueValidator(50)])
+    referral_friend_max = models.PositiveIntegerField("سقف تخفیف دوست (تومان)", default=500_000)
+    referral_reward_points = models.PositiveIntegerField(
+        "پاداش معرف (امتیاز باشگاه)", default=200, help_text="اگر باشگاه مشتریان خاموش باشد، به‌جای امتیاز کد تخفیف "
+                                                            "با همان درصد و سقف دوست می‌گیرد")
     bank_card_number = models.CharField("شماره کارت (کارت به کارت)", max_length=30, blank=True)
     bank_card_holder = models.CharField("نام صاحب کارت", max_length=100, blank=True)
     # ---------- سئو ----------

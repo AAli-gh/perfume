@@ -29,11 +29,8 @@ def toggle_view(request, product_id):
 
 @login_required
 def list_view(request):
-    from apps.notifications.services import settings_for
-
     return render(request, "wishlist/list.html", {
         "products": wishlist_products(request.user, request.store), "alerts": price_alerts(request.user),
-        "price_drop_on": settings_for(request.store).price_drop_enabled,
     })
 
 

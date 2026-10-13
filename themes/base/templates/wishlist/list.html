@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load seo majd %}
+{% load seo majd notifications %}
 {% block seo %}{% seo_head title="علاقه‌مندی‌ها" %}{% endblock %}
 {% block content %}
 <div class="container py-14">
@@ -7,6 +7,7 @@
     <h1 class="m-0 text-[2rem]">علاقه‌مندی‌های من</h1>
     <a href="{% url 'accounts:profile' %}">بازگشت به حساب کاربری ←</a>
   </div>
+  {% price_drop_enabled as price_drop_on %}
   {% if products %}
     {% if price_drop_on %}<p class="mb-5 flex items-center gap-2 text-sm text-muted">{% icon "sparkle" "!h-4 !w-4 text-gold" %} وقتی قیمت هر کدام از این‌ها پایین بیاید، با پیامک خبرتان می‌کنیم. برای هر محصول می‌توانید این را خاموش کنید.</p>{% endif %}
     <div class="grid grid-cols-2 gap-3 sm:gap-[18px] md:grid-cols-3 xl:grid-cols-4">

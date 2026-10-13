@@ -4,6 +4,7 @@ from django.contrib import admin
 from django.urls import include, path
 
 from apps.core.ratelimit import ratelimit
+from apps.discounts.views import referral_landing
 
 urlpatterns = [
     # ورود پنل مدیریت هم مثل ورود فروشگاه محدودیت تلاش دارد
@@ -23,6 +24,7 @@ urlpatterns = [
     path("account/", include("apps.accounts.urls")),
     path("account/", include("apps.notifications.urls")),
     path("blog/", include("apps.blog.urls")),
+    path("r/<str:code>/", referral_landing, name="referral"),
 ]
 
 handler400 = "apps.core.errors.bad_request"

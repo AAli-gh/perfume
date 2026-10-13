@@ -3,10 +3,11 @@
 from django.dispatch import receiver
 
 from apps.catalog.events import back_in_stock, stock_low
+from apps.discounts.signals import referral_rewarded
 from apps.orders.signals import gift_cards_issued, order_placed, order_status_changed, return_updated
 
 from . import events as E
-from .tasks import gift_card_sms_task, notify_order_task, notify_return_task, stock_alert_task
+from .tasks import gift_card_sms_task, notify_order_task, notify_return_task, referral_reward_task, stock_alert_task
 
 
 @receiver(order_placed)
@@ -39,3 +40,8 @@ def _return_updated(sender, request, **kwargs):
 @receiver(gift_cards_issued)
 def _gift_cards_issued(sender, order, cards, **kwargs):
     gift_card_sms_task.delay([card.pk for card in cards])
+
+
+@receiver(referral_rewarded)
+def _referral_rewarded(sender, referral, **kwargs):
+    referral_reward_task.delay(referral.pk)

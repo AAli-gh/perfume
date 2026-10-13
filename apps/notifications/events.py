@@ -20,6 +20,7 @@ CAMPAIGN = "campaign"
 GIFT_CARD = "gift_card"
 RETURN_UPDATE = "return_update"
 PRICE_DROP = "price_drop"
+REFERRAL_REWARD = "referral_reward"
 
 EVENT_CHOICES = [
     (ORDER_PLACED, "ثبت سفارش"),
@@ -37,6 +38,7 @@ EVENT_CHOICES = [
     (GIFT_CARD, "ارسال کارت هدیه"),
     (RETURN_UPDATE, "مرجوعی و لغو بخشی"),
     (PRICE_DROP, "کاهش قیمت علاقه‌مندی"),
+    (REFERRAL_REWARD, "پاداش معرفی دوست"),
 ]
 
 # وضعیت جدید سفارش ← رویداد
@@ -61,6 +63,7 @@ NON_ORDER_EVENTS = {
     GIFT_CARD: ("store", "name", "code", "amount", "sender", "message", "expires", "shop_url"),
     RETURN_UPDATE: ("store", "name", "number", "kind", "status", "amount", "order_url"),
     PRICE_DROP: ("store", "name", "product", "old_price", "new_price", "percent", "product_url"),
+    REFERRAL_REWARD: ("store", "name", "friend", "reward", "shop_url"),
 }
 EVENT_VARS = {event: ORDER_VARS for event, _ in EVENT_CHOICES if event not in NON_ORDER_EVENTS}
 EVENT_VARS.update(NON_ORDER_EVENTS)
@@ -139,6 +142,8 @@ DEFAULT_RULES = [
                 "{name} عزیز، قیمت «{product}» که در علاقه‌مندی‌های شماست {percent}٪ کم شد.\n"
                 "قیمت جدید: {new_price} (قبلاً {old_price})\n{product_url}",
                 subject="کاهش قیمت: {product}"),
+    DefaultRule(REFERRAL_REWARD, SMS, CUSTOMER, True,
+                "{name} عزیز، دوستتان {friend} اولین خریدش را از {store} تحویل گرفت. پاداش شما: {reward}\n{shop_url}"),
     DefaultRule(GIFT_CARD, SMS, CUSTOMER, True,
                 "کارت هدیه {amount} از طرف {sender} در {store}\nکد: {code}\n{message}\n{shop_url}"),
 ]

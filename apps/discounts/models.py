@@ -144,6 +144,7 @@ class LoyaltyEntry(models.Model):
         RESTORED = "restored", "برگشت (لغو سفارش)"
         REVOKED = "revoked", "کسر (لغو/مرجوعی)"
         MANUAL = "manual", "تنظیم دستی"
+        REFERRAL = "referral", "معرفی دوست"
 
     account = models.ForeignKey(LoyaltyAccount, on_delete=models.CASCADE, related_name="entries", verbose_name="حساب")
     points = models.IntegerField("امتیاز")
@@ -161,3 +162,56 @@ class LoyaltyEntry(models.Model):
 
     def __str__(self):
         return f"{self.points:+} {self.get_reason_display()}"
+
+
+class ReferralCode(StoreOwned):
+    """کد دعوت هر مشتری (لینک /r/<code>/)."""
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="referral_codes",
+                             verbose_name="مشتری")
+    code = models.CharField("کد دعوت", max_length=12)
+    created_at = models.DateTimeField("زمان ساخت", auto_now_add=True)
+
+    objects = StoreQuerySet.as_manager()
+
+    class Meta:
+        verbose_name = "کد دعوت"
+        verbose_name_plural = "کدهای دعوت"
+        constraints = [
+            models.UniqueConstraint(fields=["store", "code"], name="discounts_referral_code_unique"),
+            models.UniqueConstraint(fields=["store", "user"], name="discounts_one_referral_code_per_user"),
+        ]
+
+    def __str__(self):
+        return self.code
+
+
+class Referral(StoreOwned):
+    """دوستی که با لینک دعوت ثبت‌نام کرد؛ پاداش معرف پس از تحویل اولین سفارش دوست."""
+
+    class Status(models.TextChoices):
+        PENDING = "pending", "در انتظار اولین خرید دوست"
+        REWARDED = "rewarded", "پاداش داده شد"
+
+    referrer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="referrals_made",
+                                 verbose_name="معرف")
+    friend = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="referred_by",
+                               verbose_name="دوست دعوت‌شده")
+    status = models.CharField("وضعیت", max_length=10, choices=Status.choices, default=Status.PENDING)
+    friend_coupon = models.CharField("کد تخفیف دوست", max_length=30, blank=True)
+    reward_points = models.PositiveIntegerField("امتیاز پاداش معرف", default=0)
+    reward_coupon = models.CharField("کد تخفیف پاداش معرف", max_length=30, blank=True)
+    order_number = models.CharField("سفارش اول دوست", max_length=20, blank=True)
+    created_at = models.DateTimeField("زمان ثبت‌نام دوست", auto_now_add=True)
+    rewarded_at = models.DateTimeField("زمان پاداش", null=True, blank=True)
+
+    objects = StoreQuerySet.as_manager()
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "معرفی دوست"
+        verbose_name_plural = "معرفی‌های دوستان"
+        constraints = [models.UniqueConstraint(fields=["store", "friend"], name="discounts_one_referrer_per_friend")]
+
+    def __str__(self):
+        return f"{self.referrer} ← {self.friend}"
