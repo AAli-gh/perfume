@@ -21,8 +21,8 @@
   <table class="items">
     <thead><tr><th>ردیف</th><th>کالا</th><th>تعداد</th>{% if not o.hide_prices %}<th>قیمت واحد</th><th>جمع</th>{% endif %}</tr></thead>
     <tbody>
-      {% for item in o.items.all %}
-      <tr><td>{{ forloop.counter|fa }}</td><td>{{ item.product_name }}{% if item.size_ml %} ({{ item.size_ml|fa }} میل){% endif %}</td><td>{{ item.quantity|fa }}</td>{% if not o.hide_prices %}<td>{{ item.unit_price|toman }}</td><td>{{ item.line_total|toman }}</td>{% endif %}</tr>
+      {% for item in o.line_items %}
+      <tr><td>{{ forloop.counter|fa }}</td><td>{{ item.product_name }}{% if item.size_ml %} ({{ item.size_ml|fa }} میل){% endif %}{% for c in item.contents.all %}<br><small>• نمونه {{ c.product_name }}</small>{% endfor %}</td><td>{{ item.quantity|fa }}</td>{% if not o.hide_prices %}<td>{{ item.unit_price|toman }}</td><td>{{ item.line_total|toman }}</td>{% endif %}</tr>
       {% endfor %}
     </tbody>
     {% if not o.hide_prices %}

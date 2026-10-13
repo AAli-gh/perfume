@@ -29,7 +29,8 @@ class CollectionAdmin(admin.ModelAdmin):
 class VariantInline(JalaliAdminMixin, admin.TabularInline):
     model = ProductVariant
     extra = 1
-    fields = ["size_ml", "price", "stock", "low_stock_threshold", "sale_price", "sale_starts_at", "sale_ends_at"]
+    fields = ["size_ml", "is_decant", "price", "stock", "low_stock_threshold", "sale_price", "sale_starts_at",
+              "sale_ends_at"]
 
 
 class NoteInline(admin.TabularInline):
@@ -85,7 +86,11 @@ class ProductAdmin(admin.ModelAdmin):
             inventory.set_stock(variant, targets[variant.pk], user=request.user, note="ویرایش از پنل مدیریت")
 
     fieldsets = (
-        (None, {"fields": ("store", "name", "slug", "brand", "scent", "collection", "image", "is_active", "is_featured")}),
+        (None, {"fields": ("store", "name", "slug", "kind", "brand", "scent", "collection", "image", "is_active",
+                           "is_featured")}),
+        ("باکس هدیه / باکس تست", {"fields": ("gift_capacity", "sample_count"), "classes": ("collapse",),
+                                   "description": "فقط برای همین نوع محصولات. باکس تست یک ردیف قیمت دارد؛ حجم آن ردیف "
+                                                  "= حجم هر نمونه (مثلاً ۵ میل)."}),
         ("توضیحات", {"fields": ("short_description", "description")}),
         ("طبقه‌بندی", {"fields": ("categories", "tags", "attribute_values")}),
         ("سئو", {"fields": ("meta_title", "meta_description", "noindex"), "classes": ("collapse",)}),

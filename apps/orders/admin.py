@@ -31,7 +31,7 @@ class HistoryInline(admin.TabularInline):
 class OrderItemInline(admin.TabularInline):
     model = OrderItem
     extra = 0
-    readonly_fields = ["variant", "product_name", "size_ml", "unit_price", "quantity"]
+    readonly_fields = ["variant", "product_name", "size_ml", "unit_price", "quantity", "parent"]
     can_delete = False
 
 

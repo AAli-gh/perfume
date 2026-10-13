@@ -4,6 +4,7 @@ from django.contrib.postgres.search import SearchVectorField
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Avg, Case, Count, F, Min, Q, When
+from django.db.models.functions import Coalesce
 from django.urls import reverse
 from django.utils import timezone
 
@@ -216,12 +217,17 @@ class ProductQuerySet(StoreQuerySet):
     def gift_boxes(self):
         return self.filter(kind=Kind.GIFT_BOX)
 
+    def sample_boxes(self):
+        return self.filter(kind=Kind.SAMPLE_BOX)
+
     def with_stats(self):
-        """قیمت پایه (کمترین قیمت فعلی حجم‌ها، با احتساب حراج)، قیمت پیش از حراج، امتیاز و تعداد نظرات."""
+        """قیمت پایه (کمترین قیمت فعلی شیشه‌ها، با احتساب حراج؛ دکانت جدا)، قیمت پیش از حراج، امتیاز و تعداد نظرات."""
         approved = Q(reviews__is_approved=True)
+        bottle, decant = Q(variants__is_decant=False), Q(variants__is_decant=True)
         return self.annotate(
-            min_price=Min(effective_price("variants__")),
-            min_regular_price=Min("variants__price"),
+            min_price=Coalesce(Min(effective_price("variants__"), filter=bottle), Min(effective_price("variants__"))),
+            min_regular_price=Coalesce(Min("variants__price", filter=bottle), Min("variants__price")),
+            decant_price=Min(effective_price("variants__"), filter=decant),
             rating_avg=Avg("reviews__rating", filter=approved),
             review_count=Count("reviews", filter=approved, distinct=True),
         )
@@ -249,6 +255,10 @@ class Product(StoreOwned, SeoFields):
     gift_capacity = models.PositiveSmallIntegerField(
         "گنجایش (تعداد شیشه عطر)", null=True, blank=True,
         help_text="فقط برای باکس هدیه؛ چند شیشه عطر داخل یک باکس جا می‌شود",
+    )
+    sample_count = models.PositiveSmallIntegerField(
+        "تعداد نمونه", null=True, blank=True, validators=[MinValueValidator(1), MaxValueValidator(12)],
+        help_text="فقط برای باکس تست؛ مشتری چند عطر را به‌صورت دکانت انتخاب می‌کند. حجم هر نمونه = حجم ردیف قیمت باکس",
     )
     gender = models.CharField("مناسب برای", max_length=10, choices=Gender.choices, blank=True)
     concentration = models.CharField("غلظت", max_length=10, choices=Concentration.choices, blank=True)
@@ -294,7 +304,9 @@ class Product(StoreOwned, SeoFields):
 
     @property
     def default_variant(self):
-        variants = [v for v in self.variants.all() if v.stock > 0] or list(self.variants.all())
+        everything = list(self.variants.all())
+        pool = [v for v in everything if not v.is_decant] or everything  # پیش‌فرض: شیشه، نه نمونه
+        variants = [v for v in pool if v.stock > 0] or pool
         return min(variants, key=lambda v: v.current_price) if variants else None
 
     @property
@@ -310,6 +322,19 @@ class Product(StoreOwned, SeoFields):
         return self.kind == Kind.GIFT_CARD
 
     @property
+    def is_sample_box(self):
+        return self.kind == Kind.SAMPLE_BOX
+
+    @property
+    def decants(self):
+        """حجم‌های نمونه (دکانت) این عطر، از کوچک به بزرگ."""
+        return [v for v in self.variants.all() if v.is_decant]
+
+    @property
+    def bottles(self):
+        return [v for v in self.variants.all() if not v.is_decant]
+
+    @property
     def is_accessory(self):
         """باکس یا کارت هدیه: حجم ندارد، در مقایسه و عطریاب نمی‌آید."""
         return self.kind != Kind.PERFUME
@@ -321,6 +346,8 @@ class Product(StoreOwned, SeoFields):
             raise ValidationError({"scent": "خانواده رایحه برای عطر الزامی است."})
         if self.kind == Kind.GIFT_BOX and not self.gift_capacity:
             raise ValidationError({"gift_capacity": "گنجایش باکس هدیه را وارد کنید."})
+        if self.kind == Kind.SAMPLE_BOX and not self.sample_count:
+            raise ValidationError({"sample_count": "تعداد نمونه‌های باکس تست را وارد کنید."})
 
     @property
     def season_labels(self):
@@ -420,6 +447,9 @@ class ProductVariant(models.Model):
     size_ml = models.PositiveSmallIntegerField("حجم (میلی‌لیتر)")
     price = models.PositiveIntegerField("قیمت (تومان)")
     stock = models.PositiveIntegerField("موجودی", default=0)
+    is_decant = models.BooleanField(
+        "نمونه (دکانت)", default=False,
+        help_text="حجم کوچک برای امتحان عطر (مثلاً ۵ یا ۱۰ میل)؛ جدا نمایش داده می‌شود و در باکس تست قابل انتخاب است")
     low_stock_threshold = models.PositiveSmallIntegerField(
         "آستانه موجودی کم", null=True, blank=True,
         help_text="خالی = آستانه پیش‌فرض فروشگاه (تنظیمات فروشگاه)",

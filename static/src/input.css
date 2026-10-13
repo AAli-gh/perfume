@@ -134,6 +134,11 @@
   .smart-chip { @apply text-sm transition hover:border-danger/70; }
   .smart-chip.is-negated { @apply border-danger/50 text-cream; }
   .smart-chip.is-relaxed { @apply border-dashed text-muted line-through decoration-muted/60; }
+  .decant-hint { @apply mx-auto mt-0.5 rounded-full border border-line px-2.5 py-0.5 text-[.72rem] text-gold-soft; }
+  .sample-pick { @apply flex cursor-pointer items-center gap-3 rounded border border-line bg-input/20 p-2 transition hover:border-line-strong has-[:checked]:border-copper has-[:checked]:bg-copper/10 has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-40; }
+  .sample-pick:has(:focus-visible) { @apply outline outline-2 outline-copper; }
+  .sample-pick .icon { @apply opacity-0 transition-opacity; }
+  .sample-pick:has(:checked) .icon { @apply opacity-100; }
   .sale-badge { @apply rounded-full bg-danger/90 px-2 py-0.5 text-xs font-medium text-white; }
   .search-example { @apply rounded-full border border-line px-3 py-1 text-sm text-muted transition hover:border-copper hover:text-gold; }
   .compare-table th, .compare-table td { @apply border-b border-line; }

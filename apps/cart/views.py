@@ -34,15 +34,25 @@ def add(request):
         ProductVariant.objects.select_related("product"),
         pk=request.POST.get("variant"), product__is_active=True, product__store=request.store,
     )
-    ok = variant.stock > 0
+    ok, error, picks = variant.stock > 0, "این محصول در حال حاضر موجود نیست.", ()
+    quantity = max(1, _qty(request.POST.get("quantity")))
+    if ok and variant.product.is_sample_box:
+        from apps.catalog.samples import PickError, validate_picks
+
+        try:
+            picks = validate_picks(variant, request.POST.getlist("samples"), quantity)
+        except PickError as exc:
+            ok, error = False, str(exc)
     if ok:
-        cart.add(variant, max(1, _qty(request.POST.get("quantity"))))
+        cart.add(variant, quantity, picks)
     if request.htmx:
-        return render(request, "cart/partials/added.html", {"variant": variant, "ok": ok, "cart": cart})
+        return render(request, "cart/partials/added.html", {"variant": variant, "ok": ok, "error": error, "cart": cart})
     if ok:
         messages.success(request, f"«{variant.product.name}» به سبد خرید اضافه شد.")
     else:
-        messages.error(request, "این محصول در حال حاضر موجود نیست.")
+        messages.error(request, error)
+        if variant.product.is_sample_box:
+            return redirect(variant.product.get_absolute_url())
     return redirect("cart:detail")
 
 

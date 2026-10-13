@@ -14,8 +14,9 @@
   <table class="items check">
     <thead><tr><th class="box"></th><th>کالا</th><th>تعداد</th></tr></thead>
     <tbody>
-      {% for item in o.items.all %}
+      {% for item in o.line_items %}
       <tr><td class="box">☐</td><td>{{ item.product_name }}{% if item.size_ml %} ({{ item.size_ml|fa }} میل){% endif %}</td><td class="qty">{{ item.quantity|fa }}</td></tr>
+      {% for c in item.contents.all %}<tr><td class="box">☐</td><td>&nbsp;&nbsp;↳ نمونه {{ c.product_name }} ({{ c.size_ml|fa }} میل) — داخل «{{ item.product_name }}»</td><td class="qty">{{ c.quantity|fa }}</td></tr>{% endfor %}
       {% endfor %}
     </tbody>
   </table>

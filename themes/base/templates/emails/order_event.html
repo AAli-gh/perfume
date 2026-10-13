@@ -11,8 +11,8 @@
     <h1 style="margin:0 0 16px;font-size:19px">{{ subject }}</h1>
     <p style="margin:0 0 16px">شماره سفارش: <strong dir="ltr">{{ number }}</strong> · وضعیت: {{ status }} · {{ payment_method }}</p>
     <table role="presentation" width="100%" cellpadding="6" cellspacing="0" style="border-collapse:collapse;font-size:14px">
-      {% for item in order.items.all %}
-      <tr style="border-bottom:1px solid #eee"><td>{{ item.product_name }} <span style="color:#8a7a6e">{% if item.size_ml %}({{ item.size_ml|fa }} میل) {% endif %}× {{ item.quantity|fa }}</span></td><td align="left">{{ item.line_total|toman }}</td></tr>
+      {% for item in order.line_items %}
+      <tr style="border-bottom:1px solid #eee"><td>{{ item.product_name }} <span style="color:#8a7a6e">{% if item.size_ml %}({{ item.size_ml|fa }} میل) {% endif %}× {{ item.quantity|fa }}</span>{% for c in item.contents.all %}<br><span style="color:#8a7a6e;font-size:12px">• نمونه {{ c.product_name }} ({{ c.size_ml|fa }} میل)</span>{% endfor %}</td><td align="left">{{ item.line_total|toman }}</td></tr>
       {% endfor %}
       <tr><td>جمع جزء</td><td align="left">{{ order.subtotal|toman }}</td></tr>
       {% if order.discount %}<tr><td>تخفیف</td><td align="left">− {{ order.discount|toman }}</td></tr>{% endif %}

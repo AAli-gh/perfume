@@ -97,7 +97,7 @@ def print_orders(request):
     doc = request.GET.get("doc", "invoice")
     if doc not in DOCS:
         raise Http404
-    selected = list(_selected(request, request.GET).prefetch_related("items").select_related("shipping_method")
+    selected = list(_selected(request, request.GET).prefetch_related("items__contents").select_related("shipping_method")
                     .order_by("created_at"))
     if not selected:
         messages.error(request, "هیچ سفارشی برای چاپ انتخاب نشده است.")

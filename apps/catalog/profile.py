@@ -7,6 +7,7 @@ class Kind(models.TextChoices):
     PERFUME = "perfume", "عطر"
     GIFT_BOX = "gift_box", "باکس هدیه"
     GIFT_CARD = "gift_card", "کارت هدیه"
+    SAMPLE_BOX = "sample_box", "باکس تست"
 
 
 class Gender(models.TextChoices):

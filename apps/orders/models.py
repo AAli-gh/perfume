@@ -121,6 +121,11 @@ class Order(StoreOwned):
     def is_paid(self):
         return self.paid_at is not None
 
+    @property
+    def line_items(self):
+        """اقلام اصلی سفارش (نمونه‌های باکس تست زیر خود باکس: item.contents)."""
+        return [item for item in self.items.all() if item.parent_id is None]
+
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="items", verbose_name="سفارش")
@@ -133,6 +138,8 @@ class OrderItem(models.Model):
     quantity = models.PositiveSmallIntegerField("تعداد")
     returned_quantity = models.PositiveSmallIntegerField(
         "مرجوع/لغوشده", default=0, editable=False, help_text="تعدادی که لغو بخشی یا مرجوعی (دریافت‌شده) شده است")
+    parent = models.ForeignKey("self", on_delete=models.CASCADE, null=True, blank=True, related_name="contents",
+                               verbose_name="داخل", help_text="نمونه‌های انتخاب‌شده داخل باکس تست (قیمت صفر)")
 
     class Meta:
         verbose_name = "قلم سفارش"

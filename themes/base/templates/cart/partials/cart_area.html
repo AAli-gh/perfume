@@ -22,7 +22,8 @@
               <div class="flex items-center gap-3.5">
                 <img src="{{ line.product.image.url }}" alt="" class="h-[60px] w-[60px] border border-line object-cover">
                 <div><a class="text-cream" href="{{ line.product.get_absolute_url }}">{{ line.product.name }}</a>
-                  <small class="block text-xs text-muted">{% if line.product.is_gift_box %}باکس هدیه · گنجایش {{ line.product.gift_capacity|fa }} عطر{% elif line.product.is_gift_card %}کارت هدیه دیجیتال{% else %}{{ line.product.brand.name }}، {{ line.variant.size_ml|fa }} میل{% endif %}</small></div>
+                  <small class="block text-xs text-muted">{% if line.product.is_gift_box %}باکس هدیه · گنجایش {{ line.product.gift_capacity|fa }} عطر{% elif line.product.is_gift_card %}کارت هدیه دیجیتال{% elif line.product.is_sample_box %}باکس تست · {{ line.picks|length|fa }} نمونه {{ line.variant.size_ml|fa }} میل{% else %}{{ line.product.brand.name }}، {{ line.variant.size_ml|fa }} میل{% if line.variant.is_decant %} (نمونه){% endif %}{% endif %}</small>
+                  {% if line.picks %}<small class="block text-xs text-body">{% for p in line.picks %}{{ p.product.name }}{% if not forloop.last %}، {% endif %}{% endfor %} · <a href="{{ line.product.get_absolute_url }}">تغییر</a></small>{% endif %}</div>
               </div>
             </td>
             <td class="p-2.5 text-sm max-sm:hidden">{{ line.unit_price|toman }}{% if line.unit_price < line.regular_price %}<del class="block text-xs text-muted">{{ line.regular_price|toman }}</del>{% endif %}</td>
@@ -34,7 +35,7 @@
                        class="h-[34px] w-11 border-x border-line bg-transparent text-center [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none"
                        hx-post="{% url 'cart:update' line.variant.pk %}" hx-trigger="change" hx-target="#cart-area" hx-swap="outerHTML">
                 <button class="h-[34px] w-[34px] bg-input/30 text-muted hover:text-gold disabled:opacity-40" aria-label="افزایش"
-                        {% if line.quantity >= line.variant.stock %}disabled title="حداکثر موجودی"{% endif %}
+                        {% if line.quantity >= line.variant.stock or line.quantity >= 20 %}disabled title="حداکثر موجودی"{% endif %}
                         hx-post="{% url 'cart:update' line.variant.pk %}" hx-vals='{"delta": "1"}' hx-target="#cart-area" hx-swap="outerHTML">+</button>
               </div>
             </td>

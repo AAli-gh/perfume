@@ -3,7 +3,7 @@
 {% block seo %}{% seo_head product %}{% endblock %}
 {% block content %}
 <nav class="container border-b border-line py-4 text-sm text-muted" aria-label="مسیر">
-  <a class="text-muted" href="{% url 'pages:home' %}">خانه</a><span class="mx-2">‹</span>{% if product.is_gift_box %}<a class="text-muted" href="{% url 'catalog:gift_boxes' %}">باکس‌های هدیه</a>{% else %}<a class="text-muted" href="{% url 'catalog:shop' %}">عطرها</a>{% endif %}<span class="mx-2">‹</span><strong class="font-normal text-body">{{ product.name }}</strong>
+  <a class="text-muted" href="{% url 'pages:home' %}">خانه</a><span class="mx-2">‹</span>{% if product.is_gift_box %}<a class="text-muted" href="{% url 'catalog:gift_boxes' %}">باکس‌های هدیه</a>{% elif product.is_sample_box %}<a class="text-muted" href="{% url 'catalog:samples' %}">نمونه و باکس تست</a>{% else %}<a class="text-muted" href="{% url 'catalog:shop' %}">عطرها</a>{% endif %}<span class="mx-2">‹</span><strong class="font-normal text-body">{{ product.name }}</strong>
 </nav>
 
 <div class="container">
@@ -33,7 +33,7 @@
         {% stars product.rating_avg %} <span>({{ product.review_count|fa }} نظر مشتری)</span>
       </div>
 
-      <form action="{% url 'cart:add' %}" method="post" hx-post="{% url 'cart:add' %}" hx-swap="none" data-variant-form>
+      <form id="buy-form" action="{% url 'cart:add' %}" method="post" hx-post="{% url 'cart:add' %}" hx-swap="none" data-variant-form>
         {% csrf_token %}
         {% with v=product.default_variant %}
         <div class="mb-3 flex flex-wrap items-baseline gap-x-3 text-[1.8rem] text-price">
@@ -50,6 +50,25 @@
           <li class="flex items-center gap-2">{% icon "gift" "!h-5 !w-5 text-gold" %} کد کارت پس از پرداخت با پیامک برای شما ارسال و در صفحه سفارش نمایش داده می‌شود.</li>
           <li class="flex items-center gap-2">{% icon "check" "!h-5 !w-5 text-success" %} مانده کارت در چند خرید قابل استفاده است؛ کد را برای عزیزتان بفرستید.</li>
         </ul>
+        {% elif product.is_sample_box %}{% with v=product.default_variant %}
+        <ul class="my-6 grid gap-2 rounded border border-line bg-panel/60 p-4 text-[.95rem]">
+          <li class="flex items-center gap-2">{% icon "sparkle" "!h-5 !w-5 text-gold" %} {{ product.sample_count|fa }} عطر دلخواه، هر کدام <strong class="text-cream">{{ v.size_ml|fa }} میل</strong></li>
+          <li class="flex items-center gap-2">{% icon "check" "!h-5 !w-5 text-success" %} قبل از خرید شیشه کامل، چند روز روی پوست خودتان امتحان کنید</li>
+        </ul>
+        <fieldset class="mb-6" data-sample-picker data-max="{{ product.sample_count }}">
+          <legend class="mb-2 text-cream">عطرهای باکس را انتخاب کنید <span class="text-sm text-muted">(<span data-sample-count>۰</span> از {{ product.sample_count|fa }})</span></legend>
+          {% if sample_choices %}
+          <div class="grid max-h-[420px] gap-2 overflow-y-auto pe-1 sm:grid-cols-2">
+            {% for pick in sample_choices %}
+            <label class="sample-pick"><input type="checkbox" name="samples" value="{{ pick.pk }}" form="buy-form" class="sr-only">
+              <img src="{{ pick.product.image.url }}" alt="" class="h-11 w-11 shrink-0 rounded-sm object-cover" loading="lazy">
+              <span class="min-w-0"><b class="block truncate text-[.92rem] font-normal text-cream">{{ pick.product.name }}</b><small class="text-xs text-muted">{{ pick.product.brand.name }}</small></span>
+              <span class="ms-auto text-copper" aria-hidden="true">{% icon "check" "!h-4 !w-4" %}</span></label>
+            {% endfor %}
+          </div>
+          {% else %}<p class="text-sm text-muted">فعلاً نمونه‌ای برای این باکس موجود نیست.</p>{% endif %}
+        </fieldset>
+        {% endwith %}
         {% elif product.is_gift_box %}
         <ul class="my-6 grid gap-2 rounded border border-line bg-panel/60 p-4 text-[.95rem]">
           <li class="flex items-center gap-2">{% icon "gift" "!h-5 !w-5 text-gold" %} گنجایش: <strong class="text-cream">{{ product.gift_capacity|fa }} شیشه عطر</strong></li>
@@ -72,7 +91,7 @@
                 <label class="cursor-pointer">
                   <input type="radio" name="variant" value="{{ v.pk }}" class="peer sr-only" data-price="{{ v.current_price|toman }}" data-regular="{% if v.on_sale %}{{ v.price|toman }}{% endif %}" data-off="{% if v.on_sale %}{{ v.discount_percent|fa }}٪ تخفیف{% endif %}"
                          {% if v == product.default_variant %}checked{% endif %} {% if not v.stock %}disabled{% endif %}>
-                  <span class="block rounded border border-line px-4 py-1.5 text-muted peer-checked:border-copper peer-checked:bg-copper/10 peer-checked:text-gold peer-disabled:line-through peer-disabled:opacity-40 peer-focus-visible:ring-2 peer-focus-visible:ring-copper">{% if product.is_accessory %}{{ v.current_price|toman }}{% else %}{{ v.size_ml|fa }} میل{% endif %}</span>
+                  <span class="block rounded border border-line px-4 py-1.5 text-muted peer-checked:border-copper peer-checked:bg-copper/10 peer-checked:text-gold peer-disabled:line-through peer-disabled:opacity-40 peer-focus-visible:ring-2 peer-focus-visible:ring-copper">{% if product.is_accessory %}{{ v.current_price|toman }}{% else %}{{ v.size_ml|fa }} میل{% if v.is_decant %} · نمونه{% endif %}{% endif %}</span>
                 </label>
               {% endfor %}
             </div>
@@ -102,6 +121,13 @@
       </form>
       {% if notify_form %}{% include "catalog/partials/notify_me.html" %}{% endif %}
       <div class="mt-3 grid gap-2 {% if not product.is_accessory %}sm:grid-cols-2{% endif %}">{% wishlist_button product %}{% if not product.is_accessory %}{% compare_button product %}{% endif %}</div>
+      {% if product.decants or sample_boxes %}
+      <div class="mt-5 rounded border border-line bg-panel/50 p-4">
+        <p class="mb-2 flex items-center gap-2 text-cream">{% icon "sparkle" "!h-5 !w-5 text-gold" %} مطمئن نیستید؟ اول امتحان کنید</p>
+        <p class="mb-3 text-sm text-muted">{% if product.decants %}نمونه {% for d in product.decants %}{{ d.size_ml|fa }}{% if not forloop.last %} و {% endif %}{% endfor %} میلی این عطر را از بخش «حجم» انتخاب کنید{% if sample_boxes %}، یا {% endif %}{% endif %}{% if sample_boxes %}چند عطر را با هم در باکس تست بچشید.{% endif %}</p>
+        {% if sample_boxes %}<div class="flex flex-wrap gap-2">{% for box in sample_boxes %}<a class="chip !px-3 !py-1 hover:border-copper" href="{{ box.get_absolute_url }}">{{ box.name }} · {{ box.min_price|toman }}</a>{% endfor %}</div>{% endif %}
+      </div>
+      {% endif %}
       {% if gift_boxes %}
       <div class="mt-5 rounded border border-line bg-panel/50 p-4">
         <p class="mb-3 flex items-center gap-2 text-cream">{% icon "gift" "!h-5 !w-5 text-gold" %} می‌خواهید هدیه بدهید؟ این عطر را داخل باکس هدیه بفرستید</p>

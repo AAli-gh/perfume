@@ -22,7 +22,7 @@ BUDGETS = {
     "/shop/?q=عطر خنک زیر ۴ میلیون": 14,
     "/shop/?q=عطر خنک زیر سه تومن": 15,  # بدون نتیجه دقیق: کنار گذاشتن شرط قیمت
     "/search/suggest/?q=زنانه شیرین برای شب": 10,
-    "/product/mystic-oud/": 17,
+    "/product/mystic-oud/": 18,  # +۱ کوئری ثابت: باکس‌های تست («اول امتحان کنید»)
     "/collections/": 8,
     "/collections/oud/": 15,
     "/blog/": 11,

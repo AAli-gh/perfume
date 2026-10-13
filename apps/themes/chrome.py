@@ -54,6 +54,7 @@ class FooterForm(forms.Form):
         {"label": "کالکشن‌ها", "url": "/collections/"},
         {"label": "مجله", "url": "/blog/"},
         {"label": "باکس‌های هدیه", "url": "/gift-boxes/"},
+        {"label": "نمونه و باکس تست", "url": "/samples/"},
         {"label": "درباره ما", "url": "/about/"},
     ])
     service_title = _text("عنوان ستون دوم", "خدمات مشتریان", 60)

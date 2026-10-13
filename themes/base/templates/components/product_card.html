@@ -9,9 +9,12 @@
     <span class="text-xs text-muted">{{ p.brand.name }}</span>
     {% stars p.rating_avg p.review_count %}
     <span class="mt-0.5 font-medium text-gold">{% if p.variants.all|length > 1 %}از {% endif %}{{ p.min_price|toman }}{% if p.min_regular_price and p.min_price < p.min_regular_price %}<del class="block text-xs font-normal text-muted">{{ p.min_regular_price|toman }}</del>{% endif %}</span>
+    {% if p.decant_price %}<span class="decant-hint">نمونه برای امتحان: از {{ p.decant_price|toman }}</span>{% endif %}
     <p class="card-desc m-0 mt-1.5 hidden text-sm text-muted">{{ p.short_description }}</p>
     {% with v=p.default_variant %}
-      {% if v and p.in_stock %}
+      {% if p.is_sample_box and p.in_stock %}
+        <a class="btn btn-sm mx-auto mt-2.5" href="{{ p.get_absolute_url }}">انتخاب نمونه‌ها</a>
+      {% elif v and p.in_stock %}
         <form hx-post="{% url 'cart:add' %}" hx-swap="none" action="{% url 'cart:add' %}" method="post" class="mx-auto mt-2.5">
           {% csrf_token %}
           <input type="hidden" name="variant" value="{{ v.pk }}">

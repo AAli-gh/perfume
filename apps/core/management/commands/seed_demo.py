@@ -87,6 +87,19 @@ GIFT_BOXES = [
      "باکس سبز زمردی با روبان طلایی دست‌دوز برای سه شیشه عطر؛ کامل‌ترین بسته‌بندی هدیه عطر مجد."),
 ]
 
+SAMPLE_BOXES = [  # (نامک، نام، تعداد نمونه، حجم هر نمونه، قیمت، موجودی، تصویر، توضیح)
+    ("sample-box-3", "باکس تست سه‌تایی", 3, 5, 590_000, 60, "box-sample-3.jpg",
+     "سه عطر دلخواهتان را هر کدام ۵ میل انتخاب کنید؛ چند روز امتحان کنید و بعد شیشه کامل را با خیال راحت بخرید."),
+    ("sample-box-5", "باکس تست پنج‌تایی", 5, 5, 890_000, 40, "box-sample-5.jpg",
+     "پنج عطر دلخواه، هر کدام ۵ میل در ویال شیشه‌ای اسپری‌دار؛ بهترین راه برای پیدا کردن عطر امضای شما."),
+]
+DECANTS = ((5, 1.5, 40), (10, 1.35, 30))  # (حجم، ضریب قیمت هر میل نسبت به شیشه ۵۰ میل، موجودی)
+
+
+def decant_price(bottle_price, size, factor):
+    return max(round(bottle_price / 50 * size * factor, -4), 90_000)
+
+
 # مشخصات رایحه: (مناسب برای، غلظت، ماندگاری، پخش بو، فصل‌ها، موقعیت‌ها)
 PROFILES = {
     "arabesque": ("unisex", "edp", 4, 4, ["autumn", "winter"], ["evening", "formal"]),
@@ -292,6 +305,25 @@ class Command(BaseCommand):
                                                              stock=100_000))
             boxes += 1
 
+        samples = 0
+        for p in Product.objects.for_store(store).perfumes().prefetch_related("variants"):
+            bottle = min((v for v in p.variants.all() if not v.is_decant), key=lambda v: v.size_ml, default=None)
+            have = {v.size_ml for v in p.variants.all()}
+            for size, factor, stock in DECANTS:
+                if bottle is not None and size not in have:
+                    record_initial(ProductVariant.objects.create(
+                        product=p, size_ml=size, is_decant=True, price=decant_price(bottle.price, size, factor),
+                        stock=stock))
+        for slug, name, count, size, price, stock, img, desc in SAMPLE_BOXES:
+            if Product.objects.for_store(store).filter(slug=slug).exists():
+                continue
+            box = Product(slug=slug, name=name, brand=house, kind=Kind.SAMPLE_BOX, sample_count=count,
+                          short_description=desc.split("؛")[0] + ".", description=desc)
+            attach(box.image, img)
+            box.save()
+            record_initial(ProductVariant.objects.create(product=box, size_ml=size, price=price, stock=stock))
+            samples += 1
+
         cats = {k: Category.objects.for_store(store).get_or_create(slug=k, defaults={"name": v})[0] for k, v in CATEGORIES.items()}
         posts = 0
         for slug, title, cat, img, days_ago, excerpt, body in POSTS:
@@ -307,3 +339,4 @@ class Command(BaseCommand):
             Coupon.objects.for_store(store).get_or_create(code=code, defaults={"percent": percent, "max_discount": max_discount})
 
         self.stdout.write(self.style.SUCCESS(f"{created} محصول، {boxes} باکس و کارت هدیه و {posts} مقاله در «{store.name}» ساخته شد."))
+        self.stdout.write(f"{samples} باکس تست؛ نمونه ۵ و ۱۰ میل برای همه عطرها.")

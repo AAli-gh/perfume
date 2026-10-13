@@ -10,6 +10,7 @@ from apps.shipping.selectors import default_method
 from .pricing import calculate
 
 SESSION_KEY = "cart"
+PICKS_KEY = "sample_picks"  # {شناسه حجم باکس تست: [شناسه دکانت‌ها]}
 COUPON_KEY = "coupon"
 MAX_QTY = 20
 
@@ -18,6 +19,7 @@ MAX_QTY = 20
 class CartLine:
     variant: ProductVariant
     quantity: int
+    picks: tuple = ()  # دکانت‌های داخل باکس تست
 
     @property
     def product(self):
@@ -83,29 +85,43 @@ class Cart:
         self._pricing = None
         persist(self.store, self.user, self._data)
 
-    def add(self, variant, quantity=1):
-        """افزودن به سبد؛ کالای ناموجود اضافه نمی‌شود (خروجی False)."""
-        if variant.stock <= 0:
+    @property
+    def _picks(self):
+        return self.session.setdefault(PICKS_KEY, {})
+
+    def _limit(self, variant, picks=()):
+        return min([MAX_QTY, variant.stock, *(p.stock for p in picks)])
+
+    def add(self, variant, quantity=1, picks=()):
+        """افزودن به سبد؛ کالای ناموجود اضافه نمی‌شود (خروجی False). باکس تست با دکانت‌های انتخابی (picks)."""
+        if variant.stock <= 0 or (variant.product.is_sample_box and not picks):
             return False
         key = str(variant.pk)
+        if picks:  # انتخاب تازه جای انتخاب قبلی همین باکس را می‌گیرد
+            self._picks[key] = [p.pk for p in picks]
+            self.session.modified = True
         current = self._data.get(key, 0)
-        self._data[key] = max(1, min(MAX_QTY, variant.stock, current + quantity))
+        self._data[key] = max(1, min(self._limit(variant, picks), current + quantity))
         self._save()
         return True
 
     def set(self, variant, quantity):
         key = str(variant.pk)
-        quantity = max(1, min(MAX_QTY, variant.stock, quantity))
+        line = next((line for line in self.lines if line.variant.pk == variant.pk), None)
+        quantity = max(1, min(self._limit(variant, line.picks if line else ()), quantity))
         self._data[key] = quantity
         self._save()
 
     def remove(self, variant_id):
         self._data.pop(str(variant_id), None)
+        self._picks.pop(str(variant_id), None)
+        self.session.modified = True
         self._save()
 
     def clear(self):
         self._data = {}
         self.session.pop(COUPON_KEY, None)
+        self.session.pop(PICKS_KEY, None)
         self._save()
 
     # ---------- خواندن سبد ----------
@@ -116,12 +132,27 @@ class Cart:
                 pk__in=self._data.keys(), product__is_active=True, product__store=self.store
             ).select_related("product", "product__brand")
             by_id = {str(v.pk): v for v in variants}
-            # حذف اقلامی که دیگر وجود ندارند
-            if set(by_id) != set(self._data):
-                self._data = {k: q for k, q in self._data.items() if k in by_id}
+            picks = self._valid_picks(by_id)
+            # حذف اقلامی که دیگر وجود ندارند (و باکس تستی که نمونه‌هایش در دسترس نیست)
+            keep = {k for k in by_id if not by_id[k].product.is_sample_box or k in picks}
+            if keep != set(self._data):
+                self._data = {k: q for k, q in self._data.items() if k in keep}
+                self.session[PICKS_KEY] = {k: [p.pk for p in v] for k, v in picks.items() if k in keep}
                 self._save()
-            self._lines = [CartLine(by_id[k], q) for k, q in self._data.items() if k in by_id]
+            self._lines = [CartLine(by_id[k], q, tuple(picks.get(k, ()))) for k, q in self._data.items() if k in keep]
         return self._lines
+
+    def _valid_picks(self, by_id):
+        from apps.catalog.samples import PickError, validate_picks
+
+        out = {}
+        for key, ids in (self.session.get(PICKS_KEY) or {}).items():
+            if key in by_id and by_id[key].product.is_sample_box:
+                try:
+                    out[key] = validate_picks(by_id[key], ids)
+                except PickError:
+                    continue
+        return out
 
     def __iter__(self):
         return iter(self.lines)

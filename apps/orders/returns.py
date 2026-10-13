@@ -10,7 +10,7 @@
 from datetime import timedelta
 
 from django.db import transaction
-from django.db.models import F, Sum
+from django.db.models import F, Q, Sum
 from django.utils import timezone
 
 from apps.catalog import inventory
@@ -49,8 +49,8 @@ def pending_quantities(order):
 def available(order):
     """{OrderItem: حداکثر تعداد قابل مرجوعی/لغو}."""
     pending = pending_quantities(order)
-    return {item: item.returnable_quantity - pending.get(item.pk, 0) for item in order.items.all()
-            if item.returnable_quantity - pending.get(item.pk, 0) > 0}
+    return {item: item.returnable_quantity - pending.get(item.pk, 0) for item in order.items.filter(parent=None)
+            if item.returnable_quantity - pending.get(item.pk, 0) > 0}  # نمونه‌های باکس تست همراه خود باکس
 
 
 def return_deadline(order):
@@ -123,8 +123,11 @@ def reject(req, user=None, note=""):
 
 
 def _restock(req, user, note):
-    lines = [inventory.StockLine(ri.order_item.variant_id, ri.quantity)
-             for ri in req.items.select_related("order_item") if ri.order_item.variant_id]
+    lines = []
+    for ri in req.items.select_related("order_item"):
+        for item in [ri.order_item, *ri.order_item.contents.all()]:  # باکس تست با نمونه‌هایش
+            if item.variant_id:
+                lines.append(inventory.StockLine(item.variant_id, ri.quantity))
     reason = StockMovement.Reason.RETURNED if req.kind == R.Kind.RETURN else StockMovement.Reason.RELEASED
     inventory.restock(lines, req.order.number, user, note, reason=reason)
     _mark_returned(req)
@@ -133,7 +136,8 @@ def _restock(req, user, note):
 
 def _mark_returned(req):
     for ri in req.items.all():
-        OrderItem.objects.filter(pk=ri.order_item_id).update(returned_quantity=F("returned_quantity") + ri.quantity)
+        OrderItem.objects.filter(Q(pk=ri.order_item_id) | Q(parent_id=ri.order_item_id)).update(
+            returned_quantity=F("returned_quantity") + ri.quantity)
 
 
 @transaction.atomic
@@ -174,7 +178,7 @@ def partial_cancel(order, quantities, *, reason, user=None, note=""):
     if order.status not in CANCELLABLE:
         raise ReturnError("لغو بخشی فقط پیش از ارسال سفارش ممکن است.")
     clean = _validated(order, quantities)
-    remaining = sum(i.returnable_quantity for i in order.items.all()) - sum(clean.values())
+    remaining = sum(i.returnable_quantity for i in order.items.filter(parent=None)) - sum(clean.values())
     if remaining <= 0:
         raise ReturnError("همه اقلام انتخاب شده‌اند؛ به‌جای لغو بخشی، کل سفارش را لغو کنید.")
     gross = sum(item.unit_price * qty for item, qty in clean.items())

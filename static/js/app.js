@@ -151,6 +151,17 @@
     }
   });
 
+  // باکس تست: شمارش نمونه‌های انتخاب‌شده و قفل بقیه وقتی به سقف رسید
+  document.addEventListener("change", (e) => {
+    const picker = e.target.closest("[data-sample-picker]");
+    if (!picker) return;
+    const boxes = $$("input[name=samples]", picker);
+    const chosen = boxes.filter((b) => b.checked).length;
+    const max = Number(picker.dataset.max);
+    boxes.forEach((b) => { b.disabled = !b.checked && chosen >= max; });
+    picker.querySelector("[data-sample-count]").textContent = chosen.toLocaleString("fa-IR");
+  });
+
   // قیمت متناسب با حجم انتخاب‌شده
   document.addEventListener("change", (e) => {
     const radio = e.target.closest("[data-variant-form] input[name=variant]");

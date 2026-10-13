@@ -5,7 +5,7 @@ from django.views.decorators.http import require_POST
 
 from apps.core.ratelimit import ratelimit
 
-from . import search_log, selectors, services
+from . import samples, search_log, selectors, services
 from .history import remember_view
 from .recommend import similar_products
 from .forms import BackInStockForm, ShopFilterForm
@@ -123,7 +123,7 @@ def product_detail(request, slug):
     except Product.DoesNotExist:
         raise Http404 from None
     remember_view(request, product)
-    variants = list(product.variants.all())
+    variants = sorted(product.variants.all(), key=lambda v: (v.is_decant, v.size_ml))  # شیشه‌ها اول، بعد نمونه‌ها
     return render(request, "catalog/product.html", {
         "product": product,
         "notify_form": _notify_form(request, variants),
@@ -132,6 +132,9 @@ def product_detail(request, slug):
         "related": (selectors.related_products(product) if product.is_accessory
                     else similar_products(product) or selectors.related_products(product)),
         "gift_boxes": [] if product.is_accessory else selectors.gift_boxes(request.store)[:4],
+        "sample_boxes": [] if product.is_accessory else selectors.sample_boxes(request.store)[:3],
+        "sample_choices": (samples.sample_choices(request.store, product.default_variant.size_ml)
+                           if product.is_sample_box and product.default_variant else []),
     })
 
 
@@ -157,6 +160,14 @@ def notify_me(request, slug):
         services.request_back_in_stock(form.cleaned_data["variant"], form.cleaned_data["phone"], request.user)
         done = True
     return render(request, "catalog/partials/notify_me.html", {"product": product, "notify_form": form, "done": done})
+
+
+def samples_page(request):
+    """نمونه و باکس تست: باکس‌های تست و عطرهایی که دکانت دارند."""
+    return render(request, "catalog/samples.html", {
+        "boxes": selectors.sample_boxes(request.store),
+        "perfumes": selectors.with_decants(request.store),
+    })
 
 
 def gift_boxes(request):

@@ -47,15 +47,22 @@ def create_order(cart, form, user=None):
     order.user = user if user and user.is_authenticated else None
     order.save()  # شماره سفارش برای مرجع گردش موجودی لازم است
 
-    wanted = [(line.variant, line.quantity) for line in cart]
+    cart_lines = list(cart)
+    wanted = [(line.variant, line.quantity) for line in cart_lines]
     box = form.cleaned_data.get("gift_box")
     if box is not None:  # باکس هدیه انتخاب‌شده در صفحه تسویه
         wanted.append((box, 1))
     quantities = {}
     for variant, quantity in wanted:
         quantities[variant.pk] = quantities.get(variant.pk, 0) + quantity
+    # نمونه‌های داخل باکس تست: قیمت ندارند ولی از موجودی دکانت همان عطرها کم می‌شوند
+    contents = {line.variant.pk: [(pick, line.quantity) for pick in line.picks] for line in cart_lines if line.picks}
+    reserve_qty = dict(quantities)
+    for picks in contents.values():
+        for pick, quantity in picks:
+            reserve_qty[pick.pk] = reserve_qty.get(pick.pk, 0) + quantity
     variants = inventory.reserve(
-        [inventory.StockLine(pk, quantity) for pk, quantity in quantities.items()], order.number, user=order.user
+        [inventory.StockLine(pk, quantity) for pk, quantity in reserve_qty.items()], order.number, user=order.user
     )
     lines = [_Line(variants[pk], quantity) for pk, quantity in quantities.items()]
 
@@ -87,13 +94,18 @@ def create_order(cart, form, user=None):
         order.reserved_until = timezone.now() + timedelta(minutes=cart.store.config.payment_timeout_minutes)
     order.save()
 
-    OrderItem.objects.bulk_create([
-        OrderItem(
-            order=order, variant=line.variant, product_name=line.variant.product.name,
-            size_ml=0 if line.variant.product.is_accessory else line.variant.size_ml, unit_price=line.unit_price, quantity=line.quantity,
+    for line in lines:
+        product = line.variant.product
+        item = OrderItem.objects.create(
+            order=order, variant=line.variant, product_name=product.name,
+            size_ml=line.variant.size_ml if product.is_sample_box or not product.is_accessory else 0,
+            unit_price=line.unit_price, quantity=line.quantity,
         )
-        for line in lines
-    ])
+        OrderItem.objects.bulk_create([
+            OrderItem(order=order, parent=item, variant=variants[pick.pk], product_name=pick.product.name,
+                      size_ml=pick.size_ml, unit_price=0, quantity=quantity)
+            for pick, quantity in contents.get(line.variant.pk, ())
+        ])
     if coupon:
         record_usage(coupon)
     remember_address(order.user, {f: getattr(order, f) for f in Address.FIELDS})

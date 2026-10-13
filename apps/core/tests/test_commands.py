@@ -31,7 +31,7 @@ def test_seed_demo_builds_full_store(store):
     # موجودی اولیه در دفتر انبار ثبت می‌شود
     assert StockMovement.objects.count() == ProductVariant.objects.count()
     # جستجو برای داده بذر هم کار می‌کند
-    assert Product.objects.exclude(search_document="").count() == 16
+    assert Product.objects.exclude(search_document="").count() == 18
 
 
 def test_seed_demo_is_idempotent_and_reset_rebuilds(store):
@@ -40,12 +40,12 @@ def test_seed_demo_is_idempotent_and_reset_rebuilds(store):
     run("seed_demo")
     assert set(Product.objects.values_list("pk", flat=True)) == first_ids  # تکرار، چیزی تکراری نمی‌سازد
     run("seed_demo", "--reset")
-    assert Product.objects.count() == 16 and not first_ids & set(Product.objects.values_list("pk", flat=True))
+    assert Product.objects.count() == 18 and not first_ids & set(Product.objects.values_list("pk", flat=True))
 
 
 def test_seed_demo_for_another_store(store, other_store):
     run("seed_demo", f"--store={other_store.code}")
-    assert Product.objects.for_store(other_store).count() == 16
+    assert Product.objects.for_store(other_store).count() == 18
     assert Product.objects.for_store(store).count() == 0
 
 
@@ -87,7 +87,7 @@ def test_reindex_tasks(store):
 
 def test_reindex_search_command(store):
     run("seed_demo")
-    assert "ایندکس جستجوی 16 محصول بازسازی شد" in run("reindex_search")
+    assert "ایندکس جستجوی 18 محصول بازسازی شد" in run("reindex_search")
 
 
 def test_send_cart_reminders_command(store):

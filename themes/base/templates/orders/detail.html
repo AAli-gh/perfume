@@ -15,8 +15,8 @@
     <table class="w-full text-sm">
       <thead><tr class="border-b border-line text-cream"><th class="p-2 text-start font-normal">محصول</th><th class="p-2 text-start font-normal">تعداد</th><th class="p-2 text-start font-normal">جمع</th></tr></thead>
       <tbody>
-        {% for item in order.items.all %}
-          <tr class="border-b border-line"><td class="p-2">{{ item.product_name }} {% if item.size_ml %}<small class="text-muted">({{ item.size_ml|fa }} میل)</small>{% endif %}</td><td class="p-2">{{ item.quantity|fa }}</td><td class="p-2">{{ item.line_total|toman }}</td></tr>
+        {% for item in order.line_items %}
+          <tr class="border-b border-line"><td class="p-2">{{ item.product_name }} {% if item.size_ml %}<small class="text-muted">({{ item.size_ml|fa }} میل)</small>{% endif %}{% for c in item.contents.all %}<small class="block text-xs text-muted">• نمونه {{ c.product_name }} ({{ c.size_ml|fa }} میل)</small>{% endfor %}</td><td class="p-2">{{ item.quantity|fa }}</td><td class="p-2">{{ item.line_total|toman }}</td></tr>
         {% endfor %}
       </tbody>
     </table>

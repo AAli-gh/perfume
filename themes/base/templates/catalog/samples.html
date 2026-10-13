@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load seo majd %}
+{% block seo %}{% seo_head title="نمونه عطر و باکس تست" description="قبل از خرید شیشه کامل، عطرها را امتحان کنید: دکانت ۵ و ۱۰ میل از هر عطر، یا باکس تست با چند عطر دلخواه شما." %}{% endblock %}
+{% block content %}
+{% include "components/page_hero.html" with image="img/hero-collections.jpg" title="نمونه عطر و باکس تست" subtitle="عطر را چند روز روی پوست خودتان امتحان کنید، بعد شیشه کامل را با خیال راحت بخرید." %}
+<section class="container py-14">
+  <ol class="mb-10 grid gap-3 text-[.95rem] sm:grid-cols-3">
+    <li class="panel flex gap-3 p-4">{% icon "sparkle" "!h-6 !w-6 shrink-0 text-gold" %}<span><strong class="block text-cream">۱. نمونه یا باکس تست</strong>دکانت یک عطر را بخرید یا چند عطر را در یک باکس تست انتخاب کنید.</span></li>
+    <li class="panel flex gap-3 p-4">{% icon "truck" "!h-6 !w-6 shrink-0 text-gold" %}<span><strong class="block text-cream">۲. امتحان روی پوست</strong>هر عطر را چند ساعت و در موقعیت‌های مختلف بزنید؛ ماندگاری و پخش بو را حس کنید.</span></li>
+    <li class="panel flex gap-3 p-4">{% icon "check" "!h-6 !w-6 shrink-0 text-gold" %}<span><strong class="block text-cream">۳. شیشه کامل</strong>عطری که دوست داشتید را با اطمینان در حجم کامل سفارش دهید.</span></li>
+  </ol>
+  <h2 class="mb-4 text-[1.6rem]">باکس‌های تست</h2>
+  <div class="mb-12 grid grid-cols-2 gap-4 md:grid-cols-3" data-sample-boxes>
+    {% for p in boxes %}{% include "components/product_card.html" %}{% empty %}<p class="col-span-full text-muted">فعلاً باکس تستی موجود نیست.</p>{% endfor %}
+  </div>
+  <h2 class="mb-4 text-[1.6rem]">عطرهایی که نمونه دارند</h2>
+  <p class="mb-5 text-muted">در صفحه هر عطر، از بخش «حجم» گزینه «نمونه» را انتخاب کنید.</p>
+  <div class="grid grid-cols-2 gap-4 md:grid-cols-4">
+    {% for p in perfumes %}{% include "components/product_card.html" %}{% empty %}<p class="col-span-full text-muted">فعلاً نمونه‌ای موجود نیست.</p>{% endfor %}
+  </div>
+</section>
+{% endblock %}

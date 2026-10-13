@@ -191,6 +191,17 @@ def gift_boxes(store):
     return listable_products(store).gift_boxes().order_by("min_price", "pk")
 
 
+def sample_boxes(store):
+    """باکس‌های تست فعال (ارزان‌ترین اول)."""
+    return listable_products(store).sample_boxes().order_by("min_price", "pk")
+
+
+def with_decants(store):
+    """عطرهایی که نمونه (دکانت) موجود دارند."""
+    with_stock = ProductVariant.objects.filter(is_decant=True, stock__gt=0).values("product_id")
+    return listable_products(store).perfumes().filter(pk__in=with_stock).order_by("decant_price", "pk")
+
+
 def gift_cards(store):
     return listable_products(store).filter(kind=Kind.GIFT_CARD).order_by("min_price", "pk")
 
