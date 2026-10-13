@@ -196,6 +196,8 @@ CSP_EXTRA_SOURCES = {}
 # آدرس پنل مدیریت Django (تغییر آن از حملات خودکار به /admin/ جلوگیری می‌کند)
 ADMIN_URL = env("ADMIN_URL", default="admin/")
 CSRF_FAILURE_VIEW = "apps.core.errors.csrf_failure"
+# نشان «خریدار تأییدشده» نظرها: تابعی (user, product) → bool؛ اپ reviews به orders وابسته نمی‌شود
+REVIEWS_PURCHASE_CHECK = "apps.discovery.taste.has_purchased"
 # نشست کارکنان کوتاه‌تر از مشتریان (سبد خرید مشتری ۳۰ روز می‌ماند)
 STAFF_SESSION_AGE = env.int("STAFF_SESSION_AGE", default=60 * 60 * 12)
 # تعداد پراکسی‌های مطمئن جلوی برنامه (nginx) برای تشخیص IP واقعی از X-Forwarded-For

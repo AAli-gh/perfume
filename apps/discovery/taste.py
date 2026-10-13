@@ -25,6 +25,14 @@ def purchased_counts(user, store):
     return counts
 
 
+def has_purchased(user, product):
+    """مشتری این محصول را خریده و سفارشش تحویل شده؟ (نشان «خریدار تأییدشده» نظرها؛ REVIEWS_PURCHASE_CHECK)"""
+    if user is None or not user.is_authenticated:
+        return False
+    return OrderItem.objects.filter(order__user=user, order__store_id=product.store_id,
+                                    order__status=Order.Status.DELIVERED, variant__product=product).exists()
+
+
 def build_taste(request, pool=None):
     """(Taste, منابع)؛ اگر بازدیدکننده هیچ سابقه‌ای نداشته باشد، بدون کوئری محصولات برمی‌گردد."""
     store, user = request.store, request.user

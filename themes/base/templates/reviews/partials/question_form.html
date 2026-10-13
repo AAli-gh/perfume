@@ -1,0 +1,11 @@
+<form id="question-form" class="panel panel-body mt-6 grid gap-3" method="post" action="{% url 'reviews:ask' product.slug %}"
+      hx-post="{% url 'reviews:ask' product.slug %}" hx-target="this" hx-swap="outerHTML">
+  {% csrf_token %}
+  <h3 class="m-0 text-[1.15rem]">پرسشی دارید؟</h3>
+  {% if asked %}<p class="alert alert-ok m-0">پرسش شما ثبت شد؛ پاسخ فروشگاه همین‌جا نمایش داده می‌شود{% if user.is_authenticated %} و برایتان پیامک می‌شود{% endif %}.</p>{% endif %}
+  <div class="grid gap-4">
+    {% include "components/field.html" with field=question_form.name %}
+    {% include "components/field.html" with field=question_form.text %}
+  </div>
+  <div><button class="btn htmx-dim" type="submit">ارسال پرسش</button></div>
+</form>

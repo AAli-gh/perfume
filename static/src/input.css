@@ -131,6 +131,7 @@
   .chip { @apply m-0.5 inline-block rounded-full border border-line px-2.5 py-0.5 text-xs text-body; }
   .chip-shared { @apply border-copper/60 text-gold; }
   .chip-strong { @apply border-copper bg-copper/15 text-gold; }
+  .verified-badge { @apply inline-flex items-center gap-1 rounded-full border border-copper/60 bg-copper/10 px-2 py-0.5 text-[11px] text-gold; }
   .smart-chip { @apply text-sm transition hover:border-danger/70; }
   .smart-chip.is-negated { @apply border-danger/50 text-cream; }
   .smart-chip.is-relaxed { @apply border-dashed text-muted line-through decoration-muted/60; }

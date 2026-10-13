@@ -2,10 +2,15 @@
 
 from django import template
 
-from ..forms import ReviewForm
-from ..selectors import approved_reviews
+from ..forms import QuestionForm, ReviewForm
+from ..selectors import answered_questions, approved_reviews
 
 register = template.Library()
+
+
+def _initial(context):
+    user = context["request"].user
+    return {"name": user.display_name} if user.is_authenticated else {}
 
 
 @register.simple_tag
@@ -18,5 +23,17 @@ def review_form_for(context, product):
     form = context.get("review_form")
     if isinstance(form, ReviewForm):
         return form
-    user = context["request"].user
-    return ReviewForm(initial={"name": user.display_name} if user.is_authenticated else {})
+    return ReviewForm(initial=_initial(context))
+
+
+@register.simple_tag
+def product_questions(product):
+    return answered_questions(product)
+
+
+@register.simple_tag(takes_context=True)
+def question_form_for(context, product):
+    form = context.get("question_form")
+    if isinstance(form, QuestionForm):
+        return form
+    return QuestionForm(initial=_initial(context))

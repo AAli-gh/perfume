@@ -195,8 +195,8 @@
     box.querySelector("[data-price-max]").textContent = FA(hi.value);
   });
 
-  // لینک به تب نظرات
-  if (location.hash === "#reviews") document.querySelector('[aria-controls="tab-reviews"]')?.click();
+  // لینک به تب نظرات یا پرسش و پاسخ (مثلاً ‎#questions‎ پس از ارسال پرسش)
+  if (/^#[\w-]+$/.test(location.hash)) document.querySelector(`[aria-controls="tab-${location.hash.slice(1)}"]`)?.click();
 
   document.addEventListener("DOMContentLoaded", () => init());
   document.addEventListener("htmx:afterSettle", () => init());

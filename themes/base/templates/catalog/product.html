@@ -144,6 +144,7 @@
     <div class="mb-6 flex border-b border-line" role="tablist">
       <button role="tab" aria-selected="true" aria-controls="tab-desc" class="tab-btn">توضیحات</button>
       <button role="tab" aria-selected="false" aria-controls="tab-reviews" class="tab-btn">نظرات مشتریان ({{ product.review_count|fa }})</button>
+      {% product_questions product as questions %}<button role="tab" aria-selected="false" aria-controls="tab-questions" class="tab-btn">پرسش و پاسخ{% if questions %} ({{ questions|length|fa }}){% endif %}</button>
     </div>
     <div id="tab-desc" role="tabpanel" class="max-w-[820px] text-[1.02rem]">
       {{ product.description|linebreaks }}
@@ -152,13 +153,25 @@
     <div id="tab-reviews" role="tabpanel" class="max-w-[820px]" hidden>{% product_reviews product as reviews %}{% review_form_for product as review_form %}
       {% for r in reviews %}
         <article class="border-b border-line py-4 last:border-0">
-          <header class="mb-1.5 flex flex-wrap items-center justify-between gap-2.5"><strong class="font-medium text-cream">{{ r.name }}</strong> {% stars r.rating %} <time class="text-xs text-muted">{{ r.created_at|jdate }}</time></header>
+          <header class="mb-1.5 flex flex-wrap items-center justify-between gap-2.5"><span class="flex flex-wrap items-center gap-2"><strong class="font-medium text-cream">{{ r.name }}</strong>{% if r.is_verified %} <span class="verified-badge">{% icon "check" "!h-3.5 !w-3.5" %} خریدار تأییدشده</span>{% endif %}</span> {% stars r.rating %} <time class="text-xs text-muted">{{ r.created_at|jdate }}</time></header>
           <p class="m-0">{{ r.text|linebreaksbr }}</p>
+          {% if r.photos.all %}<div class="mt-3 flex flex-wrap gap-2">{% for ph in r.photos.all %}<a href="{{ ph.image.url }}" target="_blank" rel="noopener"><img src="{{ ph.image.url }}" alt="عکس {{ r.name }} از {{ product.name }}" class="h-20 w-20 rounded-sm border border-line object-cover" loading="lazy"></a>{% endfor %}</div>{% endif %}
         </article>
       {% empty %}
         <p class="text-muted">هنوز نظری ثبت نشده است. اولین نفر باشید!</p>
       {% endfor %}
       {% include "reviews/partials/review_form.html" %}
+    </div>
+    <div id="tab-questions" role="tabpanel" class="max-w-[820px]" hidden>{% question_form_for product as question_form %}
+      {% for q in questions %}
+        <article class="border-b border-line py-4 last:border-0">
+          <p class="m-0 mb-2 flex gap-2"><b class="text-gold">پرسش</b> <span>{{ q.text|linebreaksbr }} <span class="text-xs text-muted">— {{ q.name }}، {{ q.created_at|jdate }}</span></span></p>
+          {% for a in q.answers.all %}<p class="m-0 mt-1 flex gap-2 ps-4"><b class="text-cream">پاسخ</b> <span>{{ a.text|linebreaksbr }}{% if a.is_staff %} <span class="text-xs text-muted">— {{ SITE.name|default:"فروشگاه" }}</span>{% endif %}</span></p>{% endfor %}
+        </article>
+      {% empty %}
+        <p class="text-muted">هنوز پرسشی پاسخ داده نشده است. سؤالتان درباره این عطر را بپرسید؛ کارشناسان ما پاسخ می‌دهند.</p>
+      {% endfor %}
+      {% include "reviews/partials/question_form.html" %}
     </div>
   </section>
 

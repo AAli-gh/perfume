@@ -114,3 +114,17 @@ def gift_card_sms_task(card_ids, phone=""):
                    "shop_url": card.store.base_url + "/shop/"}
         sent += len(notify_event(card.store, E.GIFT_CARD, context, phone=to, audiences=(E.CUSTOMER,)))
     return sent
+
+
+@shared_task(acks_late=True)
+def question_asked_task(question_id):
+    from .questions import notify_asked
+
+    return notify_asked(question_id)
+
+
+@shared_task(acks_late=True)
+def question_answered_task(answer_id):
+    from .questions import notify_answered
+
+    return notify_answered(answer_id)

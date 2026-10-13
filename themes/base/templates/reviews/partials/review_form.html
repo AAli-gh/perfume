@@ -1,5 +1,6 @@
 <form id="review-form" class="panel panel-body mt-6 grid gap-3" method="post" action="{% url 'reviews:create' product.slug %}"
-      hx-post="{% url 'reviews:create' product.slug %}" hx-target="this" hx-swap="outerHTML">
+      enctype="multipart/form-data" hx-post="{% url 'reviews:create' product.slug %}" hx-encoding="multipart/form-data"
+      hx-target="this" hx-swap="outerHTML">
   {% csrf_token %}
   <h3 class="m-0 text-[1.15rem]">نظر خود را بنویسید</h3>
   {% if submitted %}<p class="alert alert-ok m-0">نظر شما ثبت شد و پس از تأیید مدیر نمایش داده می‌شود. سپاس!</p>{% endif %}
@@ -7,6 +8,10 @@
     {% include "components/field.html" with field=review_form.name %}
     {% include "components/field.html" with field=review_form.rating %}
     {% include "components/field.html" with field=review_form.text class="sm:col-span-2" %}
+    <div class="sm:col-span-2">
+      {% include "components/field.html" with field=review_form.photos %}
+      <p class="m-0 mt-1 text-xs text-muted">{{ review_form.photos.help_text }}{% if user.is_authenticated %} · اگر این عطر را از ما خریده باشید، نظرتان با نشان «خریدار تأییدشده» نمایش داده می‌شود.{% endif %}</p>
+    </div>
   </div>
   <div><button class="btn htmx-dim" type="submit">ثبت نظر</button></div>
 </form>
