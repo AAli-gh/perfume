@@ -140,3 +140,9 @@ def icon(name, cls=""):
     return format_html(
         '<svg class="icon {}" viewBox="0 0 24 24" aria-hidden="true">{}</svg>', cls, mark_safe(ICONS.get(name, ""))
     )
+
+
+@register.filter
+def get_item(mapping, key):
+    """{{ dict|get_item:key }}"""
+    return mapping.get(key) if hasattr(mapping, "get") else None

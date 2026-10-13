@@ -8,6 +8,11 @@ class WishlistItem(models.Model):
         "catalog.Product", on_delete=models.CASCADE, related_name="wishlisted_by", verbose_name="محصول"
     )
     created_at = models.DateTimeField("تاریخ افزودن", auto_now_add=True)
+    price_alert = models.BooleanField("خبرم کن وقتی قیمت پایین آمد", default=True)
+    price_seen = models.PositiveIntegerField(
+        "قیمت مبنا", null=True, blank=True,
+        help_text="قیمت هنگام افزودن (یا آخرین اطلاع‌رسانی)؛ کاهش قیمت نسبت به همین سنجیده می‌شود")
+    price_alerted_at = models.DateTimeField("آخرین اطلاع کاهش قیمت", null=True, blank=True)
 
     class Meta:
         ordering = ["-created_at"]

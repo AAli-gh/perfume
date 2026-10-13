@@ -135,6 +135,8 @@
   .smart-chip.is-negated { @apply border-danger/50 text-cream; }
   .smart-chip.is-relaxed { @apply border-dashed text-muted line-through decoration-muted/60; }
   .decant-hint { @apply mx-auto mt-0.5 rounded-full border border-line px-2.5 py-0.5 text-[.72rem] text-gold-soft; }
+  .price-alert { @apply inline-flex w-full items-center justify-center gap-1.5 rounded border border-line px-3 py-1.5 text-xs text-muted transition hover:border-line-strong hover:text-body; }
+  .price-alert.is-on { @apply border-copper/50 bg-copper/10 text-gold-soft; }
   .sample-pick { @apply flex cursor-pointer items-center gap-3 rounded border border-line bg-input/20 p-2 transition hover:border-line-strong has-[:checked]:border-copper has-[:checked]:bg-copper/10 has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-40; }
   .sample-pick:has(:focus-visible) { @apply outline outline-2 outline-copper; }
   .sample-pick .icon { @apply opacity-0 transition-opacity; }

@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 from apps.core.validators import iran_mobile_validator
@@ -27,6 +28,14 @@ class NotificationSettings(models.Model):
     )
     cart_reminder_hours = models.PositiveSmallIntegerField(
         "یادآوری پس از (ساعت)", default=3, help_text="چند ساعت بعد از آخرین تغییر سبد",
+    )
+    price_drop_enabled = models.BooleanField(
+        "خبر کاهش قیمت علاقه‌مندی‌ها", default=True,
+        help_text="وقتی قیمت محصولی در علاقه‌مندی‌های مشتری پایین بیاید، به او پیامک/ایمیل می‌رود",
+    )
+    price_drop_percent = models.PositiveSmallIntegerField(
+        "حداقل کاهش (درصد)", default=5, validators=[MinValueValidator(1), MaxValueValidator(90)],
+        help_text="فقط کاهش‌های دست‌کم این‌قدر اطلاع داده می‌شوند",
     )
     staff_2fa_enabled = models.BooleanField(
         "ورود دومرحله‌ای کارکنان", default=False,

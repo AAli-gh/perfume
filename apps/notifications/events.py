@@ -19,6 +19,7 @@ CART_REMINDER = "cart_reminder"
 CAMPAIGN = "campaign"
 GIFT_CARD = "gift_card"
 RETURN_UPDATE = "return_update"
+PRICE_DROP = "price_drop"
 
 EVENT_CHOICES = [
     (ORDER_PLACED, "ثبت سفارش"),
@@ -35,6 +36,7 @@ EVENT_CHOICES = [
     (CAMPAIGN, "پیامک گروهی به مشتریان"),
     (GIFT_CARD, "ارسال کارت هدیه"),
     (RETURN_UPDATE, "مرجوعی و لغو بخشی"),
+    (PRICE_DROP, "کاهش قیمت علاقه‌مندی"),
 ]
 
 # وضعیت جدید سفارش ← رویداد
@@ -58,6 +60,7 @@ NON_ORDER_EVENTS = {
     CAMPAIGN: ("store", "name", "code", "percent", "message", "shop_url"),
     GIFT_CARD: ("store", "name", "code", "amount", "sender", "message", "expires", "shop_url"),
     RETURN_UPDATE: ("store", "name", "number", "kind", "status", "amount", "order_url"),
+    PRICE_DROP: ("store", "name", "product", "old_price", "new_price", "percent", "product_url"),
 }
 EVENT_VARS = {event: ORDER_VARS for event, _ in EVENT_CHOICES if event not in NON_ORDER_EVENTS}
 EVENT_VARS.update(NON_ORDER_EVENTS)
@@ -130,6 +133,12 @@ DEFAULT_RULES = [
     DefaultRule(RETURN_UPDATE, SMS, CUSTOMER, True,
                 "{name} عزیز، {kind} سفارش {number}: {status}. مبلغ: {amount}\n{order_url}"),
     DefaultRule(RETURN_UPDATE, SMS, STAFF, True, "{kind} جدید برای سفارش {number} — {amount}"),
+    DefaultRule(PRICE_DROP, SMS, CUSTOMER, True,
+                "{name} عزیز، قیمت «{product}» در {store} {percent}٪ کم شد: {new_price} (قبلاً {old_price})\n{product_url}"),
+    DefaultRule(PRICE_DROP, EMAIL, CUSTOMER, True,
+                "{name} عزیز، قیمت «{product}» که در علاقه‌مندی‌های شماست {percent}٪ کم شد.\n"
+                "قیمت جدید: {new_price} (قبلاً {old_price})\n{product_url}",
+                subject="کاهش قیمت: {product}"),
     DefaultRule(GIFT_CARD, SMS, CUSTOMER, True,
                 "کارت هدیه {amount} از طرف {sender} در {store}\nکد: {code}\n{message}\n{shop_url}"),
 ]

@@ -44,6 +44,15 @@ def send_cart_reminders_task():
     return sum(send_reminders(store) for store in Store.objects.all())
 
 
+@shared_task
+def send_price_drop_alerts_task():
+    from apps.core.models import Store
+
+    from .price_drop import send_alerts
+
+    return sum(send_alerts(store) for store in Store.objects.all())
+
+
 @shared_task(acks_late=True)
 def notify_return_task(request_id, status):
     """پیامک وضعیت مرجوعی به مشتری؛ «درخواست جدید» (ثبت مشتری) به مدیران هم خبر داده می‌شود."""

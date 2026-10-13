@@ -1,0 +1,7 @@
+<form id="price-alert-{{ p.pk }}" method="post" action="{% url 'wishlist:price_alert' p.pk %}"
+      hx-post="{% url 'wishlist:price_alert' p.pk %}" hx-target="this" hx-swap="outerHTML">{% csrf_token %}
+  <input type="hidden" name="enabled" value="{% if on %}0{% else %}1{% endif %}">
+  <button type="submit" class="price-alert {% if on %}is-on{% endif %}" aria-pressed="{% if on %}true{% else %}false{% endif %}">
+    {% icon "sparkle" "!h-4 !w-4" %}{% if on %}خبر کاهش قیمت: روشن{% else %}خبر کاهش قیمت: خاموش{% endif %}
+  </button>
+</form>

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load seo %}
+{% load seo majd %}
 {% block seo %}{% seo_head title="علاقه‌مندی‌ها" %}{% endblock %}
 {% block content %}
 <div class="container py-14">
@@ -8,8 +8,10 @@
     <a href="{% url 'accounts:profile' %}">بازگشت به حساب کاربری ←</a>
   </div>
   {% if products %}
+    {% if price_drop_on %}<p class="mb-5 flex items-center gap-2 text-sm text-muted">{% icon "sparkle" "!h-4 !w-4 text-gold" %} وقتی قیمت هر کدام از این‌ها پایین بیاید، با پیامک خبرتان می‌کنیم. برای هر محصول می‌توانید این را خاموش کنید.</p>{% endif %}
     <div class="grid grid-cols-2 gap-3 sm:gap-[18px] md:grid-cols-3 xl:grid-cols-4">
-      {% for p in products %}{% include "components/product_card.html" %}{% endfor %}
+      {% for p in products %}<div class="flex flex-col gap-2">{% include "components/product_card.html" %}
+        {% if price_drop_on %}{% with on=alerts|get_item:p.pk %}{% include "wishlist/partials/price_alert.html" %}{% endwith %}{% endif %}</div>{% endfor %}
     </div>
   {% else %}
     <div class="rounded border border-dashed border-line px-5 py-16 text-center text-muted">

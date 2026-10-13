@@ -7,7 +7,7 @@ from django.views.decorators.http import require_POST
 
 from apps.catalog.models import Product
 
-from .services import toggle, wishlist_products
+from .services import price_alerts, set_price_alert, toggle, wishlist_products
 from apps.core.ratelimit import ratelimit
 
 
@@ -29,4 +29,21 @@ def toggle_view(request, product_id):
 
 @login_required
 def list_view(request):
-    return render(request, "wishlist/list.html", {"products": wishlist_products(request.user, request.store)})
+    from apps.notifications.services import settings_for
+
+    return render(request, "wishlist/list.html", {
+        "products": wishlist_products(request.user, request.store), "alerts": price_alerts(request.user),
+        "price_drop_on": settings_for(request.store).price_drop_enabled,
+    })
+
+
+@login_required
+@require_POST
+def price_alert_view(request, product_id):
+    """روشن/خاموش کردن «خبرم کن وقتی قیمت پایین آمد» برای یک محصول علاقه‌مندی."""
+    product = get_object_or_404(Product.objects.for_store(request.store), pk=product_id)
+    enabled = request.POST.get("enabled") == "1"
+    set_price_alert(request.user, product, enabled)
+    if request.htmx:
+        return render(request, "wishlist/partials/price_alert.html", {"p": product, "on": enabled})
+    return redirect("wishlist:list")
