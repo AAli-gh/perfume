@@ -160,6 +160,15 @@ def test_size_and_price_on_same_variant(shop):
 
 
 @pytest.mark.django_db
+def test_price_ignores_decants_unless_size_is_asked(shop):
+    # دکانت ۵ میلی ارزان، «زیر ۳ میلیون» را برای کبالت (شیشه از ۳٫۴ میلیون) برآورده نمی‌کند
+    VariantFactory(product=shop["cobalt"], size_ml=5, is_decant=True, price=150_000)
+    names, result = find(shop, "خنک زیر ۳ میلیون")
+    assert set(names) == {"نسیم", "آکوا"} and not result.relaxed
+    assert find(shop, "۵ میل زیر ۳ میلیون")[0] == ["کبالت"]
+
+
+@pytest.mark.django_db
 def test_sort_from_query_and_explicit_sort_wins(shop):
     assert find(shop, "خنک ارزان")[0] == ["نسیم", "آکوا", "کبالت"]
     assert find(shop, "خنک ارزان", sort="-price")[0] == ["کبالت", "آکوا", "نسیم"]

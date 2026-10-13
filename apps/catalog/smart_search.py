@@ -835,6 +835,9 @@ def apply(products, parsed, vocab):
             variant_q &= Q(size_ml=c.value)
         elif c.kind == "stock":
             variant_q &= Q(stock__gt=0)
+    if any(c.kind == "price" for c in crit) and not any(c.kind == "size" for c in crit):
+        # «زیر ۳ میلیون» یعنی قیمت شیشه (مثل «از …» کارت محصول)، نه دکانت ۵ میلی؛ با حجم صریح دکانت هم حساب است
+        variant_q &= Q(is_decant=False)
     if variant_q:
         variants = ProductVariant.objects.annotate(current=effective_price())
         products = products.filter(Exists(variants.filter(variant_q, product=OuterRef("pk"))))
